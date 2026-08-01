@@ -4,10 +4,9 @@
  "autoname": "hash",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["dataset_release", "record_key", "ifsc_code", "bank_name", "branch", "address", "city", "district", "state"],
+ "field_order": ["dataset_release", "ifsc_code", "bank_name", "branch", "address", "city", "district", "state"],
  "fields": [
   {"fieldname": "dataset_release", "fieldtype": "Link", "label": "Dataset Release", "options": "Toolbox Dataset Release", "read_only": 1, "reqd": 1},
-  {"fieldname": "record_key", "fieldtype": "Data", "label": "Record Key", "read_only": 1, "reqd": 1, "unique": 1},
   {"fieldname": "ifsc_code", "fieldtype": "Data", "label": "IFSC", "read_only": 1, "reqd": 1, "search_index": 1},
   {"fieldname": "bank_name", "fieldtype": "Data", "label": "Bank", "read_only": 1, "reqd": 1, "search_index": 1},
   {"fieldname": "branch", "fieldtype": "Data", "label": "Branch", "read_only": 1, "reqd": 1, "search_index": 1},

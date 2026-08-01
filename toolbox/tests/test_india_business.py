@@ -1,3 +1,4 @@
+import hashlib
 from unittest.mock import patch
 
 import frappe
@@ -56,7 +57,10 @@ class TestIndiaBusinessData(UnitTestCase):
 
 		self.assertEqual(result, {"record_count": 1, "exclusion_count": 1, "duplicate_count": 1})
 		inserted = bulk_insert.call_args.args[1][0]
-		self.assertEqual(inserted["record_key"], "pin:release:560001|bangalore g.p.o.|bengaluru|karnataka")
+		# name is the stable hash of the release-scoped key; the key is not stored.
+		expected_key = "pin:release:560001|bangalore g.p.o.|bengaluru|karnataka"
+		self.assertEqual(inserted["name"], hashlib.sha256(expected_key.encode()).hexdigest()[:40])
+		self.assertNotIn("record_key", inserted)
 
 
 class TestIndiaBusinessApi(UnitTestCase):

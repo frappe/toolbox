@@ -133,11 +133,12 @@ def stage_rows(
 			duplicate_count += 1
 			continue
 		seen.add(business_key)
+		# The release-scoped key derives a stable unique name; it is not stored as a
+		# column (redundant with name, and long PIN keys overflow a Data field).
 		record_key = f"{release_name}:{business_key}"
 		batch.append({
 			"name": hashlib.sha256(record_key.encode()).hexdigest()[:40],
 			"dataset_release": release_name,
-			"record_key": record_key,
 			**{key: value for key, value in normalized.items() if key != "business_key"},
 		})
 		if len(batch) == BATCH_SIZE:

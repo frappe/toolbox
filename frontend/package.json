@@ -1,0 +1,36 @@
+{
+  "name": "toolbox-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --project=chromium --grep @smoke",
+    "test:e2e:headed": "playwright test --project=chromium --headed"
+  },
+  "dependencies": {
+    "frappe-ui": "^1.0.0-beta.28",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vitest/coverage-v8": "4.1.7",
+    "@vue/test-utils": "2.4.11",
+    "autoprefixer": "^10.4.2",
+    "jsdom": "29.1.1",
+    "postcss": "^8.4.5",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.1",
+    "vitest": "4.1.7"
+  }
+}

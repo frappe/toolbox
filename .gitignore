@@ -35,6 +35,10 @@ venv.bak/
 # Dependency directories
 node_modules/
 jspm_packages/
+playwright-report/
+test-results/
+toolbox/public/frontend/
+toolbox/www/toolbox.html
 
 # IDEs and editors
 .vscode/

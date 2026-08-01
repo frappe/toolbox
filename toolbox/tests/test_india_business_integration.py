@@ -156,6 +156,22 @@ class TestIndiaBusinessImports(IntegrationTestCase):
 			frappe.db.rollback()
 			self.assertEqual(frappe.db.get_value(RELEASE_DOCTYPE, release_key, "status"), "Failed")
 
+	def test_ifsc_search_ranks_code_matches_above_names_and_dedupes(self) -> None:
+		with TemporaryDirectory() as directory:
+			path = self._write(
+				directory,
+				"ifsc-rank.csv",
+				"IFSC,BANK,BRANCH,ADDRESS,CITY,DISTRICT,STATE\n"
+				"HDFC0000001,Alpha Bank,Central,Addr,Alphapur,Alphapur,State One\n"
+				"ALPH0000002,Beta Bank,Alpha Road,Addr,Betapur,Betapur,State Two\n",
+			)
+			import_csv(str(path), self._metadata("IFSC", "rank-1"))
+
+			codes = [row["ifsc_code"] for row in search_ifsc("ALPH")["results"]]
+			# Code-prefix match (ALPH0000002) outranks the bank-name match (Alpha Bank);
+			# ALPH0000002 also matches on branch "Alpha Road" but appears only once.
+			self.assertEqual(codes, ["ALPH0000002", "HDFC0000001"])
+
 	@staticmethod
 	def _write(directory: str, filename: str, content: str) -> Path:
 		path = Path(directory) / filename

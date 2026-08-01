@@ -25,20 +25,16 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 		return _unavailable("PIN")
 
 	record = frappe.qb.DocType(PIN_DOCTYPE)
-	prefix = _like_prefix(term)
-	condition = record.pin_code == term if term.isdigit() and len(term) == 6 else (
-		record.pin_code.like(prefix)
-		| record.office_name.like(prefix)
-		| record.district.like(prefix)
-		| record.state.like(prefix)
-	)
-	rows = (
-		frappe.qb.from_(record)
-		.select(record.pin_code, record.office_name, record.office_type, record.delivery_status, record.district, record.state)
-		.where((record.dataset_release == release.name) & condition)
-		.orderby(record.pin_code, record.office_name)
-		.limit(_limit(limit))
-	).run(as_dict=True)
+	fields = (record.pin_code, record.office_name, record.office_type, record.delivery_status, record.district, record.state)
+	count = _limit(limit)
+	if term.isdigit() and len(term) == 6:
+		rows = _indexed_query(record, fields, release.name, record.pin_code == term, record.office_name, count)
+	else:
+		rows = _prefix_search(
+			record, fields, release.name, _like_prefix(term), count,
+			columns=(record.pin_code, record.office_name, record.district, record.state),
+			identity=lambda row: (row["pin_code"], row["office_name"], row["district"], row["state"]),
+		)
 	return _search_payload(release, rows)
 
 
@@ -51,22 +47,46 @@ def search_ifsc(query: str, limit: int = 10) -> dict[str, object]:
 		return _unavailable("IFSC")
 
 	record = frappe.qb.DocType(IFSC_DOCTYPE)
-	prefix = _like_prefix(term)
-	condition = record.ifsc_code == term if len(term) == 11 else (
-		record.ifsc_code.like(prefix)
-		| record.bank_name.like(prefix)
-		| record.branch.like(prefix)
-		| record.city.like(prefix)
-		| record.state.like(prefix)
-	)
-	rows = (
-		frappe.qb.from_(record)
-		.select(record.ifsc_code, record.bank_name, record.branch, record.address, record.city, record.district, record.state)
-		.where((record.dataset_release == release.name) & condition)
-		.orderby(record.ifsc_code)
-		.limit(_limit(limit))
-	).run(as_dict=True)
+	fields = (record.ifsc_code, record.bank_name, record.branch, record.address, record.city, record.district, record.state)
+	count = _limit(limit)
+	if len(term) == 11:
+		rows = _indexed_query(record, fields, release.name, record.ifsc_code == term, record.ifsc_code, count)
+	else:
+		rows = _prefix_search(
+			record, fields, release.name, _like_prefix(term), count,
+			columns=(record.ifsc_code, record.bank_name, record.branch, record.city, record.state),
+			identity=lambda row: row["ifsc_code"],
+		)
 	return _search_payload(release, rows)
+
+
+def _indexed_query(record, fields, release_name, condition, order_field, limit):
+	return (
+		frappe.qb.from_(record)
+		.select(*fields)
+		.where((record.dataset_release == release_name) & condition)
+		.orderby(order_field)
+		.limit(limit)
+	).run(as_dict=True)
+
+
+def _prefix_search(record, fields, release_name, prefix, limit, columns, identity):
+	"""Search each column with its own indexed prefix query, then merge by column
+	priority and de-duplicate. Each sub-query uses the (dataset_release, column)
+	composite index for both filter and order, so LIMIT stops early — avoiding the
+	full-release scan and filesort that a single OR-across-columns query triggers when
+	a term matches many rows. Earlier columns rank higher (code/pincode before names)."""
+	seen: set = set()
+	merged: list = []
+	for column in columns:
+		for row in _indexed_query(record, fields, release_name, column.like(prefix), column, limit):
+			key = identity(row)
+			if key not in seen:
+				seen.add(key)
+				merged.append(row)
+		if len(merged) >= limit:
+			break
+	return merged[:limit]
 
 
 def _active_metadata(dataset_type: str) -> dict[str, object] | None:

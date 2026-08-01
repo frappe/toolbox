@@ -1,0 +1,28 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["dataset_release", "record_key", "pin_code", "office_name", "office_type", "delivery_status", "district", "state", "division", "region", "circle"],
+ "fields": [
+  {"fieldname": "dataset_release", "fieldtype": "Link", "label": "Dataset Release", "options": "Toolbox Dataset Release", "read_only": 1, "reqd": 1},
+  {"fieldname": "record_key", "fieldtype": "Data", "label": "Record Key", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "pin_code", "fieldtype": "Data", "label": "PIN Code", "read_only": 1, "reqd": 1, "search_index": 1},
+  {"fieldname": "office_name", "fieldtype": "Data", "label": "Office Name", "read_only": 1, "reqd": 1, "search_index": 1},
+  {"fieldname": "office_type", "fieldtype": "Data", "label": "Office Type", "read_only": 1},
+  {"fieldname": "delivery_status", "fieldtype": "Data", "label": "Delivery Status", "read_only": 1},
+  {"fieldname": "district", "fieldtype": "Data", "label": "District", "read_only": 1, "reqd": 1, "search_index": 1},
+  {"fieldname": "state", "fieldtype": "Data", "label": "State", "read_only": 1, "reqd": 1, "search_index": 1},
+  {"fieldname": "division", "fieldtype": "Data", "label": "Division", "read_only": 1},
+  {"fieldname": "region", "fieldtype": "Data", "label": "Region", "read_only": 1},
+  {"fieldname": "circle", "fieldtype": "Data", "label": "Circle", "read_only": 1}
+ ],
+ "index_web_pages_for_search": 0,
+ "module": "Toolbox",
+ "name": "Toolbox PIN Record",
+ "permissions": [{"read": 1, "role": "System Manager"}],
+ "sort_field": "pin_code",
+ "sort_order": "ASC",
+ "states": []
+}

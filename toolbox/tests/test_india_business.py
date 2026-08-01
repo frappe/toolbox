@@ -54,7 +54,7 @@ class TestIndiaBusinessData(UnitTestCase):
 		with patch("toolbox.india_business_data._bulk_insert") as bulk_insert:
 			result = stage_rows("PIN", rows, "pin:release")
 
-		self.assertEqual(result, {"record_count": 1, "exclusion_count": 2})
+		self.assertEqual(result, {"record_count": 1, "exclusion_count": 1, "duplicate_count": 1})
 		inserted = bulk_insert.call_args.args[1][0]
 		self.assertEqual(inserted["record_key"], "pin:release:560001|bangalore g.p.o.|bengaluru|karnataka")
 

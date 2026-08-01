@@ -76,11 +76,11 @@ def _import_csv_locked(
 	release_key = f"{metadata.dataset_type.lower()}:{checksum}"
 	existing = frappe.db.get_value(RELEASE_DOCTYPE, release_key, ["name", "status"], as_dict=True)
 	if existing:
-		if existing.status == "Active":
-			return _release_payload(existing.name)
-		if existing.status == "Superseded":
-			result = _release_payload(existing.name)
-			_activate_release(existing.name, metadata.dataset_type, result)
+		# Idempotent by dataset type + checksum: an already-imported dataset is returned
+		# as-is. A Superseded release is never reactivated here — re-running an old import
+		# command must not demote a newer Active release. Only an incomplete prior attempt
+		# (Staged/Failed) is cleared and retried.
+		if existing.status in ("Active", "Superseded"):
 			return _release_payload(existing.name)
 		_delete_release_rows(existing.name, metadata.dataset_type)
 		frappe.delete_doc(RELEASE_DOCTYPE, existing.name, ignore_permissions=True)
@@ -99,6 +99,10 @@ def _import_csv_locked(
 			"failure_reason": str(error)[:500],
 			"imported_at": now_datetime(),
 		})
+		# Commit the failure marker (and the staged-row cleanup) so it survives the
+		# rollback the caller performs when the re-raised exception propagates. The
+		# active release from any prior import lives in its own committed transaction.
+		frappe.db.commit()
 		raise
 
 	return _release_payload(release.name)
@@ -115,15 +119,18 @@ def stage_rows(
 	batch = []
 	record_count = 0
 	exclusion_count = 0
+	duplicate_count = 0
 
 	for row in rows:
 		normalized = normalizer(row)
 		if normalized is None:
+			# Row lacks a required field or is malformed (spec §8.8 "exclusion").
 			exclusion_count += 1
 			continue
 		business_key = normalized["business_key"]
 		if business_key in seen:
-			exclusion_count += 1
+			# Same record appears earlier in this file — counted apart from exclusions.
+			duplicate_count += 1
 			continue
 		seen.add(business_key)
 		record_key = f"{release_name}:{business_key}"
@@ -141,7 +148,11 @@ def stage_rows(
 	if batch:
 		_bulk_insert(doctype, batch)
 		record_count += len(batch)
-	return {"record_count": record_count, "exclusion_count": exclusion_count}
+	return {
+		"record_count": record_count,
+		"exclusion_count": exclusion_count,
+		"duplicate_count": duplicate_count,
+	}
 
 
 def normalize_pin_row(row: Mapping[str, object]) -> dict[str, str] | None:
@@ -216,20 +227,37 @@ def _create_release(release_key: str, checksum: str, metadata: ImportMetadata):
 
 def _activate_release(release_name: str, dataset_type: DatasetType, result: dict[str, int]) -> None:
 	frappe.db.get_value(RELEASE_DOCTYPE, release_name, "name", for_update=True)
-	active_names = frappe.get_all(
+	previous_active = frappe.get_all(
 		RELEASE_DOCTYPE,
 		filters={"dataset_type": dataset_type, "status": "Active"},
 		pluck="name",
 	)
-	for active_name in active_names:
+	for active_name in previous_active:
 		frappe.db.set_value(RELEASE_DOCTYPE, active_name, "status", "Superseded")
 	frappe.db.set_value(RELEASE_DOCTYPE, release_name, {
 		"status": "Active",
 		"record_count": result["record_count"],
 		"exclusion_count": result["exclusion_count"],
+		"duplicate_count": result["duplicate_count"],
 		"imported_at": now_datetime(),
 		"failure_reason": "",
 	})
+	# Retain rows for the new active release and the generation it just superseded
+	# (the immediately-previous release, kept for fast rollback); drop older ones.
+	_prune_superseded_rows(dataset_type, keep=set(previous_active))
+
+
+def _prune_superseded_rows(dataset_type: DatasetType, keep: set[str]) -> None:
+	doctype = PIN_DOCTYPE if dataset_type == "PIN" else IFSC_DOCTYPE
+	superseded = frappe.get_all(
+		RELEASE_DOCTYPE,
+		filters={"dataset_type": dataset_type, "status": "Superseded"},
+		pluck="name",
+	)
+	for name in superseded:
+		if name not in keep:
+			# Release metadata row stays for history; only its bulky record rows go.
+			frappe.db.delete(doctype, {"dataset_release": name})
 
 
 def _bulk_insert(doctype: str, rows: list[dict[str, str]]) -> None:
@@ -246,7 +274,7 @@ def _release_payload(name: str) -> dict[str, object]:
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		name,
-		["name", "dataset_type", "status", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count"],
+		["name", "dataset_type", "status", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count"],
 		as_dict=True,
 	)
 

@@ -4,7 +4,7 @@
  "autoname": "field:release_key",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["release_key", "dataset_type", "status", "source_name", "source_url", "license_name", "license_url", "attribution", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "failure_reason"],
+ "field_order": ["release_key", "dataset_type", "status", "source_name", "source_url", "license_name", "license_url", "attribution", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count", "failure_reason"],
  "fields": [
   {"fieldname": "release_key", "fieldtype": "Data", "label": "Release Key", "read_only": 1, "reqd": 1, "unique": 1},
   {"fieldname": "dataset_type", "fieldtype": "Select", "label": "Dataset Type", "options": "PIN\nIFSC", "read_only": 1, "reqd": 1},
@@ -20,6 +20,7 @@
   {"fieldname": "checksum", "fieldtype": "Data", "label": "SHA-256", "read_only": 1, "reqd": 1},
   {"default": "0", "fieldname": "record_count", "fieldtype": "Int", "label": "Record Count", "read_only": 1, "reqd": 1},
   {"default": "0", "fieldname": "exclusion_count", "fieldtype": "Int", "label": "Exclusion Count", "read_only": 1, "reqd": 1},
+  {"default": "0", "fieldname": "duplicate_count", "fieldtype": "Int", "label": "Duplicate Count", "read_only": 1, "reqd": 1},
   {"fieldname": "failure_reason", "fieldtype": "Small Text", "label": "Failure Reason", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,

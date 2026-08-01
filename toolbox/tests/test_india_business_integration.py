@@ -16,9 +16,17 @@ from toolbox.india_business_data import (
 
 
 class TestIndiaBusinessImports(IntegrationTestCase):
+	def setUp(self) -> None:
+		self._purge_datasets()
+
 	def tearDown(self) -> None:
+		self._purge_datasets()
+
+	@staticmethod
+	def _purge_datasets() -> None:
 		# A failed import commits its Failed marker, so it escapes the framework's
-		# per-test rollback. Purge release and record rows to isolate each test.
+		# per-test rollback. Purge on both ends to isolate each test from committed
+		# leftovers (its own and any prior import run).
 		frappe.db.rollback()
 		for doctype in (PIN_DOCTYPE, IFSC_DOCTYPE, RELEASE_DOCTYPE):
 			frappe.db.delete(doctype)

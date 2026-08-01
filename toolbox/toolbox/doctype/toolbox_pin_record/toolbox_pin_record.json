@@ -4,10 +4,9 @@
  "autoname": "hash",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["dataset_release", "record_key", "pin_code", "office_name", "office_type", "delivery_status", "district", "state", "division", "region", "circle"],
+ "field_order": ["dataset_release", "pin_code", "office_name", "office_type", "delivery_status", "district", "state", "division", "region", "circle"],
  "fields": [
   {"fieldname": "dataset_release", "fieldtype": "Link", "label": "Dataset Release", "options": "Toolbox Dataset Release", "read_only": 1, "reqd": 1},
-  {"fieldname": "record_key", "fieldtype": "Data", "label": "Record Key", "read_only": 1, "reqd": 1, "unique": 1},
   {"fieldname": "pin_code", "fieldtype": "Data", "label": "PIN Code", "read_only": 1, "reqd": 1, "search_index": 1},
   {"fieldname": "office_name", "fieldtype": "Data", "label": "Office Name", "read_only": 1, "reqd": 1, "search_index": 1},
   {"fieldname": "office_type", "fieldtype": "Data", "label": "Office Type", "read_only": 1},

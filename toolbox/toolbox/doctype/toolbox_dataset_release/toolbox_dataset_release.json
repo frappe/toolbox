@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:release_key",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["release_key", "dataset_type", "status", "source_name", "source_url", "license_name", "license_url", "attribution", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "failure_reason"],
+ "fields": [
+  {"fieldname": "release_key", "fieldtype": "Data", "label": "Release Key", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "dataset_type", "fieldtype": "Select", "label": "Dataset Type", "options": "PIN\nIFSC", "read_only": 1, "reqd": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Staged\nActive\nFailed\nSuperseded", "read_only": 1, "reqd": 1},
+  {"fieldname": "source_name", "fieldtype": "Data", "label": "Source", "read_only": 1, "reqd": 1},
+  {"fieldname": "source_url", "fieldtype": "Data", "label": "Source URL", "read_only": 1, "reqd": 1},
+  {"fieldname": "license_name", "fieldtype": "Data", "label": "License", "read_only": 1, "reqd": 1},
+  {"fieldname": "license_url", "fieldtype": "Data", "label": "License URL", "read_only": 1, "reqd": 1},
+  {"fieldname": "attribution", "fieldtype": "Small Text", "label": "Attribution", "read_only": 1, "reqd": 1},
+  {"fieldname": "version", "fieldtype": "Data", "label": "Version", "read_only": 1, "reqd": 1},
+  {"fieldname": "source_updated_at", "fieldtype": "Datetime", "label": "Source Updated At", "read_only": 1, "reqd": 1},
+  {"fieldname": "imported_at", "fieldtype": "Datetime", "label": "Imported At", "read_only": 1},
+  {"fieldname": "checksum", "fieldtype": "Data", "label": "SHA-256", "read_only": 1, "reqd": 1},
+  {"default": "0", "fieldname": "record_count", "fieldtype": "Int", "label": "Record Count", "read_only": 1, "reqd": 1},
+  {"default": "0", "fieldname": "exclusion_count", "fieldtype": "Int", "label": "Exclusion Count", "read_only": 1, "reqd": 1},
+  {"fieldname": "failure_reason", "fieldtype": "Small Text", "label": "Failure Reason", "read_only": 1}
+ ],
+ "index_web_pages_for_search": 0,
+ "module": "Toolbox",
+ "name": "Toolbox Dataset Release",
+ "naming_rule": "By fieldname",
+ "permissions": [{"create": 1, "delete": 1, "read": 1, "role": "System Manager", "write": 1}],
+ "sort_field": "source_updated_at",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -12,6 +12,7 @@ from typing import Protocol
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Count, Max
+from frappe.rate_limiter import rate_limit
 
 from toolbox.hsn_contract import HSN_DOCTYPE, OPTIONAL_FIELDS, SOURCE_URL, inspect_hsn_contract
 
@@ -21,6 +22,7 @@ REVISION_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=30, seconds=60)
 def get_hsn_catalog(known_revision: str | None = None) -> dict[str, object]:
 	"""Return public HSN codes and descriptions from the installed site master."""
 	return HsnCatalogService(FrappeHsnRepository()).get(known_revision)
@@ -95,7 +97,7 @@ class FrappeHsnRepository:
 			HSN_DOCTYPE,
 			fields=fields,
 			order_by="hsn_code asc",
-			limit_page_length=MAX_RECORDS + 1,
+			limit=MAX_RECORDS + 1,
 		)
 
 

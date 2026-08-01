@@ -10,6 +10,7 @@ from typing import Callable
 import frappe
 from frappe import _
 from frappe.exceptions import ServiceUnavailableError
+from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
 
 from toolbox.currency_provider import CurrencyProviderError, EcbReferenceRateProvider
@@ -21,6 +22,7 @@ STALE_SECONDS = 30 * 24 * 60 * 60
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=60, seconds=60)
 def get_reference_rates() -> dict[str, object]:
 	"""Return public ECB rates. User conversion inputs never reach this endpoint."""
 	return CurrencyRateService().get()

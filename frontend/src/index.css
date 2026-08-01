@@ -1,0 +1,62 @@
+@import 'frappe-ui/style.css';
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Frappe gray 5 misses AA contrast on Toolbox's light surfaces. */
+.text-ink-gray-5 {
+  color: var(--ink-gray-6);
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-direction: column;
+  border-radius: 8px;
+  color: var(--ink-gray-6);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mobile-nav-item:focus-visible {
+  outline: 2px solid var(--outline-gray-3);
+  outline-offset: -2px;
+}
+
+[data-density='compact'] main .group > a {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+[data-surface='flush'] .bg-surface-gray-1 {
+  background-color: var(--surface-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

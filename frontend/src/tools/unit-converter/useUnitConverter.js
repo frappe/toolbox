@@ -1,0 +1,255 @@
+import { computed, ref } from 'vue'
+
+import { convert, UnitConversionError } from './converter'
+import { conversionRegistry, getCategory, getUnit } from './registry'
+import { useRecentUnitPairs } from './recentPairs'
+
+export const DEFAULT_CATEGORY_ID = 'length'
+export const DEFAULT_UNIT_PAIRS = Object.freeze({
+  length: Object.freeze({ fromUnitId: 'meter', toUnitId: 'kilometer' }),
+  area: Object.freeze({ fromUnitId: 'square-meter', toUnitId: 'square-foot' }),
+  volume: Object.freeze({ fromUnitId: 'liter', toUnitId: 'us-gallon' }),
+  mass: Object.freeze({ fromUnitId: 'kilogram', toUnitId: 'pound' }),
+  temperature: Object.freeze({ fromUnitId: 'celsius', toUnitId: 'fahrenheit' }),
+  speed: Object.freeze({ fromUnitId: 'kilometer-per-hour', toUnitId: 'mile-per-hour' }),
+  time: Object.freeze({ fromUnitId: 'minute', toUnitId: 'hour' }),
+  'digital-storage': Object.freeze({ fromUnitId: 'megabyte', toUnitId: 'gigabyte' }),
+  'fuel-consumption': Object.freeze({
+    fromUnitId: 'liter-per-100-kilometers',
+    toUnitId: 'mile-per-us-gallon',
+  }),
+})
+
+export function useUnitConverter(options = {}) {
+  const recentPairs = useRecentUnitPairs(options.storage)
+  const categoryId = ref(DEFAULT_CATEGORY_ID)
+  const fromUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].fromUnitId)
+  const toUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].toUnitId)
+  const fromInput = ref('')
+  const toInput = ref('')
+  const lastEditedSide = ref('from')
+  const errorMessage = ref('')
+  const inputHint = ref('')
+  const copyMessage = ref('')
+  const conversionAnnouncement = ref('')
+
+  const category = computed(() => getCategory(categoryId.value))
+  const fromUnit = computed(() => getUnit(fromUnitId.value))
+  const toUnit = computed(() => getUnit(toUnitId.value))
+  const copyValue = computed(() =>
+    lastEditedSide.value === 'from' ? toInput.value : fromInput.value,
+  )
+  const copyUnit = computed(() =>
+    lastEditedSide.value === 'from' ? toUnit.value : fromUnit.value,
+  )
+  const canCopy = computed(
+    () => !errorMessage.value && parseEditableNumber(copyValue.value).kind === 'valid',
+  )
+
+  function setCategory(nextCategoryId) {
+    const defaults = DEFAULT_UNIT_PAIRS[nextCategoryId]
+    if (!defaults) return
+
+    categoryId.value = nextCategoryId
+    fromUnitId.value = defaults.fromUnitId
+    toUnitId.value = defaults.toUnitId
+    clearValues()
+  }
+
+  function setFromUnit(nextUnitId) {
+    setUnit('from', nextUnitId)
+  }
+
+  function setToUnit(nextUnitId) {
+    setUnit('to', nextUnitId)
+  }
+
+  function updateFromInput(value) {
+    fromInput.value = String(value)
+    lastEditedSide.value = 'from'
+    updateOppositeField('from')
+  }
+
+  function updateToInput(value) {
+    toInput.value = String(value)
+    lastEditedSide.value = 'to'
+    updateOppositeField('to')
+  }
+
+  function swap() {
+    ;[fromUnitId.value, toUnitId.value] = [toUnitId.value, fromUnitId.value]
+    ;[fromInput.value, toInput.value] = [toInput.value, fromInput.value]
+    lastEditedSide.value = 'from'
+    updateOppositeField('from')
+  }
+
+  function clearValues() {
+    fromInput.value = ''
+    toInput.value = ''
+    lastEditedSide.value = 'from'
+    clearFeedback()
+  }
+
+  function reset() {
+    categoryId.value = DEFAULT_CATEGORY_ID
+    fromUnitId.value = DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].fromUnitId
+    toUnitId.value = DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].toUnitId
+    clearValues()
+  }
+
+  function useRecentPair(pair) {
+    const pairCategory = getCategory(pair.categoryId)
+    const pairFromUnit = getUnit(pair.fromUnitId)
+    const pairToUnit = getUnit(pair.toUnitId)
+    if (
+      !pairCategory ||
+      pairFromUnit?.category !== pairCategory.id ||
+      pairToUnit?.category !== pairCategory.id
+    ) {
+      return
+    }
+
+    categoryId.value = pairCategory.id
+    fromUnitId.value = pairFromUnit.id
+    toUnitId.value = pairToUnit.id
+    clearValues()
+    recentPairs.record(pair)
+  }
+
+  async function copyResult(clipboard = globalThis.navigator?.clipboard) {
+    if (!canCopy.value) return false
+
+    try {
+      await clipboard?.writeText(copyValue.value)
+      if (!clipboard?.writeText) throw new Error('Clipboard unavailable')
+      copyMessage.value = `Copied ${copyValue.value} ${copyUnit.value.symbol}.`
+      return true
+    } catch {
+      copyMessage.value = 'Could not copy the result. Select the value and copy it manually.'
+      return false
+    }
+  }
+
+  function setUnit(side, nextUnitId) {
+    const nextUnit = getUnit(nextUnitId)
+    if (nextUnit?.category !== categoryId.value) {
+      errorMessage.value = 'Choose a unit from the selected category.'
+      return
+    }
+
+    if (side === 'from') fromUnitId.value = nextUnit.id
+    else toUnitId.value = nextUnit.id
+    updateOppositeField(lastEditedSide.value)
+  }
+
+  function updateOppositeField(side) {
+    clearFeedback()
+    const activeInput = side === 'from' ? fromInput : toInput
+    const oppositeInput = side === 'from' ? toInput : fromInput
+    const parsedInput = parseEditableNumber(activeInput.value)
+
+    if (parsedInput.kind === 'empty') {
+      oppositeInput.value = ''
+      return
+    }
+    if (parsedInput.kind === 'partial') {
+      inputHint.value = 'Finish entering the number to update the conversion.'
+      return
+    }
+    if (parsedInput.kind === 'invalid') {
+      errorMessage.value = 'Enter a valid, finite number.'
+      return
+    }
+
+    try {
+      const result =
+        side === 'from'
+          ? convert(parsedInput.value, fromUnitId.value, toUnitId.value)
+          : convert(parsedInput.value, toUnitId.value, fromUnitId.value)
+      const formattedResult = formatConvertedValue(result)
+      const resultUnit = side === 'from' ? toUnit.value : fromUnit.value
+      oppositeInput.value = formattedResult
+      conversionAnnouncement.value =
+        `Converted value: ${formattedResult}. Unit: ${resultUnit.name.toLocaleLowerCase('en')}.`
+      recordCurrentPair()
+    } catch (error) {
+      errorMessage.value =
+        error instanceof UnitConversionError
+          ? error.message
+          : 'The value could not be converted.'
+    }
+  }
+
+  function recordCurrentPair() {
+    recentPairs.record({
+      categoryId: categoryId.value,
+      fromUnitId: fromUnitId.value,
+      toUnitId: toUnitId.value,
+    })
+  }
+
+  function clearFeedback() {
+    errorMessage.value = ''
+    inputHint.value = ''
+    copyMessage.value = ''
+    conversionAnnouncement.value = ''
+  }
+
+  return {
+    categories: conversionRegistry,
+    categoryId,
+    category,
+    fromUnitId,
+    fromUnit,
+    toUnitId,
+    toUnit,
+    fromInput,
+    toInput,
+    lastEditedSide,
+    errorMessage,
+    inputHint,
+    copyMessage,
+    conversionAnnouncement,
+    copyValue,
+    copyUnit,
+    canCopy,
+    recentPairs: recentPairs.pairs,
+    clearRecentPairs: recentPairs.clear,
+    setCategory,
+    setFromUnit,
+    setToUnit,
+    updateFromInput,
+    updateToInput,
+    swap,
+    clearValues,
+    reset,
+    useRecentPair,
+    copyResult,
+  }
+}
+
+export function parseEditableNumber(input) {
+  const normalizedInput = String(input).trim()
+  if (!normalizedInput) return { kind: 'empty' }
+  if (/^[+-]?(?:\.?|(?:\d+\.?\d*|\.\d+)[eE][+-]?)$/.test(normalizedInput)) {
+    return { kind: 'partial' }
+  }
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalizedInput)) {
+    return { kind: 'invalid' }
+  }
+
+  const value = Number(normalizedInput)
+  return Number.isFinite(value) ? { kind: 'valid', value } : { kind: 'invalid' }
+}
+
+export function formatConvertedValue(value) {
+  if (Object.is(value, -0) || value === 0) return '0'
+
+  const absoluteValue = Math.abs(value)
+  if (absoluteValue >= 1e12 || absoluteValue < 1e-9) {
+    const [mantissa, exponent] = value.toExponential(10).split('e')
+    return `${mantissa.replace(/\.?0+$/, '')}e${exponent}`
+  }
+
+  return String(Number(value.toPrecision(12)))
+}

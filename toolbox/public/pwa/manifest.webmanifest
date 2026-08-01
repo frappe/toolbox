@@ -1,0 +1,32 @@
+{
+  "id": "/toolbox/",
+  "name": "Frappe Toolbox",
+  "short_name": "Toolbox",
+  "description": "Calculators, converters, lookups, and everyday utilities in one dependable workspace.",
+  "start_url": "/toolbox/all-tools",
+  "scope": "/toolbox/",
+  "display": "standalone",
+  "background_color": "#f8f8f8",
+  "theme_color": "#f8f8f8",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/toolbox/pwa/toolbox-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/toolbox/pwa/toolbox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/toolbox/pwa/toolbox-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

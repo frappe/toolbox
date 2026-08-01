@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "cd frontend && yarn install",
+    "dev": "cd frontend && yarn dev",
+    "build": "cd frontend && yarn build",
+    "test": "cd frontend && yarn test",
+    "test:e2e": "cd frontend && yarn test:e2e",
+    "test:e2e:smoke": "cd frontend && yarn test:e2e:smoke",
+    "verify": "bash scripts/verify.sh"
+  }
+}

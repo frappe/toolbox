@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 from toolbox.india_business_data import IFSC_DOCTYPE, PIN_DOCTYPE, RELEASE_DOCTYPE
 
@@ -7,6 +8,7 @@ MAX_RESULTS = 20
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def get_dataset_status() -> dict[str, object]:
 	return {
@@ -17,6 +19,7 @@ def get_dataset_status() -> dict[str, object]:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 	term = _search_term(query)
@@ -39,6 +42,7 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def search_ifsc(query: str, limit: int = 10) -> dict[str, object]:
 	term = _search_term(query).upper()

@@ -8,6 +8,7 @@ from typing import Protocol
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 from toolbox.hsn_contract import ERP_NEXT_APP, INDIA_COMPLIANCE_APP, inspect_hsn_contract
 
@@ -16,6 +17,7 @@ SYSTEM_MANAGER = "System Manager"
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=20, seconds=60)
 def get_dependency_status(task_id: str | None = None) -> dict[str, object]:
 	"""Return the safe runtime state for the India Compliance dependency."""
 	return HsnDependencyService(FrappeDependencyRuntime()).get(task_id)

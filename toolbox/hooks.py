@@ -5,6 +5,32 @@ app_description = "Common calculators, converters, lookups, and everyday utiliti
 app_email = "developers@frappe.io"
 app_license = "agpl-3.0"
 
+app_icon_url = "/assets/toolbox/toolbox-logo.svg"
+app_icon_title = "Toolbox"
+app_icon_route = "/toolbox"
+
+add_to_apps_screen = [
+	{
+		"name": "toolbox",
+		"logo": "/assets/toolbox/toolbox-logo.svg",
+		"title": "Toolbox",
+		"route": "/toolbox",
+	}
+]
+
+website_route_rules = [
+	{"from_route": "/toolbox/<path:app_path>", "to_route": "toolbox"},
+]
+
+website_redirects = [
+	{
+		"source": "/toolbox",
+		"target": "/toolbox/all-tools",
+		"redirect_http_status": 308,
+		"forward_query_parameters": True,
+	}
+]
+
 # Send non-GET requests for this app's endpoints as native `application/json`
 # bodies instead of form-encoded, per-key JSON-stringified values.
 use_json_request_body = True
@@ -149,13 +175,13 @@ use_json_request_body = True
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
+}
 
 # Document Events
 # ---------------
@@ -241,26 +267,12 @@ use_json_request_body = True
 # User Data Protection
 # --------------------
 
-# user_data_fields = [
-# 	{
-# 		"doctype": "{doctype_1}",
-# 		"filter_by": "{filter_by}",
-# 		"redact_fields": ["{field_1}", "{field_2}"],
-# 		"partial": 1,
-# 	},
-# 	{
-# 		"doctype": "{doctype_2}",
-# 		"filter_by": "{filter_by}",
-# 		"partial": 1,
-# 	},
-# 	{
-# 		"doctype": "{doctype_3}",
-# 		"strict": False,
-# 	},
-# 	{
-# 		"doctype": "{doctype_4}"
-# 	}
-# ]
+user_data_fields = [
+	{
+		"doctype": "Toolbox User Preference",
+		"filter_by": "user",
+	}
+]
 
 # Authentication and authorization
 # --------------------------------
@@ -283,4 +295,3 @@ require_type_annotated_api_methods = True
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

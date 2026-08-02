@@ -22,7 +22,7 @@ test('@smoke launches directly and validates GSTINs locally', async ({ page }) =
   await expect(page.getByRole('alert')).toContainText('checksum')
 })
 
-test('shows unavailable PIN and IFSC states and supports keyboard tabs', async ({ page }) => {
+test('shows active PIN and IFSC search panels and supports keyboard tabs', async ({ page }) => {
   await page.goto(route)
 
   const gstinTab = page.getByRole('tab', { name: 'GSTIN validator' })
@@ -33,11 +33,11 @@ test('shows unavailable PIN and IFSC states and supports keyboard tabs', async (
   await gstinTab.press('ArrowRight')
   await expect(pinTab).toBeFocused()
   await expect(pinTab).toHaveAttribute('aria-selected', 'true')
-  await expect(page.getByRole('heading', { name: 'PIN code dataset is not available yet' })).toBeVisible()
+  await expect(page.getByRole('searchbox', { name: 'PIN code, office, district, or state' })).toBeVisible()
 
   await pinTab.press('End')
   await expect(ifscTab).toBeFocused()
-  await expect(page.getByRole('heading', { name: 'IFSC dataset is not available yet' })).toBeVisible()
+  await expect(page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' })).toBeVisible()
 
   await ifscTab.press('Home')
   await expect(gstinTab).toBeFocused()

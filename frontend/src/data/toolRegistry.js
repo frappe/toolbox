@@ -87,7 +87,7 @@ export const tools = [
     route: '/india-business-lookup',
     offlineCapability: 'partial',
     featureFlag: 'india_business_lookup',
-    releaseStatus: 'dependency-validation',
+    releaseStatus: 'available',
     externalDependencyStatus: 'datasets-required',
     searchKeywords: ['pin code', 'ifsc', 'gstin', 'bank', 'post office'],
   }),

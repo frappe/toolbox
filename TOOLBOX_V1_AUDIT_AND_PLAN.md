@@ -98,10 +98,11 @@ Severity: **Critical** none found · **High** = fix before release / before it b
 - [ ] _Deferred:_ server-side cache for `get_hsn_catalog` full-scan (rate-limit + revision-gating already bound it); drop `site_name` from browser context (LOW).
 
 ### Phase 3 — Product-correctness & honest-data / UX consistency
-- [ ] Make all tools consume the §7.6 number-format + precision setting (GST, Health, Calculator, Unit Converter) + a propagation test.
-- [ ] Remove the reachable "Live" wording; standardize on reference-rate language.
-- [ ] Unify tool-visibility policy across router/sidebar/search; wire `featureFlag` to actually gate (or remove the field if we standardize on `releaseStatus`); badge validating tools in the sidebar; stop recording disabled tools in Recent.
-- [ ] Enforce PIN/IFSC honest labels client-side as a backstop.
+- [x] **Show/hide tools** (commit `1b3276d`) — the main Settings-page ask; also gives users real nav-visibility control.
+- [x] **Remove the reachable "Live" wording** (commit `b88e23c`) — cache statuses now map to compliant labels (live→updated); e2e guard added.
+- [x] **Stop recording disabled tools in Recent** (commit `fda626d`).
+- [ ] **PARKED — number-format (§7.6) propagation.** Audit over-stated it: **Unit-Converter is intentionally ungrouped** (editable fields need raw precision — explicit test `formatConvertedValue(1/3)==='0.333333333333'`); Calculator arguable. Only **GST** (hardcoded `en-IN`, `useGstCalculator.js:210`) and **Health** (browser-default `.toLocaleString()`, `catalog.js`) are clear — and GST is India-specific, so "international" grouping there is a product call. Needs Vibhav: which tools should honor the setting, and does GST's India-nature override it? Financial already does it right (`formatFinancialValue.js`) — reuse that pattern for whichever tools we choose.
+- [ ] Remaining: unify tool-visibility so the live **India Business** tool is searchable (search filters `releaseStatus==='available'`, hiding it) without exposing Weather/Dictionary placeholders; decide `featureFlag` (wire or remove). Enforce PIN/IFSC honest labels client-side as a backstop.
 - **Comprehensive Settings page (user request, 1 Aug 2026).** Expand `SettingsView.vue` beyond the current §7.6 number/locale controls:
   - [x] **Show / hide individual tools** — DONE (commit `1b3276d`). New "Sidebar tools" section; `hiddenToolIds` pref mirrors favourites (backward-compatible optional field + `setHidden` op); sidebar + its favourites list filter hidden tools; hidden tools stay reachable via All tools/search/URL. Gives users real nav-visibility control (addresses inert `featureFlag`). 437 FE + 15 pref tests green.
   - [ ] Explicit **light / dark / system theme** toggle — **FLAGGED: dark mode is NOT actually built** (no `darkMode` in tailwind, no `data-theme`/toggle, no dark tokens applied). This is an implement-dark-theme task (restyle + review every screen), deferred to its own phase per Vibhav.
@@ -109,8 +110,9 @@ Severity: **Critical** none found · **High** = fix before release / before it b
   - Persist via the existing `ToolboxPreferencesStore` (guest local + authed semantic sync); add tests for theme + visibility propagation. Needs a mini-spec + design pass before coding.
 
 ### Phase 4 — Time-tool bug fixes
-- [ ] Persist countdown on start; persist DONE so the alarm fires once and never re-fires on reload; add composable tests.
-- [ ] Guard working-hours range (start<end / overnight); improve DST label (or accept + document the heuristic).
+- [x] **Timer fixes** (commit `16b23af`) — persist countdown on start; persist DONE so the alarm fires once and never re-fires on reload; new composable tests (was zero-coverage).
+- [x] **Guard working-hours range** (commit `3d416e7`) — End now derives from Start, so an unsatisfiable range can't be selected.
+- [ ] **PARKED — DST label heuristic** for negative-DST zones (Europe/Dublin). Low value; needs zone-specific legal-standard-time logic. Accept + document, or defer.
 
 ### Phase 5 — Product decisions → implement (from §3 above, after you answer)
 

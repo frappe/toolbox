@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
@@ -90,7 +90,16 @@ const preferences = useToolboxPreferences()
 const clock = useWorldClock()
 const copyStatus = ref('')
 const startHours = Array.from({ length: 23 }, (_, index) => index)
-const endHours = Array.from({ length: 23 }, (_, index) => index + 1)
+// End must stay after Start, so the range can never become unsatisfiable.
+const endHours = computed(() =>
+  Array.from({ length: 23 - clock.workingStart.value }, (_, index) => clock.workingStart.value + 1 + index),
+)
+watch(
+  () => clock.workingStart.value,
+  (start) => {
+    if (clock.workingEnd.value <= start) clock.workingEnd.value = start + 1
+  },
+)
 const offsetLabel = computed(() => clock.offsetHours.value === 0 ? 'Now' : `${clock.offsetHours.value > 0 ? '+' : '−'}${Math.abs(clock.offsetHours.value)} hours`)
 const overlapMessage = computed(() => clock.hasSharedWorkingTime.value ? 'All locations are within the shared working hours.' : 'The selected time is not within working hours for every location.')
 

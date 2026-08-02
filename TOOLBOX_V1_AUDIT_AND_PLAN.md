@@ -91,17 +91,22 @@ Severity: **Critical** none found · **High** = fix before release / before it b
 - [ ] Then the original import flow: copy CSVs from `/private/tmp/toolbox-business-dataset-review/` to durable storage → compute SHA-256 → import into `toolbox-test.localhost` → verify counts/exclusions/attribution → benchmark full-scale lookups → activate only after validation.
 - [ ] Add release-import tests covering the reactivation no-op and count separation.
 
-### Phase 2 — Systemic security hardening (spec §10.3)
-- [ ] Add `@frappe.rate_limit` to all `allow_guest` endpoints (currency, HSN catalog+dependency, PIN/IFSC search).
-- [ ] Add a server-side cache for `get_hsn_catalog` full-scan (or gate behind revision) to kill the amplification.
-- [ ] Replace `limit_page_length` → `limit` at `hsn_catalog.py:98`.
-- [ ] Swap ECB XML parse to `defusedxml`; drop `site_name` from browser context.
+### Phase 2 — Systemic security hardening (spec §10.3) — DONE (commit `0657ee5`)
+- [x] Add per-IP `@rate_limit` to all six `allow_guest` endpoints — PIN/IFSC search + dataset status 100/min, currency 60/min, HSN catalog 30/min, HSN dependency 20/min.
+- [x] Replace `limit_page_length` → `limit` at `hsn_catalog.py:98` (only app usage; residual warnings are Frappe internals).
+- [ ] _Deferred:_ `defusedxml` for ECB parsing (adds a dependency; ECB source is fixed/trusted — low risk).
+- [ ] _Deferred:_ server-side cache for `get_hsn_catalog` full-scan (rate-limit + revision-gating already bound it); drop `site_name` from browser context (LOW).
 
 ### Phase 3 — Product-correctness & honest-data / UX consistency
 - [ ] Make all tools consume the §7.6 number-format + precision setting (GST, Health, Calculator, Unit Converter) + a propagation test.
 - [ ] Remove the reachable "Live" wording; standardize on reference-rate language.
 - [ ] Unify tool-visibility policy across router/sidebar/search; wire `featureFlag` to actually gate (or remove the field if we standardize on `releaseStatus`); badge validating tools in the sidebar; stop recording disabled tools in Recent.
 - [ ] Enforce PIN/IFSC honest labels client-side as a backstop.
+- **Comprehensive Settings page (user request, 1 Aug 2026).** Expand `SettingsView.vue` beyond the current §7.6 number/locale controls:
+  - [x] **Show / hide individual tools** — DONE (commit `1b3276d`). New "Sidebar tools" section; `hiddenToolIds` pref mirrors favourites (backward-compatible optional field + `setHidden` op); sidebar + its favourites list filter hidden tools; hidden tools stay reachable via All tools/search/URL. Gives users real nav-visibility control (addresses inert `featureFlag`). 437 FE + 15 pref tests green.
+  - [ ] Explicit **light / dark / system theme** toggle — **FLAGGED: dark mode is NOT actually built** (no `darkMode` in tailwind, no `data-theme`/toggle, no dark tokens applied). This is an implement-dark-theme task (restyle + review every screen), deferred to its own phase per Vibhav.
+  - Candidate additions to consider: default landing view / home tool, compact vs comfortable density, reduced-motion toggle (spec §7.7), "reset all preferences / clear local data", default calculator mode (deg/rad), and per-guest-vs-signed-in sync clarity.
+  - Persist via the existing `ToolboxPreferencesStore` (guest local + authed semantic sync); add tests for theme + visibility propagation. Needs a mini-spec + design pass before coding.
 
 ### Phase 4 — Time-tool bug fixes
 - [ ] Persist countdown on start; persist DONE so the alarm fires once and never re-fires on reload; add composable tests.

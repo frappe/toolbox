@@ -3,11 +3,11 @@ import { createAlarmController } from './alarmController'
 import { loadTimerWorkspace, saveTimerWorkspace } from './timerStorage'
 import { STATUS, addLap, createCountdown, createStopwatch, createTimer, pauseStopwatch, pauseTimer, readCountdown, readStopwatch, readTimer, resetTimer, startStopwatch, startTimer } from './timeEngines'
 
-export function useTimerWorkspace({ now = () => Date.now(), storage, setIntervalFn = setInterval, clearIntervalFn = clearInterval } = {}) {
+export function useTimerWorkspace({ now = () => Date.now(), storage, setIntervalFn = setInterval, clearIntervalFn = clearInterval, createAlarm = createAlarmController } = {}) {
   const saved = loadTimerWorkspace(storage)
   const state = reactive(saved ?? { timer: createTimer(300000), stopwatch: createStopwatch(), countdown: createCountdown() })
   const clock = ref(now())
-  const alarm = createAlarmController()
+  const alarm = createAlarm()
   let timerWasDone = state.timer.status === STATUS.DONE
   const interval = setIntervalFn(tick, 250)
 
@@ -18,7 +18,11 @@ export function useTimerWorkspace({ now = () => Date.now(), storage, setInterval
     Object.assign(state.timer, nextTimer)
     Object.assign(state.countdown, readCountdown(state.countdown, clock.value))
     timerWasDone = state.timer.status === STATUS.DONE
-    if (becameDone) alarm.play()
+    if (becameDone) {
+      alarm.play()
+      // Persist the DONE transition so a page reload doesn't replay the alarm.
+      persist()
+    }
   }
 
   function configureTimer(durationMs, label) {
@@ -40,7 +44,7 @@ export function useTimerWorkspace({ now = () => Date.now(), storage, setInterval
   }
   function lap() { Object.assign(state.stopwatch, addLap(state.stopwatch, now())); persist() }
   function resetStopwatch() { Object.assign(state.stopwatch, createStopwatch()); persist() }
-  function setCountdown(targetAt) { Object.assign(state.countdown, createCountdown(targetAt)); tick() }
+  function setCountdown(targetAt) { Object.assign(state.countdown, createCountdown(targetAt)); tick(); persist() }
   function clearCountdown() { Object.assign(state.countdown, createCountdown()); persist() }
   function persist() { saveTimerWorkspace(state, storage) }
 

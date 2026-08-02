@@ -5,6 +5,7 @@ import {
   defaultSettings,
   useToolboxPreferences,
 } from '@/composables/useToolboxPreferences'
+import { toolsById } from '@/data/toolRegistry'
 import SettingsView from './SettingsView.vue'
 
 const preferences = useToolboxPreferences()
@@ -21,6 +22,7 @@ const settingLabels = [
 describe('SettingsView', () => {
   beforeEach(() => {
     Object.assign(preferences.settings, defaultSettings)
+    preferences.hiddenIds.value = []
     preferences.mode.value = 'local'
     preferences.isSaving.value = false
     preferences.syncError.value = ''
@@ -56,6 +58,16 @@ describe('SettingsView', () => {
 
     expect({ ...preferences.settings }).toEqual(defaultSettings)
     expect(wrapper.get('select[aria-label="Measurement system"]').element.value).toBe('metric')
+  })
+
+  it('hides a tool from the sidebar when its checkbox is unticked', async () => {
+    const wrapper = mount(SettingsView)
+    const calculator = toolsById.get('calculator')
+    const checkbox = wrapper.get(`input[type="checkbox"][aria-label="${calculator.name}"]`)
+
+    expect(checkbox.element.checked).toBe(true)
+    await checkbox.setValue(false)
+    expect(preferences.isHidden('calculator')).toBe(true)
   })
 
   it('explains where preferences are saved and announces sync failures', async () => {

@@ -132,6 +132,29 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  const Checkbox = defineComponent({
+    name: 'Checkbox',
+    inheritAttrs: false,
+    props: {
+      modelValue: { type: Boolean, default: false },
+      label: { type: String, default: '' },
+    },
+    emits: ['update:modelValue'],
+    setup(props, { attrs, emit }) {
+      return () =>
+        h('label', {}, [
+          h('input', {
+            ...attrs,
+            type: 'checkbox',
+            checked: props.modelValue,
+            'aria-label': props.label,
+            onChange: (event) => emit('update:modelValue', event.target.checked),
+          }),
+          props.label,
+        ])
+    },
+  })
+
   const TextInput = defineComponent({
     name: 'TextInput',
     inheritAttrs: false,
@@ -191,6 +214,7 @@ vi.mock('frappe-ui', async () => {
     Badge,
     BottomSheet,
     Button,
+    Checkbox,
     Dialog,
     FormControl,
     Icon,

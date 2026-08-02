@@ -35,6 +35,7 @@ describe('ToolboxPreferencesStore', () => {
       expect(store.snapshot()).toEqual({
         version: 1,
         favouriteToolIds: [],
+        hiddenToolIds: [],
         recentToolIds: [],
         savedCurrencyPairs: [],
         savedWeatherLocations: [],
@@ -81,6 +82,22 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.recentToolIds.value[0]).toBe(tools[4].id)
     expect(new Set(store.recentToolIds.value).size).toBe(MAX_RECENT_TOOLS)
     expect(JSON.parse(storage.value)).toEqual(store.snapshot())
+  })
+
+  it('toggles hidden tools, persists them, and ignores unknown ids', () => {
+    const storage = new MemoryStorage()
+    const store = new ToolboxPreferencesStore(storage)
+
+    store.toggleHidden('weather')
+    store.toggleHidden('missing')
+    expect(store.isHidden('weather')).toBe(true)
+    expect(store.isHidden('missing')).toBe(false)
+    expect(store.hiddenIds.value).toEqual(['weather'])
+    expect(JSON.parse(storage.value).hiddenToolIds).toEqual(['weather'])
+
+    store.toggleHidden('weather')
+    expect(store.isHidden('weather')).toBe(false)
+    expect(store.hiddenIds.value).toEqual([])
   })
 
   it('accepts only supported settings and can reset them', () => {

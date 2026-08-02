@@ -138,6 +138,31 @@ class TestToolboxUserPreference(IntegrationTestCase):
 		self.assertEqual(updated["favouriteToolIds"], ["timer", "calculator"])
 		self.assertEqual(updated["recentToolIds"], ["calculator", "world-clock"])
 
+	def test_set_hidden_operation_toggles_sidebar_visibility(self) -> None:
+		frappe.set_user(TEST_USER_A)
+		save_preferences(self._sample_preferences())
+
+		hidden = update_preferences(
+			self._operations(
+				{"type": "setHidden", "toolId": "weather", "isHidden": True},
+				{"type": "setHidden", "toolId": "dictionary", "isHidden": True},
+			)
+		)
+		self.assertEqual(hidden["hiddenToolIds"], ["weather", "dictionary"])
+
+		shown = update_preferences(
+			self._operations({"type": "setHidden", "toolId": "weather", "isHidden": False})
+		)
+		self.assertEqual(shown["hiddenToolIds"], ["dictionary"])
+
+	def test_preferences_stored_without_hidden_field_load_as_empty(self) -> None:
+		frappe.set_user(TEST_USER_A)
+		legacy = self._sample_preferences()
+		del legacy["hiddenToolIds"]
+		save_preferences(legacy)
+
+		self.assertEqual(get_preferences()["hiddenToolIds"], [])
+
 	def test_two_stale_clients_do_not_overwrite_unrelated_changes(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		save_preferences(self._sample_preferences())
@@ -209,6 +234,8 @@ class TestToolboxUserPreference(IntegrationTestCase):
 			{"version": 2, "operations": []},
 			self._operations({"type": "setFavourite", "toolId": "missing", "isFavourite": True}),
 			self._operations({"type": "setFavourite", "toolId": "timer", "isFavourite": "yes"}),
+			self._operations({"type": "setHidden", "toolId": "missing", "isHidden": True}),
+			self._operations({"type": "setHidden", "toolId": "timer", "isHidden": "yes"}),
 			self._operations({"type": "unknown"}),
 		]
 		for payload in invalid_batches:

@@ -64,6 +64,9 @@ _PREFERENCE_FIELDS = frozenset(
 		"settings",
 	}
 )
+# Optional so preferences stored before this field existed still validate (default []).
+_OPTIONAL_PREFERENCE_FIELDS = frozenset({"hiddenToolIds"})
+_KNOWN_PREFERENCE_FIELDS = _PREFERENCE_FIELDS | _OPTIONAL_PREFERENCE_FIELDS
 _SAVED_ITEM_FIELDS = (
 	"savedCurrencyPairs",
 	"savedWeatherLocations",
@@ -83,6 +86,7 @@ def default_preferences() -> dict[str, object]:
 	return {
 		"version": PREFERENCE_SCHEMA_VERSION,
 		"favouriteToolIds": [],
+		"hiddenToolIds": [],
 		"recentToolIds": [],
 		"savedCurrencyPairs": [],
 		"savedWeatherLocations": [],
@@ -108,6 +112,8 @@ def apply_preference_operations(
 		operation_type = operation["type"]
 		if operation_type == "setFavourite":
 			_apply_favourite_operation(updated, operation)
+		elif operation_type == "setHidden":
+			_apply_hidden_operation(updated, operation)
 		elif operation_type == "prependRecent":
 			_apply_recent_operation(updated, operation)
 		elif operation_type == "clearRecent":
@@ -155,6 +161,9 @@ class PreferenceValidator:
 			"favouriteToolIds": self._normalize_tool_ids(
 				payload["favouriteToolIds"], "favouriteToolIds", len(TOOL_IDS)
 			),
+			"hiddenToolIds": self._normalize_tool_ids(
+				payload.get("hiddenToolIds", []), "hiddenToolIds", len(TOOL_IDS)
+			),
 			"recentToolIds": self._normalize_tool_ids(
 				payload["recentToolIds"], "recentToolIds", MAX_RECENT_TOOLS
 			),
@@ -170,7 +179,7 @@ class PreferenceValidator:
 	def _validate_fields(payload: dict[str, object]) -> None:
 		fields = set(payload)
 		missing = _PREFERENCE_FIELDS - fields
-		unknown = fields - _PREFERENCE_FIELDS
+		unknown = fields - _KNOWN_PREFERENCE_FIELDS
 		if missing:
 			_invalid("Required preference fields are missing.")
 		if unknown:
@@ -292,6 +301,11 @@ def _validate_preference_operation(operation: object) -> dict[str, object]:
 		_validate_tool_id(operation["toolId"])
 		if type(operation["isFavourite"]) is not bool:
 			_invalid("setFavourite.isFavourite must be a boolean.")
+	elif operation_type == "setHidden":
+		_validate_operation_fields(operation, {"type", "toolId", "isHidden"})
+		_validate_tool_id(operation["toolId"])
+		if type(operation["isHidden"]) is not bool:
+			_invalid("setHidden.isHidden must be a boolean.")
 	elif operation_type == "prependRecent":
 		_validate_operation_fields(operation, {"type", "toolId"})
 		_validate_tool_id(operation["toolId"])
@@ -334,6 +348,15 @@ def _apply_favourite_operation(
 		favourites.append(tool_id)
 	elif not operation["isFavourite"]:
 		preferences["favouriteToolIds"] = [item for item in favourites if item != tool_id]
+
+
+def _apply_hidden_operation(preferences: dict[str, object], operation: dict[str, object]) -> None:
+	tool_id = operation["toolId"]
+	hidden = preferences["hiddenToolIds"]
+	if operation["isHidden"] and tool_id not in hidden:
+		hidden.append(tool_id)
+	elif not operation["isHidden"]:
+		preferences["hiddenToolIds"] = [item for item in hidden if item != tool_id]
 
 
 def _apply_recent_operation(preferences: dict[str, object], operation: dict[str, object]) -> None:

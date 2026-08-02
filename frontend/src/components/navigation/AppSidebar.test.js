@@ -2,7 +2,8 @@ import { mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, it } from 'vitest'
 
-import { toolCategories, tools } from '@/data/toolRegistry'
+import { toolCategories, tools, toolsById } from '@/data/toolRegistry'
+import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import AppSidebar from './AppSidebar.vue'
 
 describe('AppSidebar', () => {
@@ -17,6 +18,20 @@ describe('AppSidebar', () => {
       const links = wrapper.findAll(`a[href="${tool.route}"]`)
       expect(links).toHaveLength(1)
       expect(links[0].text()).toContain(tool.name)
+    }
+  })
+
+  it('omits tools the user has hidden', async () => {
+    const preferences = useToolboxPreferences()
+    const weather = toolsById.get('weather')
+    preferences.toggleHidden('weather')
+
+    try {
+      const wrapper = await mountSidebar()
+      expect(wrapper.findAll(`a[href="${weather.route}"]`)).toHaveLength(0)
+      expect(wrapper.findAll(`a[href="${toolsById.get('calculator').route}"]`).length).toBeGreaterThan(0)
+    } finally {
+      preferences.toggleHidden('weather')
     }
   })
 })

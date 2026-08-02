@@ -79,6 +79,29 @@
       </SettingRow>
     </section>
 
+    <section class="pt-10">
+      <header>
+        <h2 class="text-lg font-semibold text-ink-gray-9">Sidebar tools</h2>
+        <p class="pt-1 text-sm text-ink-gray-6">
+          Hide tools you don't use to simplify the sidebar. Hidden tools stay available from All tools and search.
+        </p>
+      </header>
+      <div class="space-y-6 pt-4">
+        <div v-for="category in toolGroups" :key="category.id">
+          <p class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">{{ category.name }}</p>
+          <div class="mt-2 space-y-2">
+            <Checkbox
+              v-for="tool in category.tools"
+              :key="tool.id"
+              :model-value="!preferences.isHidden(tool.id)"
+              :label="tool.name"
+              @update:model-value="preferences.toggleHidden(tool.id)"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="flex flex-col gap-4 border-t border-outline-gray-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
       <p
         class="text-sm text-ink-gray-5"
@@ -94,12 +117,17 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Button, FormControl } from 'frappe-ui'
+import { Button, Checkbox, FormControl } from 'frappe-ui'
 
 import SettingRow from '@/components/settings/SettingRow.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { getToolsByCategory, toolCategories } from '@/data/toolRegistry'
 
 const preferences = useToolboxPreferences()
+const toolGroups = toolCategories.map((category) => ({
+  ...category,
+  tools: getToolsByCategory(category.id),
+}))
 const persistenceMessage = computed(() => {
   if (preferences.syncError.value) return preferences.syncError.value
   if (preferences.mode.value === 'frappe') {

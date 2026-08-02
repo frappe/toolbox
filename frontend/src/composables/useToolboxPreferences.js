@@ -40,6 +40,7 @@ export class ToolboxPreferencesStore {
     this.syncError = ref('')
     const stored = this.read()
     this.favouriteIds = ref(stored.favouriteToolIds)
+    this.hiddenIds = ref(stored.hiddenToolIds)
     this.recentToolIds = ref(stored.recentToolIds)
     this.savedCurrencyPairs = ref(stored.savedCurrencyPairs)
     this.savedWeatherLocations = ref(stored.savedWeatherLocations)
@@ -60,6 +61,19 @@ export class ToolboxPreferencesStore {
       ? [...favourites, toolId]
       : favourites.filter((id) => id !== toolId)
     this.persist({ type: 'setFavourite', toolId, isFavourite })
+  }
+
+  isHidden(toolId) {
+    return this.hiddenIds.value.includes(toolId)
+  }
+
+  toggleHidden(toolId) {
+    if (!toolsById.has(toolId)) return
+
+    const hidden = this.hiddenIds.value
+    const isHidden = !hidden.includes(toolId)
+    this.hiddenIds.value = isHidden ? [...hidden, toolId] : hidden.filter((id) => id !== toolId)
+    this.persist({ type: 'setHidden', toolId, isHidden })
   }
 
   recordRecent(toolId) {
@@ -120,6 +134,7 @@ export class ToolboxPreferencesStore {
   hydrate(value) {
     const preferences = normalizePreferences(value)
     this.favouriteIds.value = preferences.favouriteToolIds
+    this.hiddenIds.value = preferences.hiddenToolIds
     this.recentToolIds.value = preferences.recentToolIds
     this.savedCurrencyPairs.value = preferences.savedCurrencyPairs
     this.savedWeatherLocations.value = preferences.savedWeatherLocations
@@ -131,6 +146,7 @@ export class ToolboxPreferencesStore {
     return {
       version: 1,
       favouriteToolIds: [...this.favouriteIds.value],
+      hiddenToolIds: [...this.hiddenIds.value],
       recentToolIds: [...this.recentToolIds.value],
       savedCurrencyPairs: [...this.savedCurrencyPairs.value],
       savedWeatherLocations: [...this.savedWeatherLocations.value],
@@ -245,6 +261,7 @@ export function createDefaultPreferences() {
   return {
     version: 1,
     favouriteToolIds: [],
+    hiddenToolIds: [],
     recentToolIds: [],
     savedCurrencyPairs: [],
     savedWeatherLocations: [],
@@ -262,6 +279,7 @@ export function normalizePreferences(value) {
   return {
     version: 1,
     favouriteToolIds: normalizeToolIds(value.favouriteToolIds),
+    hiddenToolIds: normalizeToolIds(value.hiddenToolIds),
     recentToolIds: normalizeToolIds(value.recentToolIds).slice(0, MAX_RECENT_TOOLS),
     savedCurrencyPairs: normalizeObjectList(value.savedCurrencyPairs),
     savedWeatherLocations: normalizeObjectList(value.savedWeatherLocations),
@@ -327,6 +345,11 @@ function applyPreferenceOperations(store, operations) {
       store.favouriteIds.value = operation.isFavourite
         ? [...new Set([...favourites, operation.toolId])]
         : favourites.filter((toolId) => toolId !== operation.toolId)
+    } else if (operation.type === 'setHidden') {
+      const hidden = store.hiddenIds.value
+      store.hiddenIds.value = operation.isHidden
+        ? [...new Set([...hidden, operation.toolId])]
+        : hidden.filter((toolId) => toolId !== operation.toolId)
     } else if (operation.type === 'prependRecent') {
       store.recentToolIds.value = [
         operation.toolId,
@@ -346,7 +369,8 @@ function applyPreferenceOperations(store, operations) {
 }
 
 function compactPreferenceOperations(operations) {
-  const favourites = compactFavouriteOperations(operations)
+  const favourites = compactToggleOperations(operations, 'setFavourite', 'isFavourite')
+  const hidden = compactToggleOperations(operations, 'setHidden', 'isHidden')
 
   const lastRecentClear = findLastOperationIndex(operations, 'clearRecent')
   const recentOperations = operations
@@ -367,35 +391,31 @@ function compactPreferenceOperations(operations) {
     ({ field }) => field,
   )
 
-  return [...favourites, ...recents, ...settings, ...savedItems]
+  return [...favourites, ...hidden, ...recents, ...settings, ...savedItems]
 }
 
-function compactFavouriteOperations(operations) {
-  const favouriteOperations = operations.filter(({ type }) => type === 'setFavourite')
+function compactToggleOperations(operations, type, flag) {
+  const toggleOperations = operations.filter((operation) => operation.type === type)
   const latestByTool = new Map()
 
-  favouriteOperations.forEach((operation, index) => {
+  toggleOperations.forEach((operation, index) => {
     latestByTool.set(operation.toolId, { operation, index })
   })
 
   return [...latestByTool.values()]
     .sort((left, right) => left.index - right.index)
     .flatMap(({ operation, index }) => {
-      if (!operation.isFavourite) return [operation]
+      if (!operation[flag]) return [operation]
 
-      const earlierRemoval = findEarlierFavouriteRemoval(
-        favouriteOperations,
-        index,
-        operation.toolId,
-      )
+      const earlierRemoval = findEarlierToggleRemoval(toggleOperations, index, operation.toolId, flag)
       return earlierRemoval ? [earlierRemoval, operation] : [operation]
     })
 }
 
-function findEarlierFavouriteRemoval(operations, endIndex, toolId) {
+function findEarlierToggleRemoval(operations, endIndex, toolId, flag) {
   for (let index = endIndex - 1; index >= 0; index -= 1) {
     const operation = operations[index]
-    if (operation.toolId === toolId && !operation.isFavourite) return operation
+    if (operation.toolId === toolId && !operation[flag]) return operation
   }
   return null
 }

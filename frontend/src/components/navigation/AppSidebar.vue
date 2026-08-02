@@ -95,11 +95,17 @@ defineEmits(['close', 'navigate', 'search'])
 
 const preferences = useToolboxPreferences()
 const logoUrl = '/assets/toolbox/toolbox-logo.svg'
-const categoryGroups = toolCategories.map((category) => ({
-  ...category,
-  tools: getToolsByCategory(category.id),
-}))
-const favourites = computed(() => resolveTools(preferences.favouriteIds.value))
+const categoryGroups = computed(() =>
+  toolCategories
+    .map((category) => ({
+      ...category,
+      tools: getToolsByCategory(category.id).filter((tool) => !preferences.isHidden(tool.id)),
+    }))
+    .filter((category) => category.tools.length),
+)
+const favourites = computed(() =>
+  resolveTools(preferences.favouriteIds.value).filter((tool) => !preferences.isHidden(tool.id)),
+)
 
 function resolveTools(ids) {
   return ids.map((id) => toolsById.get(id)).filter(Boolean)

@@ -37,7 +37,13 @@ import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import CurrencyPicker from '@/tools/currency-converter/CurrencyPicker.vue'
 import { useCurrencyConverter } from '@/tools/currency-converter/useCurrencyConverter'
 const preferences = useToolboxPreferences(), converter = useCurrencyConverter({ preferences }), route = useRoute()
-const rateStatus = computed(() => converter.loadState.value === 'offline' ? 'offline snapshot' : converter.rateData.value?.cacheStatus === 'stale' ? 'stale server cache' : converter.rateData.value?.cacheStatus ?? '')
+// ECB reference rates are never described as "live" (spec §5.9); a fresh fetch reads "updated".
+const rateStatusLabels = { live: 'updated', cached: 'server cache', stale: 'stale server cache' }
+const rateStatus = computed(() =>
+  converter.loadState.value === 'offline'
+    ? 'offline snapshot'
+    : (rateStatusLabels[converter.rateData.value?.cacheStatus] ?? ''),
+)
 function formatTimestamp(value) { return value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Not checked' }
 onMounted(async () => {
   preferences.recordRecent('currency-converter')

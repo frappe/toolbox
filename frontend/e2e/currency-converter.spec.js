@@ -32,3 +32,10 @@ test('labels stale server cache honestly', async ({ page }) => {
   await expect(page.getByText('Server checked')).toBeVisible()
   await expect(page.getByText('Offline snapshot saved')).toBeVisible()
 })
+
+test('never describes reference rates as live', async ({ page }) => {
+  await mockCurrencyRates(page, { cacheStatus: 'live' })
+  await page.goto('/toolbox/currency-converter')
+  await expect(page.getByText('updated', { exact: true })).toBeVisible()
+  await expect(page.getByText('Live', { exact: true })).toHaveCount(0)
+})

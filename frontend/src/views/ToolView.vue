@@ -57,7 +57,8 @@ const dependencyLabel = computed(() => tool.value?.externalDependencyStatus.repl
 watch(
   tool,
   (currentTool) => {
-    if (currentTool) preferences.recordRecent(currentTool.id)
+    // Don't record tools that aren't usable yet (disabled/validating) as "recent".
+    if (currentTool && isToolAvailable(currentTool)) preferences.recordRecent(currentTool.id)
   },
   { immediate: true },
 )

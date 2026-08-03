@@ -1,0 +1,32 @@
+{
+  "datasets": {
+    "Dictionary": {
+      "compression": "gzip",
+      "format": "jsonl",
+      "sha256": "09e4b4e4c0fb15b6891861ffb51590e16d715aa23f6f07aebc9c7bbd456e5b10",
+      "size": 8581579,
+      "sourceUpdatedAt": "2011-06-30",
+      "url": "https://github.com/frappe/toolbox/releases/download/datasets/dictionary-WordNet-3.1.jsonl.gz",
+      "version": "WordNet-3.1"
+    },
+    "IFSC": {
+      "compression": "gzip",
+      "format": "csv",
+      "sha256": "734d6d6e743004e9541603b7530601061436aaac6a616e95737f0bb522e7eea8",
+      "size": 8709596,
+      "sourceUpdatedAt": "2026-07-15",
+      "url": "https://github.com/frappe/toolbox/releases/download/datasets/ifsc-v2.0.61.csv.gz",
+      "version": "v2.0.61"
+    },
+    "PIN": {
+      "compression": "gzip",
+      "format": "csv",
+      "sha256": "b6bc203d03a578e4e56fc336fdd6205e214b5bca54391990f7dead19921f0cbe",
+      "size": 3189178,
+      "sourceUpdatedAt": "2026-06-10",
+      "url": "https://github.com/frappe/toolbox/releases/download/datasets/pincode-2026-06-10.csv.gz",
+      "version": "2026-06-10"
+    }
+  },
+  "schemaVersion": 1
+}

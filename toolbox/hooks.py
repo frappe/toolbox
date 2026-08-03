@@ -137,6 +137,11 @@ use_json_request_body = True
 # before_install = "toolbox.install.before_install"
 # after_install = "toolbox.install.after_install"
 
+# Pull any bundled dataset whose pinned version differs from what is active on this
+# site (fresh installs self-provision; an app update that bumps a dataset applies it).
+# One-time-per-version fetch of public data; no runtime or scheduled network calls.
+after_migrate = ["toolbox.dataset_sync.after_migrate"]
+
 # Uninstallation
 # ------------
 

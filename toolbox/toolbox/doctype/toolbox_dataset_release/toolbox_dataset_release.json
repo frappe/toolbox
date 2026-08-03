@@ -7,7 +7,7 @@
  "field_order": ["release_key", "dataset_type", "status", "source_name", "source_url", "license_name", "license_url", "attribution", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count", "failure_reason"],
  "fields": [
   {"fieldname": "release_key", "fieldtype": "Data", "label": "Release Key", "read_only": 1, "reqd": 1, "unique": 1},
-  {"fieldname": "dataset_type", "fieldtype": "Select", "label": "Dataset Type", "options": "PIN\nIFSC", "read_only": 1, "reqd": 1},
+  {"fieldname": "dataset_type", "fieldtype": "Select", "label": "Dataset Type", "options": "PIN\nIFSC\nDictionary", "read_only": 1, "reqd": 1},
   {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Staged\nActive\nFailed\nSuperseded", "read_only": 1, "reqd": 1},
   {"fieldname": "source_name", "fieldtype": "Data", "label": "Source", "read_only": 1, "reqd": 1},
   {"fieldname": "source_url", "fieldtype": "Data", "label": "Source URL", "read_only": 1, "reqd": 1},

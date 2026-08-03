@@ -40,7 +40,7 @@ describe('AllToolsView', () => {
 
     expect(router.currentRoute.value.query).toEqual({ category: 'india' })
     expect(toolNames(wrapper)).toEqual([
-      'HSN, SAC & GST Lookup',
+      'HSN & SAC Lookup',
       'India Business Lookup',
     ])
     expect(wrapper.get('button[aria-pressed="true"]').text()).toBe('India')

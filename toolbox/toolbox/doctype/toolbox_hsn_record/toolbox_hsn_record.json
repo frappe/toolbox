@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-08-04 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "dataset_release",
+  "code",
+  "code_type",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "dataset_release",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Dataset Release",
+   "options": "Toolbox Dataset Release",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "code_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Code Type",
+   "options": "HSN\nSAC",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "autoname": "hash",
+ "modified": "2026-08-04 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Toolbox",
+ "name": "Toolbox HSN Record",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -35,6 +35,7 @@ IMPORT_METHODS = {
 	"Dictionary": "toolbox.dictionary_data.import_dictionary_jsonl",
 	"PIN": "toolbox.india_business_data.import_pin_csv",
 	"IFSC": "toolbox.india_business_data.import_ifsc_csv",
+	"HSN": "toolbox.hsn_data.import_hsn_jsonl",
 }
 
 

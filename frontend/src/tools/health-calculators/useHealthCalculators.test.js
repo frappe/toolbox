@@ -25,4 +25,11 @@ describe('health calculator workspace', () => {
     expect(calculator.activeInputs.value.map(({ id }) => id)).toEqual(['solveFor', 'distanceUnit', 'duration', 'pace'])
     expect(calculator.presentation.value.primary.label).toBe('Distance')
   })
+
+  it('shows an obesity subclass label and cites the WHO and CDC authorities behind it', () => {
+    const calculator = useHealthCalculators()
+    calculator.updateInput('weight', '130')
+    expect(calculator.presentation.value.rows[0].value).toBe('Class 3 obesity')
+    expect(calculator.presentation.value.assumption).toContain('WHO and CDC')
+  })
 })

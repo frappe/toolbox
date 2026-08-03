@@ -15,7 +15,7 @@ export const healthCalculators = Object.freeze([
       primary: { label: 'Estimated BMI', value: result.bmi.toFixed(1) },
       rows: [{ label: 'Adult category', value: result.category }],
       formula: 'BMI = weight in kilograms ÷ height in metres squared.',
-      assumption: 'Adult CDC categories apply. BMI is a screening measure and does not measure body composition.',
+      assumption: 'Adult WHO and CDC categories apply. BMI is a screening measure and does not measure body composition.',
     }),
   }),
   defineCalculator({

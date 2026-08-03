@@ -33,5 +33,17 @@ export default defineConfig({
       testMatch: /responsive\.spec\.js/,
       use: { ...devices['Pixel 7'] },
     },
+    {
+      name: 'firefox',
+      testIgnore: /responsive\.spec\.js/,
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      // WebKit headless cannot drive service-worker offline mode (it raises an internal
+      // error); offline behaviour is covered on Chromium and Firefox.
+      testIgnore: /responsive\.spec\.js|offline\.spec\.js/,
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
 })

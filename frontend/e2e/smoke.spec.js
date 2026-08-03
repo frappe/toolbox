@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
-import { mockHsnDependency } from './hsn-fixture'
+import { mockHsnAvailable } from './hsn-fixture'
 
 test('@smoke redirects the app root to the canonical All Tools route', async ({ page }) => {
   await page.goto('/toolbox/')
@@ -16,12 +16,12 @@ for (const [path, heading] of [
   ['/toolbox/gst-calculator', 'GST Calculator'],
   ['/toolbox/financial-calculators', 'Financial Calculators'],
   ['/toolbox/health-calculators', 'Health & Fitness Calculators'],
-  ['/toolbox/hsn-sac-lookup', 'HSN, SAC & GST Lookup'],
+  ['/toolbox/hsn-sac-lookup', 'HSN & SAC Lookup'],
   ['/toolbox/timer', 'Timer, Stopwatch & Countdown'],
 ]) {
   test(`@smoke opens ${heading} directly`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)
-    if (path.includes('hsn-sac-lookup')) await mockHsnDependency(page)
+    if (path.includes('hsn-sac-lookup')) await mockHsnAvailable(page)
     await page.goto(path)
 
     await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()

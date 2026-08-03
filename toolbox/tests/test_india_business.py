@@ -4,7 +4,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import UnitTestCase
 
-from toolbox.india_business import get_dataset_status, search_ifsc, search_pin
+from toolbox.india_business import _pin_prefixes, get_dataset_status, search_ifsc, search_pin
 from toolbox.india_business_data import normalize_ifsc_row, normalize_pin_row, stage_rows
 
 
@@ -80,3 +80,9 @@ class TestIndiaBusinessApi(UnitTestCase):
 					endpoint("a")
 				with self.assertRaises(frappe.ValidationError):
 					endpoint("a" * 81)
+
+	def test_pin_prefixes_add_current_name_for_former_city_aliases(self) -> None:
+		bangalore = _pin_prefixes("Bangalore")
+		self.assertIn("Bangalore%", bangalore)
+		self.assertIn("Bengaluru%", bangalore)
+		self.assertEqual(_pin_prefixes("Pune"), ["Pune%"])

@@ -15,7 +15,7 @@ IFSC_DOCTYPE = "Toolbox IFSC Record"
 BATCH_SIZE = 5_000
 PIN_SOURCE = {
 	"source_name": "Department of Posts, Government of India via data.gov.in",
-	"source_url": "https://www.data.gov.in/catalog/all-india-pincode-directory-through-webservice",
+	"source_url": "https://www.data.gov.in/catalog/all-india-pincode-directory",
 	"license_name": "Government Open Data License - India",
 	"license_url": "https://www.data.gov.in/sites/default/files/Gazette_Notification_OGDL.pdf",
 	"attribution": "Source: Department of Posts, Government of India, published through data.gov.in under the Government Open Data License - India.",

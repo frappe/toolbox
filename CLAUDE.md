@@ -190,7 +190,9 @@ These utilities are operational:
 - Health and Fitness Calculators
 - World Clock
 - Currency Converter
-- GSTIN validation
+- India Business Lookup (PIN and IFSC search)
+- Weather
+- Dictionary
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 

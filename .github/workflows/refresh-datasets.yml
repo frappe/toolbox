@@ -1,0 +1,65 @@
+# Keeps the canonical IFSC and HSN datasets current, hands-off. Dormant until the repo is
+# public and Actions is enabled; then it runs monthly (and on manual dispatch). When an
+# upstream is newer than the committed manifest it rebuilds the asset, uploads it to the
+# `datasets` release, and opens a PR bumping the manifest. Deployments pick it up on their
+# next app update. PIN and Dictionary are intentionally excluded (no fresher automatable
+# source / frozen) — refresh PIN manually with scripts/publish_dataset.py.
+name: Refresh datasets
+
+on:
+  schedule:
+    - cron: "17 3 1 * *" # 03:17 UTC on the 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-datasets
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'frappe/toolbox'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild any dataset whose upstream is newer
+        id: refresh
+        run: |
+          python scripts/refresh_datasets.py refresh
+          if git diff --quiet -- toolbox/data/manifest.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload refreshed assets to the datasets release
+        if: steps.refresh.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view datasets >/dev/null 2>&1 \
+            || gh release create datasets --title "Datasets" --notes "Canonical Toolbox datasets."
+          gh release upload datasets dist/datasets/*.gz --clobber
+
+      - name: Open a PR with the manifest bump
+        if: steps.refresh.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="datasets/refresh-$(date -u +%Y%m%d%H%M%S)"
+          git config user.name "frappe-toolbox-bot"
+          git config user.email "developers@frappe.io"
+          git checkout -b "$branch"
+          git add toolbox/data/manifest.json
+          git commit -m "chore(datasets): refresh canonical data"
+          git push origin "$branch"
+          gh pr create --base develop --head "$branch" \
+            --title "chore(datasets): refresh canonical data" \
+            --body "Automated dataset refresh. Assets are uploaded to the \`datasets\` release; this bumps the manifest to match. Merge to roll out on the next app update."

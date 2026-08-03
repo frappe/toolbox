@@ -47,7 +47,7 @@ export const financialCalculators = Object.freeze([
     id: 'sip',
     name: 'SIP projection',
     shortName: 'SIP',
-    description: 'Estimate a monthly investment plan with contributions made at month-end.',
+    description: 'Estimate a monthly investment plan with contributions made at month-start.',
     inputs: [
       currencyInput('monthlyInvestment', 'Monthly investment', '10000'),
       percentInput('annualRate', 'Expected annual return', '12', '% per year'),
@@ -149,8 +149,8 @@ function presentSip(result) {
       { label: 'Estimated gain', value: result.estimatedGain, format: 'currency' },
       { label: 'Monthly contributions', value: result.months, format: 'number' },
     ],
-    formula: 'Future value = P × ((1 + r)ⁿ − 1) ÷ r.',
-    assumption: 'Contributions occur at month-end. The expected annual return stays constant.',
+    formula: 'Future value = P × ((1 + r)ⁿ − 1) ÷ r × (1 + r).',
+    assumption: 'Contributions occur at month-start. The expected annual return stays constant.',
   }
 }
 
@@ -180,7 +180,8 @@ function presentBreakEven(result) {
       { label: 'Break-even revenue', value: result.breakEvenRevenue, format: 'currency' },
     ],
     formula: 'Break-even quantity = fixed cost ÷ (selling price − variable cost).',
-    assumption: 'The required quantity rounds up because partial units cannot be sold.',
+    assumption:
+      'The required quantity rounds up to the next whole unit, so break-even revenue uses it.',
   }
 }
 

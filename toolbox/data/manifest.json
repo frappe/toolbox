@@ -9,6 +9,15 @@
       "url": "https://github.com/frappe/toolbox/releases/download/datasets/dictionary-WordNet-3.1.jsonl.gz",
       "version": "WordNet-3.1"
     },
+    "HSN": {
+      "compression": "gzip",
+      "format": "jsonl",
+      "sha256": "9fdfca703b5cdd07b4d09ecd3ba924b22c90176033d963a788a28c652c06fe22",
+      "size": 305060,
+      "sourceUpdatedAt": "2024-06-25",
+      "url": "https://github.com/frappe/toolbox/releases/download/datasets/hsn-sac-2024-06-25.jsonl.gz",
+      "version": "2024-06-25"
+    },
     "IFSC": {
       "compression": "gzip",
       "format": "csv",

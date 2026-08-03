@@ -69,14 +69,13 @@ export const tools = [
   }),
   defineTool({
     id: 'hsn-sac-lookup',
-    name: 'HSN, SAC & GST Lookup',
-    description: 'Find likely classifications and available GST-rate information.',
+    name: 'HSN & SAC Lookup',
+    description: 'Search Indian HSN and SAC codes and descriptions.',
     icon: 'lucide-search',
     category: 'india',
     route: '/hsn-sac-lookup',
-    offlineCapability: 'cached',
-    externalDependencyStatus: 'india-compliance-required',
-    searchKeywords: ['hsn', 'sac', 'gst rate', 'classification'],
+    offlineCapability: 'partial',
+    searchKeywords: ['hsn', 'sac', 'code', 'classification', 'gst'],
   }),
   defineTool({
     id: 'india-business-lookup',

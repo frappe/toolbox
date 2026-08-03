@@ -14,6 +14,7 @@ const implementedToolViews = {
   'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   weather: () => import('@/views/tools/WeatherView.vue'),
+  dictionary: () => import('@/views/tools/DictionaryView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

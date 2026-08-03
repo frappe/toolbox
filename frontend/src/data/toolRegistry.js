@@ -131,9 +131,8 @@ export const tools = [
     category: 'information',
     route: '/dictionary',
     offlineCapability: 'server-dataset',
-    featureFlag: 'dictionary',
-    releaseStatus: 'dependency-validation',
-    externalDependencyStatus: 'dataset-required',
+    releaseStatus: 'available',
+    externalDependencyStatus: 'none',
     searchKeywords: ['word', 'definition', 'meaning', 'spelling', 'pronunciation'],
   }),
 ]

@@ -46,7 +46,7 @@ describe('tool registry', () => {
   it('marks dependency-validation tools with a flag and external dependency', () => {
     const conditionalTools = tools.filter((tool) => !isToolAvailable(tool))
 
-    expect(conditionalTools).toHaveLength(2)
+    expect(conditionalTools).toHaveLength(1)
     for (const tool of conditionalTools) {
       expect(tool.featureFlag).toBeTruthy()
       expect(tool.externalDependencyStatus).not.toBe('none')

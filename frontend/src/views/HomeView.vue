@@ -47,8 +47,14 @@
                 <li v-for="location in savedWorldClockLocations" :key="location.zone" class="flex items-center gap-2 text-sm text-ink-gray-7"><Icon v-if="location.favourite" name="lucide-star" class="size-3.5 fill-current text-ink-yellow-2" /><span class="min-w-0 truncate">{{ location.label || location.zone }}</span></li>
               </ul>
             </section>
+            <section v-if="savedWeatherLocations.length" aria-labelledby="saved-weather-title">
+              <div class="flex items-center justify-between gap-3"><h3 id="saved-weather-title" class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">Weather</h3><RouterLink to="/weather" class="text-xs font-medium text-ink-gray-6 underline underline-offset-2">Open weather</RouterLink></div>
+              <ul class="space-y-2 pt-2">
+                <li v-for="place in savedWeatherLocations" :key="place.id ?? `${place.latitude}:${place.longitude}`" class="flex items-center gap-2 text-sm text-ink-gray-7"><Icon name="lucide-cloud-sun" class="size-3.5 text-ink-gray-5" /><span class="min-w-0 truncate">{{ place.name }}</span></li>
+              </ul>
+            </section>
           </div>
-          <p v-else class="pt-3 text-sm leading-6 text-ink-gray-5">Save a currency pair or World Clock location to keep it close at hand.</p>
+          <p v-else class="pt-3 text-sm leading-6 text-ink-gray-5">Save a currency pair, World Clock location, or weather place to keep it close at hand.</p>
         </div>
         <div class="rounded-xl border border-dashed border-outline-gray-3 p-5">
           <p class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">
@@ -83,7 +89,12 @@ const savedWorldClockLocations = computed(() => (
     .sort((left, right) => Number(Boolean(right.favourite)) - Number(Boolean(left.favourite)))
     .slice(0, 6)
 ))
-const hasSavedItems = computed(() => savedCurrencyPairs.value.length || savedWorldClockLocations.value.length)
+const savedWeatherLocations = computed(() => (
+  preferences.savedWeatherLocations.value
+    .filter((place) => place && typeof place.name === 'string' && place.name)
+    .slice(0, 6)
+))
+const hasSavedItems = computed(() => savedCurrencyPairs.value.length || savedWorldClockLocations.value.length || savedWeatherLocations.value.length)
 const privacyNote = computed(() => {
   if (preferences.mode.value === 'frappe') {
     if (preferences.syncError.value) {

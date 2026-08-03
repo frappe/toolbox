@@ -119,9 +119,8 @@ export const tools = [
     category: 'information',
     route: '/weather',
     offlineCapability: 'cached',
-    featureFlag: 'weather',
-    releaseStatus: 'dependency-validation',
-    externalDependencyStatus: 'provider-required',
+    releaseStatus: 'available',
+    externalDependencyStatus: 'none',
     searchKeywords: ['forecast', 'temperature', 'rain', 'wind', 'humidity'],
   }),
   defineTool({

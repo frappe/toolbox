@@ -135,6 +135,17 @@ describe('ToolboxPreferencesStore', () => {
     expect(JSON.parse(storage.value).savedWorldClockLocations).toEqual(locations.slice(0, 12))
   })
 
+  it('persists a bounded weather location list', () => {
+    const storage = new MemoryStorage()
+    const store = new ToolboxPreferencesStore(storage)
+    const places = Array.from({ length: 14 }, (_, index) => ({ name: `City ${index}`, latitude: index, longitude: index }))
+
+    store.setSavedWeatherLocations(places)
+
+    expect(store.savedWeatherLocations.value).toHaveLength(12)
+    expect(JSON.parse(storage.value).savedWeatherLocations).toEqual(places.slice(0, 12))
+  })
+
   it('continues safely when browser storage throws', () => {
     const store = new ToolboxPreferencesStore(new MemoryStorage(null, true))
 

@@ -70,16 +70,16 @@ describe('calculateCompoundInterest', () => {
 })
 
 describe('calculateSip', () => {
-  it('matches a monthly end-of-period contribution vector', () => {
+  it('matches a monthly start-of-period contribution vector', () => {
     const result = calculateSip({
       monthlyInvestment: 1_000,
       annualRate: 12,
       durationYears: 1,
     })
 
-    expect(result.futureValue).toBeCloseTo(12_682.503013, 6)
+    expect(result.futureValue).toBeCloseTo(12_809.328043, 6)
     expect(result.totalInvested).toBe(12_000)
-    expect(result.estimatedGain).toBeCloseTo(682.503013, 6)
+    expect(result.estimatedGain).toBeCloseTo(809.328043, 6)
   })
 
   it('handles a zero-return projection', () => {

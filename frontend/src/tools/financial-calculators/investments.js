@@ -68,10 +68,11 @@ export function calculateSip({ monthlyInvestment, annualRate, durationYears }) {
   }
 
   const monthlyRate = annualRate / 100 / 12
+  const growth = (1 + monthlyRate) ** rawMonths
   const futureValue = requireFiniteResult(
     monthlyRate === 0
       ? monthlyInvestment * rawMonths
-      : monthlyInvestment * (((1 + monthlyRate) ** rawMonths - 1) / monthlyRate),
+      : monthlyInvestment * ((growth - 1) / monthlyRate) * (1 + monthlyRate),
   )
   const totalInvested = monthlyInvestment * rawMonths
 

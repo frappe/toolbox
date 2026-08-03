@@ -10,6 +10,24 @@
     <link rel="icon" href="/assets/toolbox/pwa/toolbox-192.png" />
     <link rel="apple-touch-icon" href="/assets/toolbox/pwa/toolbox-192.png" />
     <title>Toolbox</title>
+    <script>
+      // Resolve the saved theme before first paint so dark users never see a
+      // light flash. useTheme() re-applies and keeps this reactive after boot.
+      // Storage key mirrors PREFERENCES_STORAGE_KEY in useToolboxPreferences.js.
+      ;(function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('toolbox:preferences:v1') || '{}')
+          var theme = (stored.settings && stored.settings.theme) || 'system'
+          if (theme !== 'light' && theme !== 'dark') {
+            theme =
+              window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          }
+          document.documentElement.dataset.theme = theme
+        } catch (error) {}
+      })()
+    </script>
   </head>
   <body class="h-full bg-surface-white text-ink-gray-9">
     <div id="app" class="h-full"></div>

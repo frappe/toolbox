@@ -12,6 +12,9 @@ import { FrappeUIProvider } from 'frappe-ui'
 
 import AppShell from '@/components/layout/AppShell.vue'
 import DevTweakPanel from '@/components/dev/DevTweakPanel.vue'
+import { useTheme } from '@/composables/useTheme'
 
 const isDevelopment = import.meta.env.DEV
+
+useTheme()
 </script>

@@ -10,6 +10,7 @@ import SettingsView from './SettingsView.vue'
 
 const preferences = useToolboxPreferences()
 const settingLabels = [
+  'Theme',
   'Number format',
   'Decimal precision',
   'Date format',

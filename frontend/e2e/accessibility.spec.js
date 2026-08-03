@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 
 import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
-import { mockHsnDependency } from './hsn-fixture'
+import { mockHsnAvailable } from './hsn-fixture'
 
 for (const [path, heading] of [
   ['/toolbox/all-tools', 'All tools'],
@@ -13,13 +13,13 @@ for (const [path, heading] of [
   ['/toolbox/financial-calculators', 'Financial Calculators'],
   ['/toolbox/health-calculators', 'Health & Fitness Calculators'],
   ['/toolbox/timer', 'Timer, Stopwatch & Countdown'],
-  ['/toolbox/hsn-sac-lookup', 'HSN, SAC & GST Lookup'],
+  ['/toolbox/hsn-sac-lookup', 'HSN & SAC Lookup'],
   ['/toolbox/india-business-lookup', 'India Business Lookup'],
   ['/toolbox/world-clock', 'World Clock'],
 ]) {
   test(`${heading} has no serious automated accessibility violations`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)
-    if (path.includes('hsn-sac-lookup')) await mockHsnDependency(page)
+    if (path.includes('hsn-sac-lookup')) await mockHsnAvailable(page)
     await page.goto(path)
     await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
 

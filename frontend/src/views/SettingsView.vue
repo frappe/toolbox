@@ -7,6 +7,16 @@
     </header>
 
     <section class="divide-y divide-outline-gray-2 pt-8">
+      <SettingRow label="Theme" description="Match your system appearance, or always use a light or dark theme.">
+        <FormControl
+          type="select"
+          size="md"
+          aria-label="Theme"
+          :model-value="preferences.settings.theme"
+          :options="themeOptions"
+          @update:model-value="preferences.updateSetting('theme', $event)"
+        />
+      </SettingRow>
       <SettingRow label="Number format" description="Use Indian lakh and crore grouping or international thousands grouping.">
         <FormControl
           type="select"
@@ -138,6 +148,11 @@ const persistenceMessage = computed(() => {
   if (preferences.mode.value === 'memory') return 'Preferences last until this tab closes.'
   return 'Saved in this browser.'
 })
+const themeOptions = [
+  { label: 'System', value: 'system' },
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
+]
 const numberFormatOptions = [
   { label: 'Indian · 12,34,567.89', value: 'indian' },
   { label: 'International · 1,234,567.89', value: 'international' },

@@ -41,6 +41,7 @@ SETTING_OPTIONS: dict[str, tuple[object, ...]] = {
 	"defaultCurrency": ("INR", "USD", "EUR", "GBP", "AED", "SGD"),
 	"measurementSystem": ("metric", "imperial"),
 	"temperatureUnit": ("celsius", "fahrenheit"),
+	"theme": ("system", "light", "dark"),
 }
 
 DEFAULT_SETTINGS: dict[str, object] = {
@@ -51,6 +52,7 @@ DEFAULT_SETTINGS: dict[str, object] = {
 	"defaultCurrency": "INR",
 	"measurementSystem": "metric",
 	"temperatureUnit": "celsius",
+	"theme": "system",
 }
 
 _PREFERENCE_FIELDS = frozenset(

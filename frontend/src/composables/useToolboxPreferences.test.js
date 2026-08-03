@@ -113,6 +113,17 @@ describe('ToolboxPreferencesStore', () => {
     expect({ ...store.settings }).toEqual(defaultSettings)
   })
 
+  it('defaults the theme to system and rejects an unsupported theme', () => {
+    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    expect(store.settings.theme).toBe('system')
+
+    store.updateSetting('theme', 'dark')
+    expect(store.settings.theme).toBe('dark')
+
+    store.updateSetting('theme', 'sepia')
+    expect(store.settings.theme).toBe('dark')
+  })
+
   it('persists a bounded world-clock location list', () => {
     const storage = new MemoryStorage()
     const store = new ToolboxPreferencesStore(storage)

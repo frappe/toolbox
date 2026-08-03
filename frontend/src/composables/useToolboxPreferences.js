@@ -14,6 +14,7 @@ export const settingOptions = Object.freeze({
   defaultCurrency: ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'],
   measurementSystem: ['metric', 'imperial'],
   temperatureUnit: ['celsius', 'fahrenheit'],
+  theme: ['system', 'light', 'dark'],
 })
 
 export const defaultSettings = Object.freeze({
@@ -24,6 +25,7 @@ export const defaultSettings = Object.freeze({
   defaultCurrency: 'INR',
   measurementSystem: 'metric',
   temperatureUnit: 'celsius',
+  theme: 'system',
 })
 
 export class ToolboxPreferencesStore {

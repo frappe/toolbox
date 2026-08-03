@@ -81,7 +81,7 @@ export const tools = [
   defineTool({
     id: 'india-business-lookup',
     name: 'India Business Lookup',
-    description: 'Search PIN and IFSC datasets or validate a GSTIN format.',
+    description: 'Search Indian PIN codes and bank IFSC codes.',
     icon: 'lucide-building-2',
     category: 'india',
     route: '/india-business-lookup',
@@ -89,7 +89,7 @@ export const tools = [
     featureFlag: 'india_business_lookup',
     releaseStatus: 'available',
     externalDependencyStatus: 'datasets-required',
-    searchKeywords: ['pin code', 'ifsc', 'gstin', 'bank', 'post office'],
+    searchKeywords: ['pin code', 'ifsc', 'bank', 'post office'],
   }),
   defineTool({
     id: 'world-clock',

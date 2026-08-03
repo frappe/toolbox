@@ -52,6 +52,6 @@ describe('Home saved items', () => {
   it('shows a useful empty state before anything is saved', () => {
     const wrapper = mount(HomeView, { global: { stubs: { RouterLink } } })
 
-    expect(wrapper.text()).toContain('Save a currency pair or World Clock location')
+    expect(wrapper.text()).toContain('Save a currency pair, World Clock location, or weather place')
   })
 })

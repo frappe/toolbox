@@ -13,6 +13,7 @@ const implementedToolViews = {
   timer: () => import('@/views/tools/TimerView.vue'),
   'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
+  weather: () => import('@/views/tools/WeatherView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

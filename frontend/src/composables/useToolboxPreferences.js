@@ -116,6 +116,12 @@ export class ToolboxPreferencesStore {
     this.persist({ type: 'replaceSavedItems', field: 'savedWorldClockLocations', value: normalized })
   }
 
+  setSavedWeatherLocations(locations) {
+    const normalized = normalizeObjectList(locations).slice(0, 12)
+    this.savedWeatherLocations.value = normalized
+    this.persist({ type: 'replaceSavedItems', field: 'savedWeatherLocations', value: normalized })
+  }
+
   useRemotePersistence(save) {
     this.storage = null
     this.remoteSave = save

@@ -67,7 +67,7 @@ const open = computed({
   set: (value) => emit('update:modelValue', value),
 })
 const searchableTools = tools.filter(isToolAvailable)
-const results = computed(() => searchTools(query.value, searchableTools).slice(0, 10))
+const results = computed(() => searchTools(query.value, searchableTools).slice(0, 20))
 
 watch(open, async (isOpen) => {
   if (isOpen) {

@@ -41,9 +41,9 @@ describe('ToolRow', () => {
   })
 
   it('labels tools that are still undergoing dependency validation', async () => {
-    const wrapper = await mountRow('weather')
+    const wrapper = await mountRow('dictionary')
 
-    expect(wrapper.text()).toContain('Weather')
+    expect(wrapper.text()).toContain('Dictionary')
     expect(wrapper.text()).toContain('Validating')
   })
 })

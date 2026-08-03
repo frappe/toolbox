@@ -41,9 +41,10 @@ describe('ToolRow', () => {
   })
 
   it('labels tools that are still undergoing dependency validation', async () => {
-    const wrapper = await mountRow('dictionary')
+    const validating = { ...toolsById.get('calculator'), id: 'demo-validating', name: 'Demo tool', releaseStatus: 'dependency-validation' }
+    const wrapper = await mountRow(validating)
 
-    expect(wrapper.text()).toContain('Dictionary')
+    expect(wrapper.text()).toContain('Demo tool')
     expect(wrapper.text()).toContain('Validating')
   })
 })
@@ -56,7 +57,7 @@ async function mountRow(toolId) {
   await router.push('/')
   await router.isReady()
   return mount(ToolRow, {
-    props: { tool: toolsById.get(toolId) },
+    props: { tool: typeof toolId === 'string' ? toolsById.get(toolId) : toolId },
     attachTo: document.body,
     global: { plugins: [router] },
   })

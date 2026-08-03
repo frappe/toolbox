@@ -5,6 +5,27 @@ from frappe.rate_limiter import rate_limit
 from toolbox.india_business_data import IFSC_DOCTYPE, PIN_DOCTYPE, RELEASE_DOCTYPE
 
 MAX_RESULTS = 20
+CITY_ALIASES = {
+	"bangalore": "Bengaluru",
+	"bombay": "Mumbai",
+	"calcutta": "Kolkata",
+	"madras": "Chennai",
+	"poona": "Pune",
+	"gurgaon": "Gurugram",
+	"trivandrum": "Thiruvananthapuram",
+	"pondicherry": "Puducherry",
+	"baroda": "Vadodara",
+	"mysore": "Mysuru",
+	"mangalore": "Mangaluru",
+	"belgaum": "Belagavi",
+	"gauhati": "Guwahati",
+	"cochin": "Kochi",
+	"calicut": "Kozhikode",
+	"simla": "Shimla",
+	"benares": "Varanasi",
+	"banaras": "Varanasi",
+	"allahabad": "Prayagraj",
+}
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
@@ -33,8 +54,8 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 	if term.isdigit() and len(term) == 6:
 		rows = _indexed_query(record, fields, release.name, record.pin_code == term, record.office_name, count)
 	else:
-		rows = _prefix_search(
-			record, fields, release.name, _like_prefix(term), count,
+		rows = _aliased_prefix_search(
+			record, fields, release.name, term, count,
 			columns=(record.pin_code, record.office_name, record.district, record.state),
 			identity=lambda row: (row["pin_code"], row["office_name"], row["district"], row["state"]),
 		)
@@ -93,6 +114,21 @@ def _prefix_search(record, fields, release_name, prefix, limit, columns, identit
 	return merged[:limit]
 
 
+def _aliased_prefix_search(record, fields, release_name, term, limit, columns, identity):
+	"""The dataset stores current city names, so aliased former names still resolve."""
+	seen: set = set()
+	merged: list = []
+	for prefix in _pin_prefixes(term):
+		for row in _prefix_search(record, fields, release_name, prefix, limit, columns, identity):
+			key = identity(row)
+			if key not in seen:
+				seen.add(key)
+				merged.append(row)
+		if len(merged) >= limit:
+			break
+	return merged[:limit]
+
+
 def _active_metadata(dataset_type: str) -> dict[str, object] | None:
 	release = _active_release(dataset_type)
 	if not release:
@@ -130,6 +166,14 @@ def _limit(value: int) -> int:
 def _like_prefix(value: str) -> str:
 	escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 	return f"{escaped}%"
+
+
+def _pin_prefixes(term: str) -> list[str]:
+	prefixes = [_like_prefix(term)]
+	canonical = CITY_ALIASES.get(term.casefold())
+	if canonical and canonical.casefold() != term.casefold():
+		prefixes.append(_like_prefix(canonical))
+	return prefixes
 
 
 def _unavailable(dataset_type: str) -> dict[str, object]:

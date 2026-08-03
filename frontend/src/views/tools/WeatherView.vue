@@ -93,6 +93,7 @@
         </dl>
         <p v-if="weather.forecast.value.forecastNotice" class="border-t border-outline-gray-2 pt-4 text-sm leading-6 text-ink-gray-6">{{ weather.forecast.value.forecastNotice }}</p>
         <a v-if="weather.source.value?.url" class="inline-flex pt-4 text-sm font-medium text-ink-gray-8 underline underline-offset-4" :href="weather.source.value.url" target="_blank" rel="noreferrer">{{ weather.source.value.attribution }}</a>
+        <p class="pt-4 text-xs leading-5 text-ink-gray-5">Open-Meteo is free for non-commercial use; commercial use needs an Open-Meteo subscription. Weather data is licensed under CC BY 4.0.</p>
       </section>
     </div>
 

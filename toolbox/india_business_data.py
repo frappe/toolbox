@@ -165,6 +165,14 @@ def normalize_pin_row(row: Mapping[str, object]) -> dict[str, str] | None:
 	if not pin_code.isdigit() or len(pin_code) != 6 or not all((office_name, district, state)):
 		return None
 
+	# India Post supplies coordinates for ~91% of offices; the rest are blank, zero, or
+	# out of range. Keep only a pair that both parse inside India's bounding box so the map
+	# never plots a bogus point. A partial pair is dropped entirely.
+	latitude = _coordinate(values.get("latitude"), 6.0, 37.5)
+	longitude = _coordinate(values.get("longitude"), 68.0, 97.5)
+	if not (latitude and longitude):
+		latitude = longitude = ""
+
 	return {
 		"business_key": "|".join((pin_code, office_name.casefold(), district.casefold(), state.casefold())),
 		"pin_code": pin_code,
@@ -176,6 +184,8 @@ def normalize_pin_row(row: Mapping[str, object]) -> dict[str, str] | None:
 		"division": _text(values.get("divisionname")),
 		"region": _text(values.get("regionname")),
 		"circle": _text(values.get("circlename")),
+		"latitude": latitude,
+		"longitude": longitude,
 	}
 
 
@@ -294,6 +304,15 @@ def _normalized_keys(row: Mapping[str, object]) -> dict[str, object]:
 
 def _text(value: object) -> str:
 	return " ".join(str(value or "").strip().split())
+
+
+def _coordinate(value: object, low: float, high: float) -> str:
+	text = _text(value)
+	try:
+		number = float(text)
+	except ValueError:
+		return ""
+	return text if low <= number <= high else ""
 
 
 def _valid_ifsc(value: str) -> bool:

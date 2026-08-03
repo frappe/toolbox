@@ -49,7 +49,7 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 		return _unavailable("PIN")
 
 	record = frappe.qb.DocType(PIN_DOCTYPE)
-	fields = (record.pin_code, record.office_name, record.office_type, record.delivery_status, record.district, record.state)
+	fields = (record.pin_code, record.office_name, record.office_type, record.delivery_status, record.district, record.state, record.latitude, record.longitude)
 	count = _limit(limit)
 	if term.isdigit() and len(term) == 6:
 		rows = _indexed_query(record, fields, release.name, record.pin_code == term, record.office_name, count)

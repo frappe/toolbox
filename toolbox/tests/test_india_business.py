@@ -27,6 +27,16 @@ class TestIndiaBusinessData(UnitTestCase):
 		self.assertIsNone(normalize_pin_row({"pincode": "56001", "officename": "Office"}))
 		self.assertIsNone(normalize_pin_row({"pincode": "560001", "officename": "Office"}))
 
+	def test_keeps_only_valid_in_india_coordinates(self) -> None:
+		base = {"pincode": "560001", "officename": "GPO", "district": "Bengaluru", "statename": "Karnataka"}
+		good = normalize_pin_row({**base, "latitude": "12.9716", "longitude": "77.5946"})
+		self.assertEqual((good["latitude"], good["longitude"]), ("12.9716", "77.5946"))
+		# Out of range, zero, non-numeric, and half-missing pairs are all dropped to empty.
+		for bad in ({"latitude": "0", "longitude": "77.5"}, {"latitude": "88", "longitude": "77.5"},
+			{"latitude": "x", "longitude": "77.5"}, {"latitude": "12.9", "longitude": ""}):
+			row = normalize_pin_row({**base, **bad})
+			self.assertEqual((row["latitude"], row["longitude"]), ("", ""))
+
 	def test_normalizes_complete_ifsc_rows(self) -> None:
 		row = normalize_ifsc_row({
 			"IFSC": "hdfc0000001",

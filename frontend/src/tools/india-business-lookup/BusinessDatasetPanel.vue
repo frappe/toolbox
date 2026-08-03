@@ -23,6 +23,8 @@
       </li>
     </ol>
 
+    <PinMap v-if="datasetType === 'pin' && results.length" :results="results" />
+
     <div class="mt-8 border-t border-outline-gray-2 pt-5 text-xs leading-5 text-ink-gray-5">
       <p>Source: <a class="font-medium underline underline-offset-2" :href="metadata.source.url" target="_blank" rel="noreferrer">{{ metadata.source.name }}</a> · {{ metadata.source.license }}</p>
       <p class="pt-1">Source updated {{ formatDate(metadata.sourceUpdatedAt) }} · {{ metadata.recordCount.toLocaleString('en-IN') }} validated records<span v-if="metadata.exclusionCount"> · {{ metadata.exclusionCount.toLocaleString('en-IN') }} excluded</span></p>
@@ -34,6 +36,7 @@
 import { ref } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
+import PinMap from './PinMap.vue'
 import { searchBusinessDataset } from './api'
 
 const props = defineProps({

@@ -4,7 +4,7 @@
  "autoname": "hash",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["dataset_release", "pin_code", "office_name", "office_type", "delivery_status", "district", "state", "division", "region", "circle"],
+ "field_order": ["dataset_release", "pin_code", "office_name", "office_type", "delivery_status", "district", "state", "division", "region", "circle", "latitude", "longitude"],
  "fields": [
   {"fieldname": "dataset_release", "fieldtype": "Link", "label": "Dataset Release", "options": "Toolbox Dataset Release", "read_only": 1, "reqd": 1},
   {"fieldname": "pin_code", "fieldtype": "Data", "label": "PIN Code", "read_only": 1, "reqd": 1, "search_index": 1},
@@ -15,7 +15,9 @@
   {"fieldname": "state", "fieldtype": "Data", "label": "State", "read_only": 1, "reqd": 1, "search_index": 1},
   {"fieldname": "division", "fieldtype": "Data", "label": "Division", "read_only": 1},
   {"fieldname": "region", "fieldtype": "Data", "label": "Region", "read_only": 1},
-  {"fieldname": "circle", "fieldtype": "Data", "label": "Circle", "read_only": 1}
+  {"fieldname": "circle", "fieldtype": "Data", "label": "Circle", "read_only": 1},
+  {"fieldname": "latitude", "fieldtype": "Data", "label": "Latitude", "read_only": 1},
+  {"fieldname": "longitude", "fieldtype": "Data", "label": "Longitude", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,
  "module": "Toolbox",

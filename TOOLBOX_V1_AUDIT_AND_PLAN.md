@@ -131,3 +131,20 @@ Severity: **Critical** none found · **High** = fix before release / before it b
 ## 5. Recommended immediate next step
 
 **Phase 0 (git safety net) → then Phase 1's release-safety fixes**, because they directly unblock the PIN/IFSC import that was the stated active task and prevent the reactivation bug from corrupting a production activation. Everything else can follow in the order above or be re-prioritized.
+
+---
+
+## 6. Product decisions resolved (2026-08-03, autonomous session)
+
+Vibhav delegated these ("take logical calls based on industry standard / best practices; I'll review"). Each was made to the mainstream default and is reviewable/reversible.
+
+1. **SIP projection → month-start (annuity-due).** `calculateSip` now returns FV = P·((1+i)ⁿ−1)/i·(1+i). Matches every mainstream Indian SIP calculator (Groww, ClearTax, AMFI). UI description/formula/assumption updated; test vector recomputed (₹12,809.33 for ₹1,000 / 12% / 1yr). EMI (ordinary-annuity loan) and compound-interest deliberately unchanged.
+2. **Calculator "100 + 10%" → kept literal (÷100).** This is an *expression* calculator (tokenizer→parser→evaluator with precedence and parentheses). Contextual "%" (Windows-calc style, =110) is ill-defined in an expression grammar — `+`/`−` would have to mean "percent of the left operand" while `*`/`÷` mean ÷100, breaking clean precedence and chained-percent cases. Literal postfix ÷100 is the consistent, standard choice for expression/scientific calculators. No change (reviewable — four-function contextual % would be a deliberate different design).
+3. **Break-even → kept round-up; clarified.** Quantity rounds up to the next whole unit (a fraction can't be sold to reach break-even) and revenue uses that quantity; the assumption line now says so. Math unchanged.
+4. **BMI labels → cite WHO and CDC.** Labels shown are "Healthy weight" (CDC's term) + "Class 1/2/3 obesity" (WHO's formal scheme, also published by CDC); both bodies use identical cutoffs. Citation changed from "Adult CDC categories" to "Adult WHO and CDC categories" so labels and source are consistent. Cutoffs unchanged; disclaimer preserved.
+5. **Weather & Dictionary → kept disabled for V1.** The spec sanctions clearly-disabled conditional tools; shipping an unvalidated provider/dataset would violate the honest-data rule. They present an honest "Not enabled yet · provider required" state. Recommended sources when built: **Open-Meteo** (free, no key, CC-BY) for Weather; a public-domain dataset (Wiktionary / WordNet / GCIDE) for Dictionary. Deferred post-V1.
+6. **PIN "source updated" date → kept 2026-06-10 (unconfirmed).** data.gov.in blocks automated reads; the file is verified-genuine and a web search corroborates the date. Correctable via re-import.
+7. **PIN attribution URL → corrected** to `.../catalog/all-india-pincode-directory` (was the `-through-webservice` API endpoint; we imported a bulk CSV). Fixed in code (`PIN_SOURCE`) and on the active prod release.
+8. **PIN city search → official-rename aliases added.** "Bangalore" and 18 other former names (Bombay, Calcutta, Madras, Poona, Gurgaon, Trivandrum, …) now resolve to the current names the dataset stores (Bengaluru, Mumbai, …). Deterministic map in `india_business.py`; verified live ("Bangalore" → Bengaluru results).
+
+**Verification:** vitest 440, Python 31 unit + 22 integration, Playwright e2e 73 — all green; production build clean. Full desktop+mobile visual sweep of all 12 tools + Home/All-tools/Settings — no overflow/overlap/obscured-content issues (mobile `<main>` has `pb-20`, nav `h-16`).

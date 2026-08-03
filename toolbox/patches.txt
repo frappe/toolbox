@@ -5,3 +5,4 @@
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 toolbox.patches.v1_0.add_india_business_indexes
+toolbox.patches.v1_0.add_dictionary_indexes

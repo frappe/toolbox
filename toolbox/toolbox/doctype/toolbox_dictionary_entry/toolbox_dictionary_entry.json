@@ -1,0 +1,21 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["dataset_release", "word", "normalized_word", "senses_json"],
+ "fields": [
+  {"fieldname": "dataset_release", "fieldtype": "Link", "label": "Dataset Release", "options": "Toolbox Dataset Release", "read_only": 1, "reqd": 1},
+  {"fieldname": "word", "fieldtype": "Data", "label": "Word", "read_only": 1, "reqd": 1},
+  {"fieldname": "normalized_word", "fieldtype": "Data", "label": "Normalized Word", "read_only": 1, "reqd": 1, "search_index": 1},
+  {"fieldname": "senses_json", "fieldtype": "Long Text", "label": "Senses JSON", "read_only": 1}
+ ],
+ "index_web_pages_for_search": 0,
+ "module": "Toolbox",
+ "name": "Toolbox Dictionary Entry",
+ "permissions": [{"read": 1, "role": "System Manager"}],
+ "sort_field": "normalized_word",
+ "sort_order": "ASC",
+ "states": []
+}

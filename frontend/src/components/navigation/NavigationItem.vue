@@ -1,8 +1,8 @@
 <template>
   <RouterLink
     :to="to"
-    class="group flex h-9 w-full items-center rounded-lg px-2 text-sm font-medium text-ink-gray-7 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-    active-class="bg-surface-gray-2 text-ink-gray-9"
+    class="group flex h-9 w-full items-center rounded-lg px-2 text-sm font-medium text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+    active-class="bg-surface-white font-semibold text-ink-gray-9 shadow-sm ring-1 ring-outline-gray-2"
     @click="$emit('navigate')"
   >
     <span class="flex size-7 shrink-0 items-center justify-center">

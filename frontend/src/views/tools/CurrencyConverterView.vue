@@ -12,7 +12,7 @@
         <label class="grid gap-2 pt-6 text-sm font-medium text-ink-gray-7">Amount<input v-model="converter.amount.value" class="h-12 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-lg tabular-nums" type="number" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-describedby="currency-feedback" /></label>
         <div class="grid items-end gap-3 pt-5 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]">
           <CurrencyPicker v-model="converter.sourceCurrency.value" label="Source currency" picker-id="source-currency" :currencies="converter.currencies.value" />
-          <Button class="h-12" label="Swap" icon="lucide-arrow-right-left" variant="subtle" @click="converter.swapCurrencies" />
+          <Button class="size-12 justify-self-center" variant="subtle" icon="lucide-arrow-right-left" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" />
           <CurrencyPicker v-model="converter.destinationCurrency.value" label="Destination currency" picker-id="destination-currency" :currencies="converter.currencies.value" />
         </div>
         <div id="currency-feedback" class="pt-4"><p v-if="converter.amountError.value" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ converter.amountError.value }}</p><p v-else-if="converter.errorMessage.value" class="rounded-lg bg-surface-amber-1 px-3 py-2 text-sm leading-6 text-ink-gray-7" role="status">{{ converter.errorMessage.value }}</p><p v-else class="text-sm text-ink-gray-5">Rates load once and each amount converts locally.</p></div>

@@ -26,21 +26,17 @@ class MemoryStorage {
 }
 
 describe('toolbox preference synchronization', () => {
-  it('keeps guest preferences in browser storage without a server request', async () => {
+  it('never falls back to guest browser storage (Toolbox is authenticated-only)', async () => {
     const storage = new MemoryStorage()
     const store = new ToolboxPreferencesStore(storage)
-    const request = vi.fn()
+    const remote = createDefaultPreferences()
+    const request = vi.fn().mockResolvedValue(remote)
 
-    await initializeToolboxPreferences({
-      store,
-      request,
-      session: { is_logged_in: false, user: 'Guest' },
-    })
+    await initializeToolboxPreferences({ store, request })
     store.toggleFavourite('calculator')
 
-    expect(store.mode.value).toBe('local')
-    expect(request).not.toHaveBeenCalled()
-    expect(JSON.parse(storage.value).favouriteToolIds).toEqual(['calculator'])
+    expect(store.mode.value).toBe('frappe')
+    expect(storage.setItem).not.toHaveBeenCalled()
   })
 
   it('loads signed-in preferences from Frappe without migrating local data', async () => {

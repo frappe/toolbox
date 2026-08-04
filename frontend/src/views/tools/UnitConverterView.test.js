@@ -25,7 +25,7 @@ describe('UnitConverterView', () => {
 
   it('changes category defaults and applies temperature formulas', async () => {
     const wrapper = mountView()
-    await wrapper.get('#unit-category').setValue('temperature')
+    await wrapper.get('[data-category-id="temperature"]').trigger('click')
     const [fromInput, toInput] = valueInputs(wrapper)
     await fromInput.setValue('0')
 
@@ -121,16 +121,14 @@ describe('UnitConverterView', () => {
     expect(secondWrapper.get('button[aria-label="Use Meter to Kilometer"]')).toBeTruthy()
   })
 
-  it('clears values and resets category state', async () => {
+  it('clears the values while keeping the chosen category', async () => {
     const wrapper = mountView()
-    await wrapper.get('#unit-category').setValue('temperature')
+    await wrapper.get('[data-category-id="temperature"]').trigger('click')
     await valueInputs(wrapper)[0].setValue('10')
     const clearButton = wrapper.findAll('button').find((button) => button.text() === 'Clear')
     await clearButton.trigger('click')
     expect(valueInputs(wrapper).map((input) => input.element.value)).toEqual(['', ''])
-
-    const resetButton = wrapper.findAll('button').find((button) => button.text() === 'Reset')
-    await resetButton.trigger('click')
-    expect(wrapper.get('#unit-category').element.value).toBe('length')
+    // A single Clear empties the values but keeps the user's category.
+    expect(wrapper.get('[data-category-id="temperature"]').attributes('aria-pressed')).toBe('true')
   })
 })

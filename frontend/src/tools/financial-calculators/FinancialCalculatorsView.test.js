@@ -23,7 +23,7 @@ function mountView() {
 }
 
 async function selectCalculator(wrapper, id) {
-  await wrapper.get(`[data-calculator-id="${id}"]`).trigger('click')
+  await wrapper.get(`[data-tab-id="${id}"]`).trigger('click')
 }
 
 describe('FinancialCalculatorsView', () => {
@@ -54,11 +54,11 @@ describe('FinancialCalculatorsView', () => {
 
     // Move to a different calculator, then reuse the EMI row.
     await selectCalculator(wrapper, 'sip')
-    expect(wrapper.get('[data-calculator-id="sip"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('[data-tab-id="sip"]').attributes('aria-selected')).toBe('true')
     await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.get('[data-calculator-id="emi"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('[data-tab-id="emi"]').attributes('aria-selected')).toBe('true')
     expect(wrapper.get('#emi-principal').element.value).toBe('500000')
   })
 

@@ -10,11 +10,9 @@
       <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite('timer') ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite('timer')" />
     </header>
 
-    <nav class="flex gap-2 pt-8" aria-label="Timekeeping tool">
-      <Button v-for="tab in tabs" :key="tab.id" class="h-11" :label="tab.label" :variant="activeTab === tab.id ? 'subtle' : 'ghost'" :aria-pressed="activeTab === tab.id" @click="activeTab = tab.id" />
-    </nav>
+    <SegmentedTabs v-model="activeTab" :tabs="tabs" aria-label="Timekeeping tool" class="mt-8" />
 
-    <div class="pt-5">
+    <div :id="`${activeTab}-panel`" class="pt-5" role="tabpanel" :aria-labelledby="`${activeTab}-tab`">
       <section v-if="activeTab === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
@@ -60,6 +58,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import SegmentedTabs from '@/components/navigation/SegmentedTabs.vue'
 import TimeDisplay from '@/tools/timer/TimeDisplay.vue'
 import { useTimerWorkspace } from '@/tools/timer/useTimerWorkspace'
 import { formatDuration } from '@/tools/timer/formatTime'

@@ -3,11 +3,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import {
   describeZonedTime,
-  isWithinWorkingHours,
   localTimeZone,
   locationKey,
   searchTimeZones,
-  selectedInstant,
   zoneLabel,
 } from './worldClock'
 import { canonicalizeZone } from './worldClockCities'
@@ -19,9 +17,6 @@ export function useWorldClock({ now = () => new Date() } = {}) {
   const preferences = useToolboxPreferences()
   const clock = ref(now())
   const query = ref('')
-  const offsetHours = ref(0)
-  const workingStart = ref(9)
-  const workingEnd = ref(17)
   let intervalId = null
 
   ensureLocations(preferences)
@@ -33,22 +28,16 @@ export function useWorldClock({ now = () => new Date() } = {}) {
     ...location,
     id: location.id ?? locationKey(location.label ?? zoneLabel(location.zone), location.zone),
   })))
-  const selectedTime = computed(() => selectedInstant(clock.value, offsetHours.value))
+  // Locations always show the current time now that the meeting-offset slider is gone.
+  const selectedTime = computed(() => clock.value)
   const searchResults = computed(() => searchTimeZones(query.value).filter(
     (result) => !locations.value.some((location) => location.id === result.id),
   ))
   const rows = computed(() => locations.value.map((location) => {
     const description = describeZonedTime(selectedTime.value, location.zone)
     // Spread the location last so its friendly label wins over the zone-derived one.
-    return {
-      ...description,
-      ...location,
-      withinWorkingHours: isWithinWorkingHours(description, workingStart.value, workingEnd.value),
-    }
+    return { ...description, ...location }
   }))
-  const hasSharedWorkingTime = computed(() => (
-    rows.value.length > 1 && rows.value.every(({ withinWorkingHours }) => withinWorkingHours)
-  ))
 
   onMounted(() => {
     intervalId = globalThis.setInterval(() => { clock.value = now() }, 30_000)
@@ -94,14 +83,10 @@ export function useWorldClock({ now = () => new Date() } = {}) {
 
   return {
     query,
-    offsetHours,
-    workingStart,
-    workingEnd,
     locations,
     selectedTime,
     searchResults,
     rows,
-    hasSharedWorkingTime,
     addLocation,
     removeLocation,
     moveLocation,

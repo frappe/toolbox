@@ -62,13 +62,24 @@ describe('FinancialCalculatorsView', () => {
     expect(wrapper.get('#emi-principal').element.value).toBe('500000')
   })
 
-  it('shows a reconciled EMI estimate and full schedule', () => {
+  it('shows a reconciled EMI estimate, balance chart, and full schedule', () => {
     const wrapper = mountView()
 
     expect(wrapper.get('output[aria-label="Primary financial result"]').text()).toContain('₹')
     expect(wrapper.text()).toContain('Total interest')
+    // The declining-balance chart renders alongside the schedule.
+    expect(wrapper.get('svg[aria-label="Outstanding loan balance each year"]').exists()).toBe(true)
     expect(wrapper.get('summary').text()).toBe('View all 60 payments')
     expect(wrapper.findAll('tbody tr')).toHaveLength(60)
+  })
+
+  it('draws the cost-versus-revenue chart for break-even', async () => {
+    const wrapper = mountView()
+    await selectCalculator(wrapper, 'break-even')
+
+    const chart = wrapper.get('svg[aria-label="Cost versus revenue break-even chart"]')
+    expect(chart.findAll('polyline')).toHaveLength(2)
+    expect(wrapper.text()).toContain('Break-even')
   })
 
   it('calculates compound interest with explicit end-of-period contributions', async () => {

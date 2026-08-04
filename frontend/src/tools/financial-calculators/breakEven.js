@@ -25,6 +25,9 @@ export function calculateBreakEven({ fixedCost, sellingPrice, variableCost }) {
   const breakEvenQuantity = Math.ceil(exactQuantity)
 
   return {
+    fixedCost,
+    sellingPrice,
+    variableCost,
     contributionPerUnit,
     exactQuantity,
     breakEvenQuantity,

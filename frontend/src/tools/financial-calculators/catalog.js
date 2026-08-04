@@ -135,8 +135,23 @@ function presentLoan(result) {
     formula: 'Payment = P × r × (1 + r)ⁿ ÷ ((1 + r)ⁿ − 1).',
     assumption:
       'The annual rate is split evenly across periods. Payments occur at each period end.',
+    chart: { series: loanBalanceSeries(result), ariaLabel: 'Outstanding loan balance each year' },
     schedule: result.schedule,
   }
+}
+
+// The outstanding balance sampled at each year end (plus the starting principal), so the chart
+// reads as a declining balance rather than the growth curve the other calculators use.
+function loanBalanceSeries(result) {
+  const first = result.schedule[0]
+  const principal = first.balance + first.principal
+  const points = [{ year: 0, value: principal }]
+  for (const row of result.schedule) {
+    if (row.period % result.paymentsPerYear === 0 || row.period === result.periods) {
+      points.push({ year: row.period / result.paymentsPerYear, value: row.balance })
+    }
+  }
+  return points
 }
 
 function presentCompoundInterest(result) {
@@ -213,6 +228,14 @@ function presentBreakEven(result) {
     formula: 'Break-even quantity = fixed cost ÷ (selling price − variable cost).',
     assumption:
       'The required quantity rounds up to the next whole unit, so break-even revenue uses it.',
+    chart: {
+      type: 'break-even',
+      fixedCost: result.fixedCost,
+      sellingPrice: result.sellingPrice,
+      variableCost: result.variableCost,
+      exactQuantity: result.exactQuantity,
+      breakEvenQuantity: result.breakEvenQuantity,
+    },
   }
 }
 

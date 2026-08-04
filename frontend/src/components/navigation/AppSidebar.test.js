@@ -21,6 +21,22 @@ describe('AppSidebar', () => {
     }
   })
 
+  it('exposes a collapse toggle and hides labels when collapsed', async () => {
+    const expanded = await mountSidebar({ collapsible: true, collapsed: false })
+    const toggle = expanded.get('button[aria-label="Collapse sidebar"]')
+    await toggle.trigger('click')
+    expect(expanded.emitted('toggle-collapse')).toHaveLength(1)
+
+    const collapsed = await mountSidebar({ collapsible: true, collapsed: true })
+    // Section headings collapse to dividers, and tool links fall back to icon + aria-label.
+    expect(collapsed.findAll('h2')).toHaveLength(0)
+    expect(collapsed.get('button[aria-label="Expand sidebar"]').exists()).toBe(true)
+    const calculator = toolsById.get('calculator')
+    expect(collapsed.get(`a[href="${calculator.route}"]`).attributes('aria-label')).toBe(
+      calculator.name,
+    )
+  })
+
   it('omits tools the user has hidden', async () => {
     const preferences = useToolboxPreferences()
     const weather = toolsById.get('weather')
@@ -36,17 +52,18 @@ describe('AppSidebar', () => {
   })
 })
 
-async function mountSidebar() {
+async function mountSidebar(props = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       { path: '/', component: { template: '<div />' } },
       { path: '/all-tools', component: { template: '<div />' } },
+      { path: '/settings', component: { template: '<div />' } },
       ...tools.map((tool) => ({ path: tool.route, component: { template: '<div />' } })),
     ],
   })
   await router.push('/')
   await router.isReady()
 
-  return mount(AppSidebar, { global: { plugins: [router] } })
+  return mount(AppSidebar, { props, global: { plugins: [router] } })
 }

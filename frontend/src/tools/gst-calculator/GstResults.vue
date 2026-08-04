@@ -22,6 +22,17 @@
           </dd>
         </div>
       </dl>
+
+      <div class="flex flex-wrap gap-2 pt-6">
+        <Button
+          class="h-11"
+          label="Copy summary"
+          variant="solid"
+          icon="lucide-copy"
+          :disabled="!canCopy"
+          @click="emit('copy')"
+        />
+      </div>
     </div>
 
     <div v-else class="flex min-h-72 flex-col items-center justify-center px-4 py-10 text-center">
@@ -38,14 +49,17 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Icon } from 'frappe-ui'
+import { Button, Icon } from 'frappe-ui'
 
 import { formatInr } from './useGstCalculator'
 
 const props = defineProps({
   result: { type: Object, default: null },
   finalAmountLabel: { type: String, required: true },
+  canCopy: { type: Boolean, default: false },
 })
+
+const emit = defineEmits(['copy'])
 
 const resultRows = computed(() => {
   if (!props.result) return []

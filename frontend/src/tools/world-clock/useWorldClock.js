@@ -5,7 +5,9 @@ import {
   describeZonedTime,
   localTimeZone,
   locationKey,
+  parseDateTimeLocal,
   searchTimeZones,
+  zonedWallTimeToInstant,
   zoneLabel,
 } from './worldClock'
 import { canonicalizeZone } from './worldClockCities'
@@ -17,6 +19,9 @@ export function useWorldClock({ now = () => new Date() } = {}) {
   const preferences = useToolboxPreferences()
   const clock = ref(now())
   const query = ref('')
+  const mode = ref('clocks') // 'clocks' = current time · 'convert' = a chosen date/time
+  const convertDateTime = ref('') // datetime-local string, interpreted in convertZone
+  const convertZone = ref(canonicalizeZone(localTimeZone()))
   let intervalId = null
 
   ensureLocations(preferences)
@@ -28,8 +33,15 @@ export function useWorldClock({ now = () => new Date() } = {}) {
     ...location,
     id: location.id ?? locationKey(location.label ?? zoneLabel(location.zone), location.zone),
   })))
-  // Locations always show the current time now that the meeting-offset slider is gone.
-  const selectedTime = computed(() => clock.value)
+  // "Clocks" shows the current time; "Convert" shows a chosen wall-clock time (in
+  // convertZone) as the equivalent instant across every location.
+  const selectedTime = computed(() => {
+    if (mode.value === 'convert') {
+      const parts = parseDateTimeLocal(convertDateTime.value)
+      if (parts) return zonedWallTimeToInstant(parts, convertZone.value)
+    }
+    return clock.value
+  })
   const searchResults = computed(() => searchTimeZones(query.value).filter(
     (result) => !locations.value.some((location) => location.id === result.id),
   ))
@@ -83,6 +95,9 @@ export function useWorldClock({ now = () => new Date() } = {}) {
 
   return {
     query,
+    mode,
+    convertDateTime,
+    convertZone,
     locations,
     selectedTime,
     searchResults,

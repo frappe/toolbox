@@ -54,13 +54,15 @@ export function calculateCompoundInterest({
   }
 }
 
-export function calculateSip({ monthlyInvestment, annualRate, durationYears }) {
+export function calculateSip({ monthlyInvestment, annualRate, durationYears, annualStepUpRate = 0 }) {
   requirePositive(monthlyInvestment, 'Monthly investment')
   requireNonNegative(annualRate, 'Expected annual return')
   requirePositive(durationYears, 'Duration')
+  requireNonNegative(annualStepUpRate, 'Annual step-up')
   requireAtMost(monthlyInvestment, 1_000_000_000_000_000, 'Monthly investment')
   requireAtMost(annualRate, 1_000, 'Expected annual return')
   requireAtMost(durationYears, 100, 'Duration')
+  requireAtMost(annualStepUpRate, 1_000, 'Annual step-up')
 
   const rawMonths = durationYears * 12
   if (!Number.isInteger(rawMonths)) {
@@ -68,19 +70,58 @@ export function calculateSip({ monthlyInvestment, annualRate, durationYears }) {
   }
 
   const monthlyRate = annualRate / 100 / 12
-  const growth = (1 + monthlyRate) ** rawMonths
-  const futureValue = requireFiniteResult(
-    monthlyRate === 0
-      ? monthlyInvestment * rawMonths
-      : monthlyInvestment * ((growth - 1) / monthlyRate) * (1 + monthlyRate),
-  )
-  const totalInvested = monthlyInvestment * rawMonths
+  const stepUp = annualStepUpRate / 100
+
+  if (stepUp === 0) {
+    const growth = (1 + monthlyRate) ** rawMonths
+    const futureValue = requireFiniteResult(
+      monthlyRate === 0
+        ? monthlyInvestment * rawMonths
+        : monthlyInvestment * ((growth - 1) / monthlyRate) * (1 + monthlyRate),
+    )
+    const totalInvested = monthlyInvestment * rawMonths
+    return {
+      futureValue,
+      totalInvested,
+      estimatedGain: futureValue - totalInvested,
+      months: rawMonths,
+      stepUpApplied: false,
+    }
+  }
+
+  // Step-up: the monthly amount rises by the step-up rate after each completed year.
+  // Contributions are made at month-start (annuity-due), matching the base case, so a
+  // 0% step-up here would reproduce the closed form above.
+  let balance = 0
+  let totalInvested = 0
+  for (let month = 0; month < rawMonths; month += 1) {
+    const contribution = monthlyInvestment * (1 + stepUp) ** Math.floor(month / 12)
+    totalInvested += contribution
+    balance = (balance + contribution) * (1 + monthlyRate)
+  }
+  const futureValue = requireFiniteResult(balance)
 
   return {
     futureValue,
-    totalInvested,
+    totalInvested: requireFiniteResult(totalInvested),
     estimatedGain: futureValue - totalInvested,
     months: rawMonths,
+    stepUpApplied: true,
+  }
+}
+
+export function calculateProjectedValue({ startingValue, annualRate, durationYears }) {
+  requirePositive(startingValue, 'Starting value')
+  requireNonNegative(annualRate, 'Annual growth rate')
+  requirePositive(durationYears, 'Duration')
+  requireAtMost(startingValue, 1_000_000_000_000_000, 'Starting value')
+  requireAtMost(annualRate, 1_000, 'Annual growth rate')
+  requireAtMost(durationYears, 1_000, 'Duration')
+
+  const endingValue = requireFiniteResult(startingValue * (1 + annualRate / 100) ** durationYears)
+  return {
+    endingValue,
+    totalGrowth: endingValue - startingValue,
   }
 }
 

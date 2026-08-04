@@ -3,6 +3,7 @@ import {
   calculateCagr,
   calculateCompoundInterest,
   calculateLoan,
+  calculateProjectedValue,
   calculateSip,
   FinancialCalculationError,
 } from './index'
@@ -52,6 +53,7 @@ export const financialCalculators = Object.freeze([
       currencyInput('monthlyInvestment', 'Monthly investment', '10000'),
       percentInput('annualRate', 'Expected annual return', '12', '% per year'),
       numberInput('durationYears', 'Duration', '10', 'years'),
+      percentInput('annualStepUpRate', 'Annual step-up', '0', '% per year'),
     ],
     calculate: (values) => calculateSip(values),
     present: presentSip,
@@ -68,6 +70,19 @@ export const financialCalculators = Object.freeze([
     ],
     calculate: (values) => calculateCagr(values),
     present: presentCagr,
+  }),
+  defineCalculator({
+    id: 'projected-value',
+    name: 'Projected value',
+    shortName: 'Projected',
+    description: 'Grow a starting value at a constant annual rate to see its future value.',
+    inputs: [
+      currencyInput('startingValue', 'Starting value', '100000'),
+      percentInput('annualRate', 'Annual growth rate', '12', '% per year'),
+      numberInput('durationYears', 'Duration', '5', 'years'),
+    ],
+    calculate: (values) => calculateProjectedValue(values),
+    present: presentProjectedValue,
   }),
   defineCalculator({
     id: 'break-even',
@@ -149,8 +164,21 @@ function presentSip(result) {
       { label: 'Estimated gain', value: result.estimatedGain, format: 'currency' },
       { label: 'Monthly contributions', value: result.months, format: 'number' },
     ],
-    formula: 'Future value = P × ((1 + r)ⁿ − 1) ÷ r × (1 + r).',
-    assumption: 'Contributions occur at month-start. The expected annual return stays constant.',
+    formula: result.stepUpApplied
+      ? 'Each month-start contribution grows to the horizon; the monthly amount rises by the step-up after every completed year.'
+      : 'Future value = P × ((1 + r)ⁿ − 1) ÷ r × (1 + r).',
+    assumption: result.stepUpApplied
+      ? 'Contributions occur at month-start. The expected return and the annual step-up stay constant.'
+      : 'Contributions occur at month-start. The expected annual return stays constant.',
+  }
+}
+
+function presentProjectedValue(result) {
+  return {
+    primary: { label: 'Projected value', value: result.endingValue, format: 'currency' },
+    rows: [{ label: 'Total growth', value: result.totalGrowth, format: 'currency' }],
+    formula: 'Projected value = starting value × (1 + rate)^years.',
+    assumption: 'The growth rate stays constant for the whole period.',
   }
 }
 

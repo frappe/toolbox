@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calculateCagr,
   calculateCompoundInterest,
+  calculateProjectedValue,
   calculateSip,
   FinancialCalculationError,
 } from './index'
@@ -86,6 +87,45 @@ describe('calculateSip', () => {
     const result = calculateSip({ monthlyInvestment: 2_000, annualRate: 0, durationYears: 2 })
     expect(result.futureValue).toBe(48_000)
     expect(result.estimatedGain).toBe(0)
+  })
+
+  it('reproduces the closed form when the step-up is zero', () => {
+    const base = calculateSip({ monthlyInvestment: 5_000, annualRate: 12, durationYears: 5 })
+    const zeroStep = calculateSip({
+      monthlyInvestment: 5_000,
+      annualRate: 12,
+      durationYears: 5,
+      annualStepUpRate: 0,
+    })
+    expect(zeroStep.futureValue).toBe(base.futureValue)
+    expect(zeroStep.stepUpApplied).toBe(false)
+  })
+
+  it('raises contributions and future value with an annual step-up', () => {
+    const flat = calculateSip({ monthlyInvestment: 10_000, annualRate: 12, durationYears: 3 })
+    const stepped = calculateSip({
+      monthlyInvestment: 10_000,
+      annualRate: 12,
+      durationYears: 3,
+      annualStepUpRate: 10,
+    })
+    expect(stepped.stepUpApplied).toBe(true)
+    expect(stepped.totalInvested).toBeGreaterThan(flat.totalInvested)
+    expect(stepped.futureValue).toBeGreaterThan(flat.futureValue)
+  })
+})
+
+describe('calculateProjectedValue', () => {
+  it('grows a starting value at a constant rate (inverse of CAGR)', () => {
+    const result = calculateProjectedValue({ startingValue: 100, annualRate: 10, durationYears: 2 })
+    expect(result.endingValue).toBeCloseTo(121, 10)
+    expect(result.totalGrowth).toBeCloseTo(21, 10)
+  })
+
+  it('rejects a non-positive starting value', () => {
+    expect(() =>
+      calculateProjectedValue({ startingValue: 0, annualRate: 10, durationYears: 2 }),
+    ).toThrow('Starting value must be greater than zero')
   })
 })
 

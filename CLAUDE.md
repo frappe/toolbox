@@ -38,9 +38,21 @@ Authenticated preferences sync semantic operations to one `Toolbox User Preferen
 
 Home uses the same preference store for favorites, recent tools, saved currency pairs, and saved World Clock locations.
 
-Use bounded guest APIs for public lookup data. Validate input on the server. Keep database queries indexed and limit all result sets.
+Use bounded whitelisted APIs for lookup data. Validate input on the server. Keep database queries indexed and limit all result sets.
 
 Use staged releases for PIN and IFSC data. Validate a release before activation. Preserve the active release if an import fails.
+
+## Authentication and Phase 2 ownership model
+
+Toolbox is a single-owner, authenticated-only application. There is no guest, sharing, or multi-user access. The web entry `toolbox/www/toolbox.py` redirects `Guest` to the Frappe login, tool APIs are not `allow_guest`, and a client router guard (`frontend/src/utils/authGuard.js`) redirects on a lost session. Preferences sync only to the per-user server record.
+
+Phase 2 personal records (notes, checklists, links, reminders, expenses, audio) are private to their owner. Follow this foundation (`toolbox/permissions.py`):
+
+- Every real, enabled user is auto-enrolled in the `Toolbox User` role (User `after_insert` hook plus `backfill_toolbox_user_role` on migrate). `Toolbox Manager` administers shared configuration and does not get routine access to personal content.
+- Personal DocTypes restrict access to the owner. Use `owner_query_conditions(doctype, user)` and `has_owner_permission(doc, user)` for permission hooks, or DocType `if_owner` permissions for the simple case. Administrators and System Managers keep the technical access inherent to running the site.
+- Prefer owner-enforcing whitelisted methods over raw DocType REST for CRUD, matching the existing bounded-API pattern.
+
+Reuse the shared Phase 2 primitives: `TagInput` (`components/inputs/TagInput.vue`) for tags, and `downloadTextFile` / `downloadJson` (`utils/fileExport.js`) for exports.
 
 ## Styling and accessibility
 

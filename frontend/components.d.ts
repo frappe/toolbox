@@ -23,6 +23,7 @@ declare module 'vue' {
     SegmentedTabs: typeof import('./src/components/navigation/SegmentedTabs.vue')['default']
     SettingRow: typeof import('./src/components/settings/SettingRow.vue')['default']
     SidebarSection: typeof import('./src/components/navigation/SidebarSection.vue')['default']
+    TagInput: typeof import('./src/components/inputs/TagInput.vue')['default']
     ToolHistory: typeof import('./src/components/history/ToolHistory.vue')['default']
     ToolRow: typeof import('./src/components/tools/ToolRow.vue')['default']
     ToolSearchDialog: typeof import('./src/components/search/ToolSearchDialog.vue')['default']

@@ -140,7 +140,11 @@ use_json_request_body = True
 # Pull any bundled dataset whose pinned version differs from what is active on this
 # site (fresh installs self-provision; an app update that bumps a dataset applies it).
 # One-time-per-version fetch of public data; no runtime or scheduled network calls.
-after_migrate = ["toolbox.dataset_sync.after_migrate"]
+after_migrate = [
+	"toolbox.dataset_sync.after_migrate",
+	# Create the Toolbox roles and enrol existing users so personal Phase 2 records work.
+	"toolbox.permissions.backfill_toolbox_user_role",
+]
 
 # Uninstallation
 # ------------
@@ -199,6 +203,14 @@ has_permission = {
 # 		"on_trash": "method"
 # 	}
 # }
+
+doc_events = {
+	"User": {
+		# Enrol every real, enabled user as a Toolbox User so their personal records work.
+		# Users enabled later are picked up by backfill_toolbox_user_role on the next migrate.
+		"after_insert": "toolbox.permissions.assign_toolbox_user_role",
+	}
+}
 
 # Scheduled Tasks
 # ---------------

@@ -7,7 +7,7 @@
         :key="rate.id"
         class="h-11 min-w-0"
         :label="rate.label"
-        :variant="selectedRateId === rate.id ? 'subtle' : 'ghost'"
+        :variant="selectedRateId === rate.id ? 'solid' : 'outline'"
         :aria-pressed="selectedRateId === rate.id"
         :data-rate-id="rate.id"
         @click="$emit('select', rate.id)"
@@ -15,7 +15,7 @@
       <Button
         class="h-11 min-w-0"
         label="Custom"
-        :variant="selectedRateId === CUSTOM_RATE_ID ? 'subtle' : 'ghost'"
+        :variant="selectedRateId === CUSTOM_RATE_ID ? 'solid' : 'outline'"
         :aria-pressed="selectedRateId === CUSTOM_RATE_ID"
         data-rate-id="custom"
         @click="$emit('select', CUSTOM_RATE_ID)"

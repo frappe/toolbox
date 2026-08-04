@@ -22,7 +22,7 @@ export const tools = [
     name: 'GST Calculator',
     description: 'Add or remove GST and split CGST, SGST, or IGST.',
     icon: 'lucide-percent',
-    category: 'calculate',
+    category: 'india',
     route: '/gst-calculator',
     offlineCapability: 'full',
     searchKeywords: ['tax', 'cgst', 'sgst', 'igst', 'india'],

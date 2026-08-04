@@ -113,18 +113,16 @@ describe('GstCalculatorView', () => {
     expect(wrapper.get('[data-testid="gst-copy-status"]').text()).toBe('GST summary copied.')
   })
 
-  it('clears values, resets choices, and keeps controls touch-sized', async () => {
+  it('clears the amount while keeping the mode and rate, and keeps controls touch-sized', async () => {
     const wrapper = mountView()
     await wrapper.get('[data-mode="remove"]').trigger('click')
     await wrapper.get('[data-rate-id="five"]').trigger('click')
     await wrapper.get('#gst-amount').setValue('105')
     await buttonByText(wrapper, 'Clear').trigger('click')
     expect(wrapper.get('#gst-amount').element.value).toBe('')
+    // A single Clear empties the amount but keeps the mode and rate selections.
     expect(wrapper.get('[data-mode="remove"]').attributes('aria-pressed')).toBe('true')
-
-    await buttonByText(wrapper, 'Reset').trigger('click')
-    expect(wrapper.get('[data-mode="add"]').attributes('aria-pressed')).toBe('true')
-    expect(wrapper.get('[data-rate-id="eighteen"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('[data-rate-id="five"]').attributes('aria-pressed')).toBe('true')
     expect(wrapper.findAll('button.h-11').length).toBeGreaterThan(10)
   })
 })

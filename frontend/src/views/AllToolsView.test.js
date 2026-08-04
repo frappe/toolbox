@@ -40,6 +40,7 @@ describe('AllToolsView', () => {
 
     expect(router.currentRoute.value.query).toEqual({ category: 'india' })
     expect(toolNames(wrapper)).toEqual([
+      'GST Calculator',
       'HSN & SAC Lookup',
       'India Business Lookup',
     ])

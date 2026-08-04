@@ -3,6 +3,7 @@ export const toolCategories = [
   { id: 'convert', name: 'Convert', icon: 'lucide-arrow-right-left' },
   { id: 'india', name: 'India', icon: 'lucide-map-pinned' },
   { id: 'time', name: 'Time', icon: 'lucide-clock-3' },
+  { id: 'productivity', name: 'Productivity', icon: 'lucide-list-todo' },
   { id: 'information', name: 'Information', icon: 'lucide-library' },
 ]
 
@@ -133,6 +134,16 @@ export const tools = [
     releaseStatus: 'available',
     externalDependencyStatus: 'none',
     searchKeywords: ['word', 'definition', 'meaning', 'spelling', 'pronunciation'],
+  }),
+  defineTool({
+    id: 'checklists',
+    name: 'Checklists',
+    description: 'Create reusable checklists and track them item by item.',
+    icon: 'lucide-list-checks',
+    category: 'productivity',
+    route: '/checklists',
+    offlineCapability: 'cached',
+    searchKeywords: ['todo', 'tasks', 'list', 'packing', 'shopping', 'reminder'],
   }),
 ]
 

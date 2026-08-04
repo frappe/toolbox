@@ -205,6 +205,7 @@ These utilities are operational:
 - India Business Lookup (PIN and IFSC search)
 - Weather
 - Dictionary
+- Checklists (Phase 2: private, owner-only checklists with items, reorder, and export)
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 

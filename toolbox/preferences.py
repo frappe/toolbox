@@ -19,6 +19,7 @@ MAX_PREFERENCE_OPERATIONS = 64
 TOOL_IDS = frozenset(
 	{
 		"calculator",
+		"checklists",
 		"currency-converter",
 		"dictionary",
 		"financial-calculators",

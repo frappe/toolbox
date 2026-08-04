@@ -35,7 +35,7 @@
             <Button
               class="h-11"
               label="Add GST"
-              :variant="calculator.mode.value === GST_MODES.ADD ? 'subtle' : 'ghost'"
+              :variant="calculator.mode.value === GST_MODES.ADD ? 'solid' : 'outline'"
               :aria-pressed="calculator.mode.value === GST_MODES.ADD"
               data-mode="add"
               @click="calculator.setMode(GST_MODES.ADD)"
@@ -43,7 +43,7 @@
             <Button
               class="h-11"
               label="Remove GST"
-              :variant="calculator.mode.value === GST_MODES.REMOVE ? 'subtle' : 'ghost'"
+              :variant="calculator.mode.value === GST_MODES.REMOVE ? 'solid' : 'outline'"
               :aria-pressed="calculator.mode.value === GST_MODES.REMOVE"
               data-mode="remove"
               @click="calculator.setMode(GST_MODES.REMOVE)"
@@ -74,7 +74,29 @@
           </div>
         </div>
 
-        <div class="pt-6">
+        <fieldset class="pt-5">
+          <legend class="text-sm font-medium text-ink-gray-7">Place of supply</legend>
+          <div class="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
+            <Button
+              class="h-11"
+              label="Intra-state · CGST + SGST"
+              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE ? 'solid' : 'outline'"
+              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE"
+              data-supply-type="intra-state"
+              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTRA_STATE)"
+            />
+            <Button
+              class="h-11"
+              label="Inter-state · IGST"
+              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE ? 'solid' : 'outline'"
+              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE"
+              data-supply-type="inter-state"
+              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTER_STATE)"
+            />
+          </div>
+        </fieldset>
+
+        <div class="pt-5">
           <GstRatePicker
             :selected-rate-id="calculator.selectedRateId.value"
             :custom-rate-input="calculator.customRateInput.value"
@@ -86,28 +108,6 @@
             Rate supplied by HSN lookup.
           </p>
         </div>
-
-        <fieldset class="pt-6">
-          <legend class="text-sm font-medium text-ink-gray-7">Place of supply</legend>
-          <div class="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
-            <Button
-              class="h-11"
-              label="Intra-state · CGST + SGST"
-              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE ? 'subtle' : 'ghost'"
-              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE"
-              data-supply-type="intra-state"
-              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTRA_STATE)"
-            />
-            <Button
-              class="h-11"
-              label="Inter-state · IGST"
-              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE ? 'subtle' : 'ghost'"
-              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE"
-              data-supply-type="inter-state"
-              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTER_STATE)"
-            />
-          </div>
-        </fieldset>
 
         <div id="gst-feedback" class="pt-4">
           <p
@@ -124,7 +124,6 @@
 
         <div class="flex flex-wrap gap-2 pt-5">
           <Button class="h-11" label="Clear" variant="subtle" @click="calculator.clear" />
-          <Button class="h-11" label="Reset" variant="ghost" @click="calculator.reset" />
         </div>
       </section>
 

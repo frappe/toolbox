@@ -23,7 +23,7 @@ describe('tool registry', () => {
   it('defines every V1 tool with a complete and valid schema', () => {
     const categoryIds = new Set(toolCategories.map((category) => category.id))
 
-    expect(tools).toHaveLength(15)
+    expect(tools).toHaveLength(16)
     expect(new Set(tools.map((tool) => tool.id)).size).toBe(tools.length)
     expect(new Set(tools.map((tool) => tool.route)).size).toBe(tools.length)
 

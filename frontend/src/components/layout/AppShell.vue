@@ -50,13 +50,9 @@
       </main>
 
       <nav
-        class="fixed inset-x-0 bottom-0 z-20 grid h-16 grid-cols-3 border-t border-outline-gray-2 bg-surface-base px-3 pb-[env(safe-area-inset-bottom)] lg:hidden"
+        class="fixed inset-x-0 bottom-0 z-20 grid h-16 grid-cols-2 border-t border-outline-gray-2 bg-surface-base px-3 pb-[env(safe-area-inset-bottom)] lg:hidden"
         aria-label="Primary mobile navigation"
       >
-        <RouterLink to="/" class="mobile-nav-item">
-          <Icon name="lucide-house" class="size-5" />
-          <span>Home</span>
-        </RouterLink>
         <RouterLink to="/all-tools" class="mobile-nav-item text-ink-gray-9">
           <span class="flex size-9 items-center justify-center rounded-xl bg-surface-gray-7 text-ink-white">
             <Icon name="lucide-layout-grid" class="size-5" />

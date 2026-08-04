@@ -28,7 +28,6 @@
 
     <nav class="mt-4 min-h-0 flex-1 overflow-y-auto" aria-label="Toolbox navigation">
       <div class="space-y-0.5">
-        <NavigationItem to="/" icon="lucide-house" label="Home" @navigate="$emit('navigate')" />
         <NavigationItem
           to="/all-tools"
           icon="lucide-layout-grid"

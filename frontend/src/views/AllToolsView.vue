@@ -1,95 +1,53 @@
 <template>
-  <div class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
+  <div class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-12">
     <header>
       <p class="text-sm font-medium text-ink-gray-5">Browse</p>
       <h1 class="pt-2 text-3xl font-semibold tracking-tight text-ink-gray-9">All tools</h1>
-      <p class="pt-2 text-base text-ink-gray-6">Find a tool by name, task, or category.</p>
+      <p class="pt-2 text-base text-ink-gray-6">Pick a tool to get started.</p>
     </header>
 
-    <div class="sticky top-0 z-10 -mx-2 bg-surface-base px-2 pb-4 pt-6">
-      <TextInput
-        v-model="query"
-        size="lg"
-        variant="outline"
-        placeholder="Search all tools"
-        aria-label="Search all tools"
-      >
-        <template #prefix>
-          <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
-        </template>
-      </TextInput>
-      <div class="flex gap-2 overflow-x-auto pt-3 pb-1" aria-label="Tool categories">
-        <button
-          v-for="category in categoryOptions"
-          :key="category.id"
-          type="button"
-          class="h-8 shrink-0 rounded-full px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-          :class="selectedCategory === category.id ? 'bg-surface-gray-7 text-ink-white' : 'bg-surface-gray-2 text-ink-gray-7 hover:bg-surface-gray-3'"
-          :aria-pressed="selectedCategory === category.id"
-          @click="selectedCategory = category.id"
-        >
-          {{ category.name }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="visibleTools.length" class="space-y-8">
+    <div class="space-y-10 pt-8">
       <section v-for="group in groupedTools" :key="group.category.id">
-        <div class="flex h-8 items-center gap-2 px-2">
+        <div class="flex items-center gap-2 px-1">
           <Icon :name="group.category.icon" class="size-4 text-ink-gray-5" />
           <h2 class="text-sm font-semibold text-ink-gray-8">{{ group.category.name }}</h2>
           <span class="text-sm text-ink-gray-4">{{ group.tools.length }}</span>
         </div>
-        <ToolRow v-for="tool in group.tools" :key="tool.id" :tool="tool" />
+        <div class="grid gap-4 pt-4 sm:grid-cols-2 lg:grid-cols-3">
+          <RouterLink
+            v-for="tool in group.tools"
+            :key="tool.id"
+            :to="tool.route"
+            data-tool-card
+            class="group flex flex-col gap-3 rounded-2xl border border-outline-gray-2 bg-surface-base p-5 transition hover:border-outline-gray-3 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+          >
+            <span class="flex size-11 items-center justify-center rounded-xl bg-surface-gray-2">
+              <Icon :name="tool.icon" class="size-5 text-ink-gray-7" />
+            </span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 class="font-semibold text-ink-gray-9">{{ tool.name }}</h3>
+                <Badge v-if="!isToolAvailable(tool)" theme="gray" label="Validating" />
+              </div>
+              <p class="pt-1 text-sm leading-6 text-ink-gray-6">{{ tool.description }}</p>
+            </div>
+          </RouterLink>
+        </div>
       </section>
-    </div>
-
-    <div v-else class="py-16 text-center">
-      <Icon name="lucide-search-x" class="mx-auto size-7 text-ink-gray-4" />
-      <h2 class="pt-3 text-base font-medium text-ink-gray-8">No matching tools</h2>
-      <p class="pt-1 text-sm text-ink-gray-5">Try another name or clear the category filter.</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Icon, TextInput } from 'frappe-ui'
+import { Badge, Icon } from 'frappe-ui'
+import { RouterLink } from 'vue-router'
 
-import ToolRow from '@/components/tools/ToolRow.vue'
-import { toolCategories, tools } from '@/data/toolRegistry'
-import { searchTools } from '@/utils/toolSearch'
+import { isToolAvailable, toolCategories, tools } from '@/data/toolRegistry'
 
-const route = useRoute()
-const router = useRouter()
-const query = ref('')
-const categoryOptions = [{ id: 'all', name: 'All' }, ...toolCategories]
-const selectedCategory = ref(validCategory(route.query.category))
-
-const visibleTools = computed(() => {
-  const matches = searchTools(query.value, tools)
-  if (selectedCategory.value === 'all') return matches
-  return matches.filter((tool) => tool.category === selectedCategory.value)
-})
-const groupedTools = computed(() =>
-  toolCategories
-    .map((category) => ({
-      category,
-      tools: visibleTools.value.filter((tool) => tool.category === category.id),
-    }))
-    .filter((group) => group.tools.length),
-)
-
-watch(selectedCategory, (category) => {
-  router.replace({ query: category === 'all' ? {} : { category } })
-})
-watch(
-  () => route.query.category,
-  (category) => (selectedCategory.value = validCategory(category)),
-)
-
-function validCategory(category) {
-  return toolCategories.some((item) => item.id === category) ? category : 'all'
-}
+const groupedTools = toolCategories
+  .map((category) => ({
+    category,
+    tools: tools.filter((tool) => tool.category === category.id),
+  }))
+  .filter((group) => group.tools.length)
 </script>

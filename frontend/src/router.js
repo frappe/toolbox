@@ -22,8 +22,7 @@ const queuedToolView = () => import('@/views/ToolView.vue')
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    redirect: '/all-tools',
   },
   {
     path: '/all-tools',

@@ -19,7 +19,7 @@ describe('generated routes', () => {
   it('keeps the static routes and sends unknown paths to All Tools', () => {
     const routes = router.getRoutes()
 
-    expect(routes.find((route) => route.name === 'Home')?.path).toBe('/')
+    expect(routes.find((route) => route.path === '/')?.redirect).toBe('/all-tools')
     expect(routes.find((route) => route.name === 'AllTools')?.path).toBe('/all-tools')
     expect(routes.find((route) => route.name === 'Settings')?.path).toBe('/settings')
     expect(routes.find((route) => route.path === '/:pathMatch(.*)*')?.redirect).toBe('/all-tools')

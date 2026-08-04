@@ -52,7 +52,7 @@ describe('AllToolsView', () => {
 
     convert.wrapper.unmount()
     const unknown = await mountView('/all-tools?category=unknown')
-    expect(toolNames(unknown.wrapper)).toHaveLength(12)
+    expect(toolNames(unknown.wrapper)).toHaveLength(13)
     expect(unknown.wrapper.get('button[aria-pressed="true"]').text()).toBe('All')
   })
 

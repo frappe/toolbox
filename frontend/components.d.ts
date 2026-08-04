@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppBrandMenu: typeof import('./src/components/navigation/AppBrandMenu.vue')['default']
     AppShell: typeof import('./src/components/layout/AppShell.vue')['default']
     AppSidebar: typeof import('./src/components/navigation/AppSidebar.vue')['default']
     DevTweakPanel: typeof import('./src/components/dev/DevTweakPanel.vue')['default']

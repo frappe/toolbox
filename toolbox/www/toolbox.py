@@ -13,6 +13,7 @@ def get_context():
 			"is_logged_in": frappe.session.user != "Guest",
 			"site_name": frappe.local.site,
 			"user": frappe.session.user,
+			"full_name": frappe.utils.get_fullname(frappe.session.user),
 		}
 	)
 	return context

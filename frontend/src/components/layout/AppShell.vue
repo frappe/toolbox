@@ -11,7 +11,13 @@
       Skip to content
     </a>
 
-    <AppSidebar class="hidden lg:flex" @search="searchOpen = true" />
+    <AppSidebar
+      class="hidden lg:flex"
+      collapsible
+      :collapsed="sidebarCollapsed"
+      @search="searchOpen = true"
+      @toggle-collapse="toggleSidebar"
+    />
 
     <BottomSheet v-model:open="mobileNavigationOpen" title="Navigate">
       <AppSidebar
@@ -84,6 +90,26 @@ const layout = useLayoutPreferences()
 const logoUrl = '/assets/toolbox/toolbox-logo.svg'
 const mobileNavigationOpen = ref(false)
 const searchOpen = ref(false)
+
+const SIDEBAR_COLLAPSED_KEY = 'toolbox:sidebar-collapsed:v1'
+const sidebarCollapsed = ref(readSidebarCollapsed())
+
+function readSidebarCollapsed() {
+  try {
+    return globalThis.localStorage?.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  try {
+    globalThis.localStorage?.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed.value))
+  } catch {
+    // The collapse still works for this session when storage is unavailable.
+  }
+}
 
 provide('openToolSearch', () => (searchOpen.value = true))
 

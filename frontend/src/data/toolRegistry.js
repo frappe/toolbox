@@ -145,6 +145,16 @@ export const tools = [
     offlineCapability: 'cached',
     searchKeywords: ['todo', 'tasks', 'list', 'packing', 'shopping', 'reminder'],
   }),
+  defineTool({
+    id: 'notes',
+    name: 'Notes',
+    description: 'Write and organise private rich-text notes with autosave.',
+    icon: 'lucide-notebook-pen',
+    category: 'productivity',
+    route: '/notes',
+    offlineCapability: 'cached',
+    searchKeywords: ['note', 'write', 'journal', 'markdown', 'memo'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

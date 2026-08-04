@@ -144,6 +144,8 @@ after_migrate = [
 	"toolbox.dataset_sync.after_migrate",
 	# Create the Toolbox roles and enrol existing users so personal Phase 2 records work.
 	"toolbox.permissions.backfill_toolbox_user_role",
+	# Install / refresh the version-controlled default checklist templates.
+	"toolbox.checklist_default_templates.install_default_checklist_templates",
 ]
 
 # Uninstallation
@@ -186,10 +188,12 @@ after_migrate = [
 
 permission_query_conditions = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
+	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
+	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.has_permission",
 }
 
 # Document Events

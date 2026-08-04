@@ -19,6 +19,7 @@ export function useChecklists({ api = checklistsApi } = {}) {
   const isOpening = ref(false)
   const isSaving = ref(false)
   const saveError = ref('')
+  const templates = ref([])
 
   let saveTimer = null
   let saveToken = 0
@@ -276,6 +277,43 @@ export function useChecklists({ api = checklistsApi } = {}) {
     }
   }
 
+  // Load the system + personal templates once, on demand (when the picker opens).
+  async function loadTemplates() {
+    try {
+      const rows = await api.listTemplates()
+      templates.value = Array.isArray(rows) ? rows : []
+    } catch (error) {
+      saveError.value = readError(error, 'Templates could not be loaded.')
+    }
+  }
+
+  // Create a checklist from a template and open it for editing.
+  async function createFromTemplate(template) {
+    saveError.value = ''
+    try {
+      const created = await api.createChecklistFromTemplate(template)
+      activeChecklist.value = normalizeChecklist(created)
+      syncSummary(created)
+    } catch (error) {
+      saveError.value = readError(error, 'A checklist could not be created from that template.')
+    }
+  }
+
+  // Save the active checklist's items as a new personal template.
+  async function saveActiveAsTemplate(templateName) {
+    const list = activeChecklist.value
+    if (!list?.name) return null
+    saveError.value = ''
+    try {
+      const saved = await api.saveAsTemplate(list.name, templateName || list.title)
+      await loadTemplates()
+      return saved
+    } catch (error) {
+      saveError.value = readError(error, 'This checklist could not be saved as a template.')
+      return null
+    }
+  }
+
   function exportMarkdown() {
     const list = activeChecklist.value
     if (!list) return false
@@ -366,6 +404,10 @@ export function useChecklists({ api = checklistsApi } = {}) {
     save,
     exportMarkdown,
     exportJson,
+    templates,
+    loadTemplates,
+    createFromTemplate,
+    saveActiveAsTemplate,
   }
 }
 

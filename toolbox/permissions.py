@@ -25,7 +25,7 @@ def owner_query_conditions(doctype: str, user: str | None = None) -> str:
 	to administering the site. Everyone else sees only records they own.
 	"""
 	user = user or frappe.session.user
-	if _has_full_access(user):
+	if has_full_access(user):
 		return ""
 	return f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"
 
@@ -33,12 +33,14 @@ def owner_query_conditions(doctype: str, user: str | None = None) -> str:
 def has_owner_permission(doc, user: str | None = None) -> bool:
 	"""Return whether ``user`` may access ``doc`` (owner-only, plus site administrators)."""
 	user = user or frappe.session.user
-	if _has_full_access(user):
+	if has_full_access(user):
 		return True
 	return getattr(doc, "owner", None) == user
 
 
-def _has_full_access(user: str) -> bool:
+def has_full_access(user: str | None = None) -> bool:
+	"""Site administrators (Administrator, System Manager) keep inherent full access."""
+	user = user or frappe.session.user
 	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
 
 

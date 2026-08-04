@@ -69,7 +69,7 @@ const activeTab = ref('timer'), timerMinutes = ref('5'), timerLabel = ref(''), c
 const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
 const stopwatchElapsed = workspace.stopwatchElapsed
 const timerAction = computed(() => workspace.state.timer.status === 'running' ? 'Pause' : workspace.state.timer.status === 'paused' ? 'Resume' : 'Start')
-const stopwatchAction = computed(() => workspace.state.stopwatch.status === 'running' ? 'Pause' : workspace.state.stopwatch.status === 'paused' ? 'Resume' : 'Start')
+const stopwatchAction = computed(() => workspace.state.stopwatch.status === 'running' ? 'Stop' : workspace.state.stopwatch.status === 'paused' ? 'Resume' : 'Start')
 const targetText = computed(() => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(workspace.state.countdown.targetAt))
 function setTimer() { const minutes = Number(timerMinutes.value); if (minutes >= 1 && minutes <= 1440) workspace.configureTimer(minutes * 60000, timerLabel.value) }
 function startCountdown() { countdownError.value = ''; const target = countdownMode.value === 'duration' ? Date.now() + Number(countdownMinutes.value) * 60000 : new Date(countdownDate.value).getTime(); if (!Number.isFinite(target) || target <= Date.now()) { countdownError.value = 'Choose a future date or a duration of at least one minute.'; return } workspace.setCountdown(target) }

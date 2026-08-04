@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-08-05 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reminder",
+  "reminder_title",
+  "scheduled_for",
+  "channel",
+  "idempotency_key",
+  "status",
+  "delivered_at",
+  "acknowledged_at",
+  "error_summary",
+  "retry_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "reminder",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reminder",
+   "options": "Toolbox Reminder",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Denormalised title so the in-app inbox survives the reminder being deleted.",
+   "fieldname": "reminder_title",
+   "fieldtype": "Data",
+   "label": "Reminder Title"
+  },
+  {
+   "fieldname": "scheduled_for",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Scheduled For"
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Channel",
+   "options": "In-App\nEmail"
+  },
+  {
+   "description": "Uniquely identifies one occurrence on one channel; guarantees a fire is never duplicated.",
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Idempotency Key",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nDelivered\nFailed",
+   "search_index": 1
+  },
+  {
+   "fieldname": "delivered_at",
+   "fieldtype": "Datetime",
+   "label": "Delivered At"
+  },
+  {
+   "description": "Set when the owner completes, snoozes, or dismisses the in-app notification.",
+   "fieldname": "acknowledged_at",
+   "fieldtype": "Datetime",
+   "label": "Acknowledged At"
+  },
+  {
+   "fieldname": "error_summary",
+   "fieldtype": "Small Text",
+   "label": "Error Summary"
+  },
+  {
+   "default": "0",
+   "fieldname": "retry_count",
+   "fieldtype": "Int",
+   "label": "Retry Count"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-08-05 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Toolbox",
+ "name": "Toolbox Reminder Delivery",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "if_owner": 1,
+   "read": 1,
+   "role": "Toolbox User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -29,6 +29,7 @@ TOOL_IDS = frozenset(
 		"india-business-lookup",
 		"library",
 		"notes",
+		"reminders",
 		"timer",
 		"unit-converter",
 		"weather",

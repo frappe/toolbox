@@ -192,6 +192,8 @@ permission_query_conditions = {
 	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.get_permission_query_conditions",
 	"Toolbox Saved Link": "toolbox.toolbox.doctype.toolbox_saved_link.toolbox_saved_link.get_permission_query_conditions",
 	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.get_permission_query_conditions",
+	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.get_permission_query_conditions",
+	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -200,6 +202,8 @@ has_permission = {
 	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.has_permission",
 	"Toolbox Saved Link": "toolbox.toolbox.doctype.toolbox_saved_link.toolbox_saved_link.has_permission",
 	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.has_permission",
+	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.has_permission",
+	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.has_permission",
 }
 
 # Document Events
@@ -225,23 +229,15 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"toolbox.tasks.all"
-# 	],
-# 	"daily": [
-# 		"toolbox.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"toolbox.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"toolbox.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"toolbox.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"cron": {
+		# Every 5 minutes: fire reminders whose next trigger is due. The server scheduler is the
+		# source of truth for reminders; browser timers are never relied upon.
+		"0/5 * * * *": [
+			"toolbox.reminders.run_due_reminders",
+		],
+	},
+}
 
 # Testing
 # -------

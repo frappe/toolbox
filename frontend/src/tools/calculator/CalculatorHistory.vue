@@ -30,34 +30,37 @@
     </div>
 
     <ol v-else class="divide-y divide-outline-gray-2" aria-label="Calculator history entries">
-      <li v-for="entry in entries" :key="entry.id" class="flex flex-col gap-3 py-4">
-        <div class="min-w-0">
-          <p class="truncate font-mono text-sm text-ink-gray-6" :title="entry.expression">
+      <li v-for="entry in entries" :key="entry.id" class="flex items-center gap-2 py-2.5">
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-mono text-xs text-ink-gray-5" :title="entry.expression">
             {{ entry.expression }}
           </p>
-          <output class="block truncate pt-1 font-mono text-lg font-semibold text-ink-gray-9">
+          <output class="block truncate font-mono text-base font-semibold text-ink-gray-9">
             {{ entry.result }}
           </output>
         </div>
-        <div class="flex shrink-0 items-center gap-1 self-end" role="group" aria-label="History entry actions">
+        <div class="flex shrink-0 items-center gap-0.5" role="group" aria-label="History entry actions">
           <Button
-            class="size-11"
+            class="size-8"
             variant="ghost"
             icon="lucide-rotate-ccw"
+            title="Reuse this expression"
             :aria-label="`Reuse ${entry.expression}`"
             @click="emit('reuse', entry)"
           />
           <Button
-            class="size-11"
+            class="size-8"
             variant="ghost"
             :icon="copiedEntryId === entry.id ? 'lucide-check' : 'lucide-copy'"
+            :title="copiedEntryId === entry.id ? 'Copied' : 'Copy result'"
             :aria-label="copiedEntryId === entry.id ? `Copied result ${entry.result}` : `Copy result ${entry.result}`"
             @click="emit('copy', entry)"
           />
           <Button
-            class="size-11"
+            class="size-8"
             variant="ghost"
             icon="lucide-trash-2"
+            title="Delete from history"
             :aria-label="`Delete ${entry.expression} from history`"
             @click="emit('remove', entry.id)"
           />

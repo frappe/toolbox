@@ -28,6 +28,7 @@
           :key="key.id"
           class="h-11 w-full text-base font-medium"
           :variant="key.variant"
+          :theme="key.theme || 'gray'"
           :label="key.label"
           :aria-label="key.ariaLabel"
           :data-calculator-key="key.id"
@@ -59,8 +60,8 @@ const scientificKeys = [
 ]
 
 const standardKeys = [
-  actionKey('clear-all', 'AC', 'Clear full expression'),
-  actionKey('clear-entry', 'CE', 'Clear current input'),
+  actionKey('clear-all', 'AC', 'Clear full expression', 'subtle', 'red'),
+  actionKey('clear-entry', 'CE', 'Clear current input', 'subtle', 'red'),
   insertKey('left-parenthesis', '(', '(', 'Left parenthesis', true),
   insertKey('right-parenthesis', ')', ')', 'Right parenthesis'),
   insertKey('7', '7', '7', 'Seven', true),
@@ -98,7 +99,7 @@ function insertKey(id, label, value, ariaLabel, startsNewExpression = false) {
   return { id, label, value, ariaLabel, startsNewExpression, variant: 'subtle' }
 }
 
-function actionKey(action, label, ariaLabel, variant = 'subtle') {
-  return { id: action, action, label, ariaLabel, variant }
+function actionKey(action, label, ariaLabel, variant = 'subtle', theme = 'gray') {
+  return { id: action, action, label, ariaLabel, variant, theme }
 }
 </script>

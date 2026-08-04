@@ -24,32 +24,9 @@
     <div class="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
       <section class="min-w-0" aria-label="Calculator workspace">
         <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6">
-          <div class="flex flex-wrap items-end justify-between gap-4">
-            <label for="calculator-expression" class="text-sm font-medium text-ink-gray-7">
-              Expression
-            </label>
-            <fieldset class="flex items-center gap-1" aria-label="Angle mode">
-              <legend class="sr-only">Angle mode</legend>
-              <Button
-                class="h-11 min-w-12"
-                label="DEG"
-                :variant="angleMode === ANGLE_MODES.DEGREES ? 'subtle' : 'ghost'"
-                :aria-pressed="angleMode === ANGLE_MODES.DEGREES"
-                aria-label="Use degrees"
-                data-angle-mode="degrees"
-                @click="calculator.setAngleMode(ANGLE_MODES.DEGREES)"
-              />
-              <Button
-                class="h-11 min-w-12"
-                label="RAD"
-                :variant="angleMode === ANGLE_MODES.RADIANS ? 'subtle' : 'ghost'"
-                :aria-pressed="angleMode === ANGLE_MODES.RADIANS"
-                aria-label="Use radians"
-                data-angle-mode="radians"
-                @click="calculator.setAngleMode(ANGLE_MODES.RADIANS)"
-              />
-            </fieldset>
-          </div>
+          <label for="calculator-expression" class="text-sm font-medium text-ink-gray-7">
+            Expression
+          </label>
 
           <input
             id="calculator-expression"
@@ -73,7 +50,7 @@
             <div class="min-w-0 flex-1">
               <p class="text-sm text-ink-gray-5">Result</p>
               <output
-                class="block truncate pt-1 font-mono text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl"
+                class="block truncate pt-1 font-mono text-4xl font-semibold tracking-tight text-ink-gray-9 sm:text-5xl"
                 aria-label="Calculation result"
                 aria-live="polite"
               >
@@ -101,7 +78,29 @@
 
           <CalculatorKeypad @insert="insertKey" @action="handleKeypadAction" />
 
-          <p id="calculator-keyboard-hint" class="pt-5 text-sm leading-6 text-ink-gray-5">
+          <div class="flex items-center gap-2 pt-5" role="group" aria-label="Angle mode">
+            <span class="text-sm font-medium text-ink-gray-7">Angle</span>
+            <Button
+              class="h-10 min-w-12"
+              label="DEG"
+              :variant="angleMode === ANGLE_MODES.DEGREES ? 'solid' : 'outline'"
+              :aria-pressed="angleMode === ANGLE_MODES.DEGREES"
+              aria-label="Use degrees"
+              data-angle-mode="degrees"
+              @click="calculator.setAngleMode(ANGLE_MODES.DEGREES)"
+            />
+            <Button
+              class="h-10 min-w-12"
+              label="RAD"
+              :variant="angleMode === ANGLE_MODES.RADIANS ? 'solid' : 'outline'"
+              :aria-pressed="angleMode === ANGLE_MODES.RADIANS"
+              aria-label="Use radians"
+              data-angle-mode="radians"
+              @click="calculator.setAngleMode(ANGLE_MODES.RADIANS)"
+            />
+          </div>
+
+          <p id="calculator-keyboard-hint" class="pt-4 text-sm leading-6 text-ink-gray-4">
             Enter calculates, Backspace deletes, and Escape clears while the expression field is focused.
           </p>
         </section>

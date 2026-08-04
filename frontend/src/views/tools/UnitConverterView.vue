@@ -23,21 +23,20 @@
 
     <section class="pt-8" aria-labelledby="converter-heading">
       <h2 id="converter-heading" class="sr-only">Convert units</h2>
-      <div class="max-w-sm">
-        <label for="unit-category" class="block text-sm font-medium text-ink-gray-7">Category</label>
-        <select
-          id="unit-category"
-          :value="converter.categoryId.value"
-          class="mt-2 h-11 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-8 outline-none focus:ring-2 focus:ring-outline-gray-3"
-          @change="converter.setCategory($event.target.value)"
-        >
-          <option v-for="category in converter.categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
+      <div role="group" aria-label="Measurement category" class="flex flex-wrap gap-2">
+        <Button
+          v-for="category in converter.categories"
+          :key="category.id"
+          class="h-9"
+          :label="category.name"
+          :variant="converter.categoryId.value === category.id ? 'solid' : 'outline'"
+          :aria-pressed="converter.categoryId.value === category.id"
+          :data-category-id="category.id"
+          @click="converter.setCategory(category.id)"
+        />
       </div>
 
-      <div class="mt-5 rounded-2xl bg-surface-gray-1 p-2 sm:p-3">
+      <div class="mt-5 max-w-md rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
         <p
           class="sr-only"
           role="status"
@@ -47,7 +46,7 @@
         >
           {{ converter.conversionAnnouncement.value }}
         </p>
-        <div class="grid min-w-0 grid-cols-1 items-center gap-2 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)]">
+        <div class="grid min-w-0 grid-cols-1 gap-2">
           <ConversionField
             label="From"
             :model-value="converter.fromInput.value"
@@ -103,7 +102,6 @@
               @click="converter.copyResult()"
             />
             <Button label="Clear" variant="subtle" @click="converter.clearValues" />
-            <Button label="Reset" variant="ghost" @click="converter.reset" />
           </div>
           <p
             v-if="converter.copyMessage.value"

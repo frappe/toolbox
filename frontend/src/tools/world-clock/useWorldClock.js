@@ -5,10 +5,12 @@ import {
   describeZonedTime,
   isWithinWorkingHours,
   localTimeZone,
+  locationKey,
   searchTimeZones,
   selectedInstant,
   zoneLabel,
 } from './worldClock'
+import { canonicalizeZone } from './worldClockCities'
 
 const DEFAULT_ZONES = ['Asia/Kolkata', 'Europe/London', 'America/New_York']
 const MAX_LOCATIONS = 12
@@ -24,16 +26,23 @@ export function useWorldClock({ now = () => new Date() } = {}) {
 
   ensureLocations(preferences)
 
-  const locations = preferences.savedWorldClockLocations
+  const savedLocations = preferences.savedWorldClockLocations
+  // A location keeps a friendly label (e.g. "Pune") alongside its canonical zone.
+  // Legacy saved rows without an id get a deterministic one from label + zone.
+  const locations = computed(() => savedLocations.value.map((location) => ({
+    ...location,
+    id: location.id ?? locationKey(location.label ?? zoneLabel(location.zone), location.zone),
+  })))
   const selectedTime = computed(() => selectedInstant(clock.value, offsetHours.value))
   const searchResults = computed(() => searchTimeZones(query.value).filter(
-    ({ zone }) => !locations.value.some((location) => location.zone === zone),
+    (result) => !locations.value.some((location) => location.id === result.id),
   ))
   const rows = computed(() => locations.value.map((location) => {
     const description = describeZonedTime(selectedTime.value, location.zone)
+    // Spread the location last so its friendly label wins over the zone-derived one.
     return {
-      ...location,
       ...description,
+      ...location,
       withinWorkingHours: isWithinWorkingHours(description, workingStart.value, workingEnd.value),
     }
   }))
@@ -48,14 +57,16 @@ export function useWorldClock({ now = () => new Date() } = {}) {
 
   function addLocation(result) {
     if (!result?.zone || locations.value.length >= MAX_LOCATIONS) return
-    if (locations.value.some(({ zone }) => zone === result.zone)) return
-    save([...locations.value, { zone: result.zone, label: result.label || zoneLabel(result.zone), favourite: false }])
+    const label = result.label || zoneLabel(result.zone)
+    const id = result.id ?? locationKey(label, result.zone)
+    if (locations.value.some((location) => location.id === id)) return
+    save([...locations.value, { id, zone: result.zone, label, favourite: false }])
     query.value = ''
   }
 
-  function removeLocation(zone) {
+  function removeLocation(id) {
     if (locations.value.length === 1) return
-    save(locations.value.filter((location) => location.zone !== zone))
+    save(locations.value.filter((location) => location.id !== id))
   }
 
   function moveLocation(index, direction) {
@@ -66,14 +77,19 @@ export function useWorldClock({ now = () => new Date() } = {}) {
     save(next)
   }
 
-  function toggleFavourite(zone) {
+  function toggleFavourite(id) {
     save(locations.value.map((location) => (
-      location.zone === zone ? { ...location, favourite: !location.favourite } : location
+      location.id === id ? { ...location, favourite: !location.favourite } : location
     )))
   }
 
   function save(next) {
-    preferences.setSavedWorldClockLocations(next)
+    preferences.setSavedWorldClockLocations(next.map((location) => ({
+      id: location.id ?? locationKey(location.label ?? zoneLabel(location.zone), location.zone),
+      zone: location.zone,
+      label: location.label ?? zoneLabel(location.zone),
+      favourite: Boolean(location.favourite),
+    })))
   }
 
   return {
@@ -95,8 +111,9 @@ export function useWorldClock({ now = () => new Date() } = {}) {
 
 function ensureLocations(preferences) {
   if (preferences.savedWorldClockLocations.value.length) return
-  const zones = [...new Set([localTimeZone(), ...DEFAULT_ZONES])]
+  const zones = [...new Set([localTimeZone(), ...DEFAULT_ZONES].map(canonicalizeZone))]
   preferences.setSavedWorldClockLocations(zones.map((zone, index) => ({
+    id: locationKey(zoneLabel(zone), zone),
     zone,
     label: zoneLabel(zone),
     favourite: index === 0,

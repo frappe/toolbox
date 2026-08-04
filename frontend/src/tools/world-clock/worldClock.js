@@ -1,3 +1,5 @@
+import { CITIES, canonicalizeZone, slug } from './worldClockCities'
+
 const FALLBACK_ZONES = [
   'UTC',
   'Asia/Kolkata',
@@ -15,19 +17,62 @@ export function availableTimeZones() {
   const zones = typeof Intl.supportedValuesOf === 'function'
     ? Intl.supportedValuesOf('timeZone')
     : FALLBACK_ZONES
-  return [...new Set(['UTC', ...zones])]
+  // Canonicalise so alias links (e.g. Asia/Calcutta) collapse into their modern
+  // name and stop appearing twice.
+  return [...new Set(['UTC', ...zones].map(canonicalizeZone))]
 }
 
 export function searchTimeZones(query, zones = availableTimeZones(), limit = 12) {
   const terms = normalizeSearch(query).split(' ').filter(Boolean)
   if (!terms.length) return []
 
-  return zones
-    .map((zone) => ({ zone, label: zoneLabel(zone), search: normalizeSearch(`${zone} ${zoneLabel(zone)}`) }))
+  return buildLocationIndex(zones)
     .filter(({ search }) => terms.every((term) => search.includes(term)))
     .sort((left, right) => compareMatches(left, right, terms.join(' ')))
     .slice(0, limit)
-    .map(({ zone, label }) => ({ zone, label }))
+    .map(({ id, zone, label, region }) => ({ id, zone, label, region }))
+}
+
+// Curated cities (friendly names, multiple per zone) plus any canonical IANA zone
+// not already covered by a city — so "Mumbai" and "Pune" both resolve, aliases
+// never double up, and obscure zones stay searchable.
+function buildLocationIndex(zones) {
+  const entries = CITIES.map((city) => {
+    const zone = canonicalizeZone(city.zone)
+    return {
+      id: locationKey(city.name, zone),
+      zone,
+      label: city.name,
+      region: city.region,
+      search: normalizeSearch([city.name, city.region, zone, ...(city.aliases ?? [])].join(' ')),
+    }
+  })
+
+  const covered = new Set(entries.map((entry) => entry.zone))
+  for (const rawZone of zones) {
+    const zone = canonicalizeZone(rawZone)
+    if (covered.has(zone)) continue
+    covered.add(zone)
+    entries.push({
+      id: locationKey(zoneLabel(zone), zone),
+      zone,
+      label: zoneLabel(zone),
+      region: zoneRegion(zone),
+      search: normalizeSearch(`${zone} ${zoneLabel(zone)}`),
+    })
+  }
+  return entries
+}
+
+function zoneRegion(zone) {
+  if (zone === 'UTC') return 'Coordinated Universal Time'
+  return zone.split('/')[0].replaceAll('_', ' ')
+}
+
+// A location's identity is its friendly label plus its canonical zone, so the same
+// zone can hold several cities (Mumbai and Pune) while aliases never double up.
+export function locationKey(label, zone) {
+  return `${slug(label)}:${zone}`
 }
 
 export function describeZonedTime(instant, zone, referenceZone = localTimeZone()) {

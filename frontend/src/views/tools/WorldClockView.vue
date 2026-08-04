@@ -32,12 +32,12 @@
     </section>
 
     <div class="pt-8">
-      <label for="zone-search" class="block text-sm font-medium text-ink-gray-7">Add a city or IANA time zone</label>
+      <label for="zone-search" class="block text-sm font-medium text-ink-gray-7">Add a city or time zone</label>
       <div class="relative mt-2 max-w-xl">
-        <input id="zone-search" v-model="clock.query.value" class="h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" autocomplete="off" placeholder="Kolkata, London, America/New_York" />
+        <input id="zone-search" v-model="clock.query.value" class="h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" autocomplete="off" placeholder="Mumbai, London, New York" />
         <ul v-if="clock.searchResults.value.length" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Time zone search results">
-          <li v-for="result in clock.searchResults.value" :key="result.zone">
-            <button type="button" class="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-surface-gray-2" @click="clock.addLocation(result)"><span class="font-medium text-ink-gray-8">{{ result.label }}</span><span class="truncate text-sm text-ink-gray-5">{{ result.zone }}</span></button>
+          <li v-for="result in clock.searchResults.value" :key="result.id">
+            <button type="button" class="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-surface-gray-2" @click="clock.addLocation(result)"><span class="font-medium text-ink-gray-8">{{ result.label }}</span><span class="truncate text-sm text-ink-gray-5">{{ result.region }}</span></button>
           </li>
         </ul>
       </div>
@@ -53,7 +53,7 @@
       </div>
 
       <ol class="grid gap-4 pt-5 md:grid-cols-2">
-        <li v-for="(row, index) in clock.rows.value" :key="row.zone" class="rounded-2xl border p-5" :class="row.withinWorkingHours ? 'border-outline-green-2 bg-surface-green-1' : 'border-outline-gray-2 bg-surface-base'">
+        <li v-for="(row, index) in clock.rows.value" :key="row.id" class="rounded-2xl border p-5" :class="row.withinWorkingHours ? 'border-outline-green-2 bg-surface-green-1' : 'border-outline-gray-2 bg-surface-base'">
           <div class="flex items-start gap-3">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2"><h3 class="truncate font-semibold text-ink-gray-9">{{ row.label }}</h3><Icon v-if="row.favourite" name="lucide-star" class="size-4 fill-current text-ink-yellow-2" /></div>
@@ -62,8 +62,8 @@
             <div class="flex gap-1">
               <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2 disabled:opacity-40" :disabled="index === 0" :aria-label="`Move ${row.label} up`" @click="clock.moveLocation(index, -1)"><Icon name="lucide-arrow-up" class="size-4" /></button>
               <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2 disabled:opacity-40" :disabled="index === clock.rows.value.length - 1" :aria-label="`Move ${row.label} down`" @click="clock.moveLocation(index, 1)"><Icon name="lucide-arrow-down" class="size-4" /></button>
-              <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2" :aria-label="`${row.favourite ? 'Unfavourite' : 'Favourite'} ${row.label}`" @click="clock.toggleFavourite(row.zone)"><Icon name="lucide-star" class="size-4" /></button>
-              <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2 disabled:opacity-40" :disabled="clock.rows.value.length === 1" :aria-label="`Remove ${row.label}`" @click="clock.removeLocation(row.zone)"><Icon name="lucide-x" class="size-4" /></button>
+              <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2" :aria-label="`${row.favourite ? 'Unfavourite' : 'Favourite'} ${row.label}`" @click="clock.toggleFavourite(row.id)"><Icon name="lucide-star" class="size-4" /></button>
+              <button type="button" class="flex size-10 items-center justify-center rounded-lg hover:bg-surface-gray-2 disabled:opacity-40" :disabled="clock.rows.value.length === 1" :aria-label="`Remove ${row.label}`" @click="clock.removeLocation(row.id)"><Icon name="lucide-x" class="size-4" /></button>
             </div>
           </div>
           <p class="pt-5 font-mono text-3xl font-semibold tracking-tight text-ink-gray-9">{{ formatTime(row) }}</p>

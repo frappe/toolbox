@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  availableTimeZones,
   describeZonedTime,
   formatUtcOffset,
   isWithinWorkingHours,
   searchTimeZones,
   selectedInstant,
 } from './worldClock'
+import { canonicalizeZone } from './worldClockCities'
 
 describe('world clock time-zone calculations', () => {
   it('uses IANA daylight-saving transitions', () => {
@@ -48,10 +50,31 @@ describe('world clock time-zone calculations', () => {
   })
 
   it('searches by city label and full IANA identifier', () => {
-    const zones = ['Asia/Kolkata', 'Europe/London', 'America/New_York']
+    expect(searchTimeZones('kolkata')[0].zone).toBe('Asia/Kolkata')
+    expect(searchTimeZones('america new york')[0].zone).toBe('America/New_York')
+  })
 
-    expect(searchTimeZones('kolkata', zones)[0].zone).toBe('Asia/Kolkata')
-    expect(searchTimeZones('america new york', zones)[0].zone).toBe('America/New_York')
+  it('finds curated cities that do not have their own IANA zone', () => {
+    const mumbai = searchTimeZones('mumbai')[0]
+    expect(mumbai).toMatchObject({ zone: 'Asia/Kolkata', label: 'Mumbai' })
+    expect(mumbai.id).toBeTruthy()
+    expect(searchTimeZones('pune')[0]).toMatchObject({ zone: 'Asia/Kolkata', label: 'Pune' })
+    // Both cities share a zone but stay distinct entries.
+    expect(searchTimeZones('mumbai')[0].id).not.toBe(searchTimeZones('pune')[0].id)
+  })
+
+  it('collapses alias zones so a city is never listed twice', () => {
+    expect(canonicalizeZone('Asia/Calcutta')).toBe('Asia/Kolkata')
+
+    const results = searchTimeZones('calcutta')
+    expect(results.every((result) => result.zone === 'Asia/Kolkata')).toBe(true)
+    expect(results.some((result) => result.label === 'Kolkata')).toBe(true)
+  })
+
+  it('keeps alias identifiers out of the canonical zone pool', () => {
+    const zones = availableTimeZones()
+    expect(zones).toContain('Asia/Kolkata')
+    expect(zones).not.toContain('Asia/Calcutta')
   })
 
   it('formats whole-hour and fractional UTC offsets', () => {

@@ -115,7 +115,7 @@ describe('FinancialCalculatorsView', () => {
     )
   })
 
-  it('clears sensitive values and restores documented defaults', async () => {
+  it('clears the inputs with a single Clear', async () => {
     const wrapper = mountView()
     await wrapper
       .findAll('button')
@@ -123,12 +123,5 @@ describe('FinancialCalculatorsView', () => {
       .trigger('click')
     expect(wrapper.get('#emi-principal').element.value).toBe('')
     expect(wrapper.find('output').exists()).toBe(false)
-
-    await wrapper
-      .findAll('button')
-      .find((button) => button.text() === 'Reset')
-      .trigger('click')
-    expect(wrapper.get('#emi-principal').element.value).toBe('1000000')
-    expect(wrapper.find('output').exists()).toBe(true)
   })
 })

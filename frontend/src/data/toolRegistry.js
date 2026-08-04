@@ -134,6 +134,16 @@ export const tools = [
     externalDependencyStatus: 'none',
     searchKeywords: ['word', 'definition', 'meaning', 'spelling', 'pronunciation'],
   }),
+  defineTool({
+    id: 'text-to-speech',
+    name: 'Text to Speech',
+    description: "Read text aloud with your device's built-in voices.",
+    icon: 'lucide-volume-2',
+    category: 'information',
+    route: '/text-to-speech',
+    offlineCapability: 'full',
+    searchKeywords: ['tts', 'speak', 'voice', 'read aloud', 'accessibility'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

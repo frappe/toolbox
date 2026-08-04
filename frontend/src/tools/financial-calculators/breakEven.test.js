@@ -14,6 +14,10 @@ describe('calculateBreakEven', () => {
     expect(result.exactQuantity).toBe(50)
     expect(result.breakEvenQuantity).toBe(50)
     expect(result.breakEvenRevenue).toBe(2_500)
+    // Inputs are echoed back so the break-even chart can draw the cost and revenue lines.
+    expect(result.fixedCost).toBe(1_000)
+    expect(result.sellingPrice).toBe(50)
+    expect(result.variableCost).toBe(30)
   })
 
   it('rounds the required quantity up to a saleable whole unit', () => {

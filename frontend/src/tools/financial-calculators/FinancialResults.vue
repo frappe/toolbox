@@ -23,8 +23,16 @@
         </div>
       </dl>
 
+      <BreakEvenChart
+        v-if="presentation.chart?.type === 'break-even'"
+        :fixed-cost="presentation.chart.fixedCost"
+        :selling-price="presentation.chart.sellingPrice"
+        :variable-cost="presentation.chart.variableCost"
+        :exact-quantity="presentation.chart.exactQuantity"
+        :break-even-quantity="presentation.chart.breakEvenQuantity"
+      />
       <GrowthChart
-        v-if="presentation.chart"
+        v-else-if="presentation.chart"
         :series="presentation.chart.series"
         :aria-label="presentation.chart.ariaLabel"
       />
@@ -83,6 +91,7 @@
 import { Button, Icon } from 'frappe-ui'
 
 import AmortizationSchedule from './AmortizationSchedule.vue'
+import BreakEvenChart from './BreakEvenChart.vue'
 import GrowthChart from './GrowthChart.vue'
 
 defineProps({

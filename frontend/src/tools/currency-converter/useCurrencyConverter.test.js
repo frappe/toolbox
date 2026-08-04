@@ -33,4 +33,25 @@ describe('currency converter workspace', () => {
     converter.toggleSavedPair()
     expect(preferences.savedCurrencyPairs.value).toEqual([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
   })
+
+  it('converts forward when the source amount is edited', async () => {
+    const converter = useCurrencyConverter({ preferences: new ToolboxPreferencesStore(null), storage: null, fetcher: vi.fn().mockResolvedValue(data) })
+    await converter.loadRates()
+    converter.updateSourceAmount('200')
+    // default INR -> USD: 200 INR = 2 EUR = 2.4 USD
+    expect(converter.lastEdited.value).toBe('source')
+    expect(converter.convertedAmount.value).toBeCloseTo(2.4, 8)
+    expect(converter.destinationInput.value).toBe('2.4')
+  })
+
+  it('converts in reverse when the destination amount is edited', async () => {
+    const converter = useCurrencyConverter({ preferences: new ToolboxPreferencesStore(null), storage: null, fetcher: vi.fn().mockResolvedValue(data) })
+    await converter.loadRates()
+    converter.updateDestinationAmount('6')
+    // 6 USD = 5 EUR = 500 INR
+    expect(converter.lastEdited.value).toBe('destination')
+    expect(converter.sourceValue.value).toBeCloseTo(500, 6)
+    expect(converter.sourceInput.value).toBe('500')
+    expect(converter.convertedAmount.value).toBeCloseTo(6, 6)
+  })
 })

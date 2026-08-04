@@ -9,28 +9,21 @@
     <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6" aria-labelledby="currency-input-heading">
       <div class="flex items-start justify-between gap-4"><div><h2 id="currency-input-heading" class="text-lg font-semibold text-ink-gray-9">Convert an amount</h2><p class="pt-1 text-sm leading-6 text-ink-gray-6">Your amount and selected currencies stay in this browser.</p></div><Button label="Refresh rates" variant="ghost" icon="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(converter.loadState.value)" @click="converter.loadRates" /></div>
 
-      <label class="grid gap-2 pt-6 text-sm font-medium text-ink-gray-7">Amount<input v-model="converter.amount.value" class="h-12 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-lg tabular-nums" type="number" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-describedby="currency-feedback" /></label>
-
-      <div class="grid items-end gap-3 pt-5 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)]">
+      <div class="grid items-end gap-3 pt-6 sm:grid-cols-[minmax(0,1fr)_13rem]">
+        <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Amount<input :value="converter.sourceInput.value" class="h-12 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-lg tabular-nums" type="number" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Source amount" aria-describedby="currency-feedback" @input="converter.updateSourceAmount($event.target.value)" /></label>
         <CurrencyPicker v-model="converter.sourceCurrency.value" label="Source currency" picker-id="source-currency" :currencies="converter.currencies.value" />
-        <Button class="size-12 justify-self-center" variant="subtle" icon="lucide-arrow-right-left" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" />
+      </div>
+
+      <div class="flex justify-center py-2"><Button class="size-11" variant="subtle" icon="lucide-arrow-up-down" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" /></div>
+
+      <div class="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_13rem]">
+        <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Converts to<input :value="converter.destinationInput.value" class="h-12 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-lg tabular-nums" type="number" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Destination amount" @input="converter.updateDestinationAmount($event.target.value)" /></label>
         <CurrencyPicker v-model="converter.destinationCurrency.value" label="Destination currency" picker-id="destination-currency" :currencies="converter.currencies.value" />
       </div>
 
-      <div id="currency-feedback" class="pt-4"><p v-if="converter.amountError.value" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ converter.amountError.value }}</p><p v-else-if="converter.errorMessage.value" class="rounded-lg bg-surface-amber-1 px-3 py-2 text-sm leading-6 text-ink-gray-7" role="status">{{ converter.errorMessage.value }}</p><p v-else class="text-sm text-ink-gray-5">Rates load once and each amount converts locally.</p></div>
+      <div id="currency-feedback" class="pt-4"><p v-if="converter.amountError.value" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ converter.amountError.value }}</p><p v-else-if="converter.errorMessage.value" class="rounded-lg bg-surface-amber-1 px-3 py-2 text-sm leading-6 text-ink-gray-7" role="status">{{ converter.errorMessage.value }}</p><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
 
-      <div v-if="converter.convertedAmount.value !== null" class="mt-5 rounded-xl border border-outline-gray-2 bg-surface-base p-4 sm:p-5">
-        <div class="flex items-end justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-sm text-ink-gray-5">{{ converter.amount.value }} {{ converter.sourceCurrency.value }} equals</p>
-            <output class="block break-words pt-1 text-3xl font-semibold tracking-tight text-ink-gray-9 sm:text-4xl" aria-label="Converted amount">{{ converter.formatAmount(converter.convertedAmount.value) }} {{ converter.destinationCurrency.value }}</output>
-          </div>
-          <Button class="size-11 shrink-0" variant="subtle" icon="lucide-copy" aria-label="Copy result" @click="converter.copyResult()" />
-        </div>
-      </div>
-      <div v-else class="mt-5 flex min-h-32 flex-col items-center justify-center rounded-xl border border-outline-gray-2 bg-surface-base p-4 text-center"><Icon name="lucide-cloud-download" class="size-6 text-ink-gray-5" /><p class="pt-4 text-sm font-medium text-ink-gray-8">{{ converter.loadState.value === 'error' ? 'Rates unavailable' : 'Loading reference rates' }}</p><Button v-if="converter.loadState.value === 'error'" class="mt-4" label="Try again" @click="converter.loadRates" /></div>
-
-      <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /></div>
+      <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /><Button label="Copy" variant="subtle" icon="lucide-copy" :disabled="converter.convertedAmount.value === null" @click="converter.copyResult()" /></div>
 
       <div v-if="converter.savedPairs.value.length" class="pt-6"><h3 class="text-sm font-medium text-ink-gray-8">Saved pairs</h3><div class="flex flex-wrap gap-2 pt-2"><button v-for="pair in converter.savedPairs.value" :key="`${pair.baseCurrency}:${pair.quoteCurrency}`" type="button" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-3" @click="converter.usePair(pair)">{{ pair.baseCurrency }} → {{ pair.quoteCurrency }}</button></div></div>
     </section>

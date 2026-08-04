@@ -7,7 +7,7 @@
         :key="option"
         type="button"
         class="rounded-md px-2 py-1.5 text-xs font-medium capitalize text-ink-gray-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-        :class="value === option ? 'bg-surface-white text-ink-gray-9 shadow-sm' : ''"
+        :class="value === option ? 'bg-surface-base text-ink-gray-9 shadow-sm' : ''"
         :aria-pressed="value === option"
         @click="$emit('change', option)"
       >

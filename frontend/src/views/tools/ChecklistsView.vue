@@ -27,13 +27,37 @@
       <Icon name="lucide-list-plus" class="mx-auto size-8 text-ink-gray-5" />
       <h2 class="pt-3 text-lg font-semibold text-ink-gray-9">No checklists yet</h2>
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Start a packing list, a shopping run, or anything you want to check off. It saves as you go.</p>
-      <Button class="mt-5" variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+      <div class="mt-5 flex flex-col items-center gap-2">
+        <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+        <div class="relative">
+          <Button variant="ghost" icon="lucide-copy-plus" label="Start from a template" aria-haspopup="menu" :aria-expanded="showTemplateMenu" @click="onOpenTemplates" />
+          <div v-if="showTemplateMenu" class="absolute left-1/2 z-10 mt-1 max-h-72 w-64 -translate-x-1/2 overflow-auto rounded-lg border border-outline-gray-2 bg-surface-base p-1 text-left shadow-lg" role="menu">
+            <button v-for="tpl in checklist.templates.value" :key="tpl.name" type="button" role="menuitem" class="flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onPickTemplate(tpl)">
+              <span class="min-w-0 truncate">{{ tpl.template_name }}</span>
+              <span class="shrink-0 text-xs text-ink-gray-5">{{ tpl.is_system ? 'System' : 'Personal' }}</span>
+            </button>
+            <p v-if="!checklist.templates.value.length" class="px-3 py-2 text-sm text-ink-gray-5">No templates available.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div v-else class="mt-8 grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
       <!-- List pane -->
       <aside class="min-w-0 flex-col gap-4" :class="checklist.activeChecklist.value ? 'hidden lg:flex' : 'flex'" aria-label="Your checklists">
-        <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+        <div class="flex flex-col gap-2">
+          <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+          <div class="relative">
+            <Button class="w-full" variant="outline" icon="lucide-copy-plus" label="New from template" aria-haspopup="menu" :aria-expanded="showTemplateMenu" @click="onOpenTemplates" />
+            <div v-if="showTemplateMenu" class="absolute z-10 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
+              <button v-for="tpl in checklist.templates.value" :key="tpl.name" type="button" role="menuitem" class="flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onPickTemplate(tpl)">
+                <span class="min-w-0 truncate">{{ tpl.template_name }}</span>
+                <span class="shrink-0 text-xs text-ink-gray-5">{{ tpl.is_system ? 'System' : 'Personal' }} · {{ tpl.item_count }}</span>
+              </button>
+              <p v-if="!checklist.templates.value.length" class="px-3 py-2 text-sm text-ink-gray-5">No templates available.</p>
+            </div>
+          </div>
+        </div>
 
         <div class="relative">
           <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
@@ -141,6 +165,7 @@
             <Button variant="outline" :icon="active.is_pinned ? 'lucide-pin-off' : 'lucide-pin'" :label="active.is_pinned ? 'Unpin' : 'Pin'" @click="checklist.togglePin" />
             <Button variant="outline" :icon="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="checklist.toggleArchive" />
             <Button variant="outline" icon="lucide-copy" label="Duplicate" @click="checklist.duplicateActive" />
+            <Button variant="outline" :icon="savedAsTemplate ? 'lucide-check' : 'lucide-bookmark'" :label="savedAsTemplate ? 'Saved as template' : 'Save as template'" @click="onSaveAsTemplate" />
 
             <div class="relative">
               <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
@@ -187,6 +212,8 @@ const newItemText = ref('')
 const newItemInput = ref(null)
 const showExportMenu = ref(false)
 const confirmingDelete = ref(false)
+const showTemplateMenu = ref(false)
+const savedAsTemplate = ref(false)
 
 // Convenience views over the active checklist so the template stays readable.
 const active = computed(() => checklist.activeChecklist.value)
@@ -214,7 +241,30 @@ function rowClass(row) {
 
 async function onCreate() {
   confirmingDelete.value = false
+  showTemplateMenu.value = false
   await checklist.createChecklist()
+}
+
+async function onOpenTemplates() {
+  showTemplateMenu.value = !showTemplateMenu.value
+  if (showTemplateMenu.value && !checklist.templates.value.length) {
+    await checklist.loadTemplates()
+  }
+}
+
+async function onPickTemplate(template) {
+  showTemplateMenu.value = false
+  confirmingDelete.value = false
+  await checklist.createFromTemplate(template.name)
+}
+
+async function onSaveAsTemplate() {
+  const saved = await checklist.saveActiveAsTemplate()
+  if (!saved) return
+  savedAsTemplate.value = true
+  setTimeout(() => {
+    savedAsTemplate.value = false
+  }, 2500)
 }
 
 function onAddItem() {

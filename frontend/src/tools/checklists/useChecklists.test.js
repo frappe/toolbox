@@ -61,6 +61,9 @@ function makeApi(overrides = {}) {
     saveChecklist: vi.fn().mockImplementation((data) => Promise.resolve(echo(data))),
     deleteChecklist: vi.fn().mockResolvedValue(null),
     duplicateChecklist: vi.fn(),
+    listTemplates: vi.fn().mockResolvedValue([]),
+    createChecklistFromTemplate: vi.fn().mockResolvedValue(detail({ title: 'Packing checklist' })),
+    saveAsTemplate: vi.fn().mockResolvedValue({ name: 't1', template_name: 'Mine', is_system: false }),
     ...overrides,
   }
 }
@@ -264,5 +267,41 @@ describe('useChecklists export', () => {
     checklist.exportJson()
     expect(downloadJson).toHaveBeenCalledTimes(1)
     expect(downloadJson.mock.calls[0][1]).toMatchObject({ name: 'CL-1', title: 'Trip packing' })
+  })
+})
+
+describe('useChecklists templates', () => {
+  it('loads system and personal templates on demand', async () => {
+    const rows = [
+      { name: 't1', template_name: 'Packing checklist', is_system: true, item_count: 10 },
+      { name: 't2', template_name: 'Mine', is_system: false, item_count: 3 },
+    ]
+    const checklist = useChecklists({ api: makeApi({ listTemplates: vi.fn().mockResolvedValue(rows) }) })
+    await checklist.loadTemplates()
+    expect(checklist.templates.value).toHaveLength(2)
+    expect(checklist.templates.value[0].template_name).toBe('Packing checklist')
+  })
+
+  it('creates a checklist from a template and opens it', async () => {
+    const api = makeApi({
+      createChecklistFromTemplate: vi
+        .fn()
+        .mockResolvedValue(detail({ name: 'CL-9', title: 'Packing checklist' })),
+    })
+    const checklist = useChecklists({ api })
+    await checklist.createFromTemplate('t1')
+    expect(api.createChecklistFromTemplate).toHaveBeenCalledWith('t1')
+    expect(checklist.activeChecklist.value.name).toBe('CL-9')
+    expect(checklist.checklists.value.some((row) => row.name === 'CL-9')).toBe(true)
+  })
+
+  it('saves the active checklist as a personal template and refreshes the list', async () => {
+    const api = makeApi()
+    const checklist = useChecklists({ api })
+    await checklist.openChecklist('CL-1')
+    const saved = await checklist.saveActiveAsTemplate('My template')
+    expect(api.saveAsTemplate).toHaveBeenCalledWith('CL-1', 'My template')
+    expect(saved).toMatchObject({ is_system: false })
+    expect(api.listTemplates).toHaveBeenCalled()
   })
 })

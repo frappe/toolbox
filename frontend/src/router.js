@@ -17,6 +17,7 @@ const implementedToolViews = {
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
   checklists: () => import('@/views/tools/ChecklistsView.vue'),
   notes: () => import('@/views/tools/NotesView.vue'),
+  library: () => import('@/views/tools/LibraryView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

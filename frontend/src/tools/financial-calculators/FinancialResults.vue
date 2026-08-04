@@ -23,6 +23,12 @@
         </div>
       </dl>
 
+      <GrowthChart
+        v-if="presentation.chart"
+        :series="presentation.chart.series"
+        :aria-label="presentation.chart.ariaLabel"
+      />
+
       <div class="pt-5">
         <Button
           class="h-11"
@@ -77,6 +83,7 @@
 import { Button, Icon } from 'frappe-ui'
 
 import AmortizationSchedule from './AmortizationSchedule.vue'
+import GrowthChart from './GrowthChart.vue'
 
 defineProps({
   presentation: { type: Object, default: null },

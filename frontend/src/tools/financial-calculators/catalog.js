@@ -170,6 +170,7 @@ function presentSip(result) {
     assumption: result.stepUpApplied
       ? 'Contributions occur at month-start. The expected return and the annual step-up stay constant.'
       : 'Contributions occur at month-start. The expected annual return stays constant.',
+    chart: { series: result.series, ariaLabel: 'Projected SIP value each year' },
   }
 }
 
@@ -179,6 +180,7 @@ function presentProjectedValue(result) {
     rows: [{ label: 'Total growth', value: result.totalGrowth, format: 'currency' }],
     formula: 'Projected value = starting value × (1 + rate)^years.',
     assumption: 'The growth rate stays constant for the whole period.',
+    chart: { series: result.series, ariaLabel: 'Projected value each year' },
   }
 }
 

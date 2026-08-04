@@ -113,6 +113,13 @@ describe('calculateSip', () => {
     expect(stepped.totalInvested).toBeGreaterThan(flat.totalInvested)
     expect(stepped.futureValue).toBeGreaterThan(flat.futureValue)
   })
+
+  it('returns a rising yearly growth series for the chart', () => {
+    const result = calculateSip({ monthlyInvestment: 10_000, annualRate: 12, durationYears: 5 })
+    expect(result.series).toHaveLength(5)
+    expect(result.series[0].year).toBe(1)
+    expect(result.series.at(-1).value).toBeGreaterThan(result.series[0].value)
+  })
 })
 
 describe('calculateProjectedValue', () => {
@@ -126,6 +133,13 @@ describe('calculateProjectedValue', () => {
     expect(() =>
       calculateProjectedValue({ startingValue: 0, annualRate: 10, durationYears: 2 }),
     ).toThrow('Starting value must be greater than zero')
+  })
+
+  it('returns a yearly series ending at the projected value', () => {
+    const result = calculateProjectedValue({ startingValue: 100_000, annualRate: 10, durationYears: 3 })
+    expect(result.series).toHaveLength(3)
+    expect(result.series.at(-1).value).toBeCloseTo(result.endingValue, 6)
+    expect(result.series.at(-1).value).toBeCloseTo(133_100, 4)
   })
 })
 

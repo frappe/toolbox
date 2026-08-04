@@ -12,8 +12,8 @@
       <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
-    <div class="flex gap-2 overflow-x-auto pt-8" role="tablist" aria-label="Business lookup type">
-      <button v-for="tab in tabs" :id="`${tab.id}-tab`" :key="tab.id" type="button" role="tab" class="h-10 shrink-0 rounded-lg px-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :class="activeTab === tab.id ? 'bg-surface-gray-7 text-ink-white' : 'bg-surface-gray-2 text-ink-gray-7 hover:bg-surface-gray-3'" :aria-selected="activeTab === tab.id" :aria-controls="`${tab.id}-panel`" :tabindex="activeTab === tab.id ? 0 : -1" @click="selectTab(tab.id)" @keydown="handleTabKeydown($event, tab.id)">{{ tab.label }}</button>
+    <div class="mt-8 inline-flex gap-1 overflow-x-auto rounded-lg bg-surface-gray-2 p-1" role="tablist" aria-label="Business lookup type">
+      <button v-for="tab in tabs" :id="`${tab.id}-tab`" :key="tab.id" type="button" role="tab" class="h-9 shrink-0 rounded-md px-4 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :class="activeTab === tab.id ? 'bg-surface-base text-ink-gray-9 shadow-sm' : 'text-ink-gray-6 hover:text-ink-gray-9'" :aria-selected="activeTab === tab.id" :aria-controls="`${tab.id}-panel`" :tabindex="activeTab === tab.id ? 0 : -1" @click="selectTab(tab.id)" @keydown="handleTabKeydown($event, tab.id)">{{ tab.label }}</button>
     </div>
 
     <section :id="`${activeTab}-panel`" class="pt-8" role="tabpanel" :aria-labelledby="`${activeTab}-tab`">

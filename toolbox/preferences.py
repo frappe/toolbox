@@ -27,6 +27,7 @@ TOOL_IDS = frozenset(
 		"health-calculators",
 		"hsn-sac-lookup",
 		"india-business-lookup",
+		"library",
 		"notes",
 		"timer",
 		"unit-converter",

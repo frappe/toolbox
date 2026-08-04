@@ -73,6 +73,10 @@ class TestLibrary(IntegrationTestCase):
 	def setUp(self):
 		for email in (USER_A, USER_B):
 			_ensure_user(email)
+		# Integration tests in a class share one transaction, so start each test from a clean
+		# slate — these suites reuse the same URLs and assert exact counts + duplicate detection.
+		for doctype in ("Toolbox Saved Link", "Toolbox Link Collection"):
+			frappe.db.delete(doctype, {"owner": ["in", [USER_A, USER_B]]})
 		frappe.set_user(USER_A)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
 

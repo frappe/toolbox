@@ -27,5 +27,5 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	return owner_query_conditions(DOCTYPE, user)
 
 
-def has_permission(doc: Document, ptype: str = "read", user: str | None = None) -> bool:
+def has_permission(doc, user: str | None = None, permission_type: str | None = None) -> bool:
 	return has_owner_permission(doc, user)

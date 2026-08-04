@@ -1,12 +1,9 @@
 <template>
   <div class="flex flex-col gap-5">
     <section aria-labelledby="scientific-keypad-title">
-      <div class="flex items-center justify-between gap-3 pb-2">
-        <h2 id="scientific-keypad-title" class="text-sm font-medium text-ink-gray-7">
-          Scientific
-        </h2>
-        <p class="text-sm text-ink-gray-5">Functions add an opening parenthesis</p>
-      </div>
+      <h2 id="scientific-keypad-title" class="pb-2 text-sm font-medium text-ink-gray-7">
+        Scientific
+      </h2>
       <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
         <Button
           v-for="key in scientificKeys"

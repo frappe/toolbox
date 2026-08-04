@@ -15,7 +15,6 @@ const implementedToolViews = {
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   weather: () => import('@/views/tools/WeatherView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
-  'text-to-speech': () => import('@/views/tools/TextToSpeechView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

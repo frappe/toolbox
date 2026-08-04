@@ -3,7 +3,7 @@
     <Transition name="pwa-status">
       <section
         v-if="pwa.updateReady.value"
-        class="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-outline-gray-3 bg-surface-white p-3 shadow-lg lg:bottom-5"
+        class="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-outline-gray-3 bg-surface-base p-3 shadow-lg lg:bottom-5"
         role="status"
         aria-live="polite"
         aria-label="Toolbox update available"
@@ -30,7 +30,7 @@
 
       <div
         v-else-if="pwa.isOffline.value"
-        class="fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-outline-gray-3 bg-surface-white px-3 py-2 shadow-md lg:bottom-5"
+        class="fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-outline-gray-3 bg-surface-base px-3 py-2 shadow-md lg:bottom-5"
         role="status"
         aria-live="polite"
       >

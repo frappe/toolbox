@@ -17,8 +17,8 @@
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
           <div class="grid gap-4 pt-5 sm:grid-cols-2">
-            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Minutes<input v-model="timerMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" type="number" min="1" max="1440" /></label>
-            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Label (optional)<input v-model="timerLabel" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" maxlength="80" placeholder="Tea break" /></label>
+            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Minutes<input v-model="timerMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="number" min="1" max="1440" /></label>
+            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Label (optional)<input v-model="timerLabel" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" maxlength="80" placeholder="Tea break" /></label>
           </div>
           <div class="flex flex-wrap gap-2 pt-6"><Button label="Set timer" icon-left="lucide-timer" variant="subtle" class="h-12" @click="setTimer" /><Button :label="timerAction" :icon-left="timerActionIcon" variant="solid" class="h-12" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetActiveTimer" /></div>
         </div>
@@ -39,8 +39,8 @@
           <h2 id="countdown-heading" class="text-lg font-semibold text-ink-gray-9">Countdown</h2>
           <div class="grid gap-5 pt-5">
             <fieldset class="grid gap-3"><legend class="text-sm font-medium text-ink-gray-7">Countdown mode</legend><div class="flex gap-4"><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="duration" /> Duration</label><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="date" /> Date and time</label></div></fieldset>
-            <label v-if="countdownMode === 'duration'" class="grid gap-2 text-sm font-medium text-ink-gray-7">Duration in minutes<input v-model="countdownMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" type="number" min="1" max="525600" /></label>
-            <label v-else class="grid gap-2 text-sm font-medium text-ink-gray-7">Target date and time<input v-model="countdownDate" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" type="datetime-local" /></label>
+            <label v-if="countdownMode === 'duration'" class="grid gap-2 text-sm font-medium text-ink-gray-7">Duration in minutes<input v-model="countdownMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="number" min="1" max="525600" /></label>
+            <label v-else class="grid gap-2 text-sm font-medium text-ink-gray-7">Target date and time<input v-model="countdownDate" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="datetime-local" /></label>
           </div>
           <p v-if="countdownError" class="pt-3 text-sm text-ink-red-3" role="alert">{{ countdownError }}</p>
           <div class="flex flex-wrap gap-2 pt-6"><Button label="Start countdown" icon-left="lucide-play" variant="solid" class="h-12" @click="startCountdown" /><Button label="Clear" icon-left="lucide-x" variant="outline" class="h-12" @click="workspace.clearCountdown" /></div>

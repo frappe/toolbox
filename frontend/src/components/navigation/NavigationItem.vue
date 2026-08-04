@@ -3,7 +3,7 @@
     :to="to"
     class="group flex h-9 w-full items-center rounded-lg text-sm font-medium text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
     :class="collapsed ? 'justify-center px-0' : 'px-2'"
-    active-class="bg-surface-white font-semibold text-ink-gray-9 shadow-sm ring-1 ring-outline-gray-2"
+    active-class="bg-surface-base font-semibold text-ink-gray-9 shadow-sm ring-1 ring-outline-gray-2"
     :title="collapsed ? label : undefined"
     :aria-label="collapsed ? label : undefined"
     @click="$emit('navigate')"

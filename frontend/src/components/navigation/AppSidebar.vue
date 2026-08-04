@@ -7,7 +7,7 @@
 
     <button
       type="button"
-      class="mt-3 flex h-9 items-center rounded-lg border border-outline-gray-2 bg-surface-white text-sm text-ink-gray-5 shadow-sm transition-colors hover:border-outline-gray-3 hover:text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+      class="mt-3 flex h-9 items-center rounded-lg border border-outline-gray-2 bg-surface-base text-sm text-ink-gray-5 shadow-sm transition-colors hover:border-outline-gray-3 hover:text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
       :class="collapsed ? 'justify-center px-0' : 'px-2'"
       :aria-label="collapsed ? 'Search tools' : undefined"
       :title="collapsed ? 'Search tools' : undefined"

@@ -72,41 +72,43 @@ export function calculateSip({ monthlyInvestment, annualRate, durationYears, ann
   const monthlyRate = annualRate / 100 / 12
   const stepUp = annualStepUpRate / 100
 
+  // Walk the annuity-due recurrence, snapshotting the balance at each year for the
+  // growth chart. The monthly amount rises by the step-up after each completed year;
+  // a 0% step-up reproduces the closed form used below for the headline figure.
+  const series = []
+  let balance = 0
+  let ranTotalInvested = 0
+  for (let month = 0; month < rawMonths; month += 1) {
+    const contribution = monthlyInvestment * (1 + stepUp) ** Math.floor(month / 12)
+    ranTotalInvested += contribution
+    balance = (balance + contribution) * (1 + monthlyRate)
+    if ((month + 1) % 12 === 0 || month === rawMonths - 1) {
+      series.push({ year: (month + 1) / 12, value: balance })
+    }
+  }
+
+  let futureValue
+  let totalInvested
   if (stepUp === 0) {
     const growth = (1 + monthlyRate) ** rawMonths
-    const futureValue = requireFiniteResult(
+    futureValue = requireFiniteResult(
       monthlyRate === 0
         ? monthlyInvestment * rawMonths
         : monthlyInvestment * ((growth - 1) / monthlyRate) * (1 + monthlyRate),
     )
-    const totalInvested = monthlyInvestment * rawMonths
-    return {
-      futureValue,
-      totalInvested,
-      estimatedGain: futureValue - totalInvested,
-      months: rawMonths,
-      stepUpApplied: false,
-    }
+    totalInvested = monthlyInvestment * rawMonths
+  } else {
+    futureValue = requireFiniteResult(balance)
+    totalInvested = requireFiniteResult(ranTotalInvested)
   }
-
-  // Step-up: the monthly amount rises by the step-up rate after each completed year.
-  // Contributions are made at month-start (annuity-due), matching the base case, so a
-  // 0% step-up here would reproduce the closed form above.
-  let balance = 0
-  let totalInvested = 0
-  for (let month = 0; month < rawMonths; month += 1) {
-    const contribution = monthlyInvestment * (1 + stepUp) ** Math.floor(month / 12)
-    totalInvested += contribution
-    balance = (balance + contribution) * (1 + monthlyRate)
-  }
-  const futureValue = requireFiniteResult(balance)
 
   return {
     futureValue,
-    totalInvested: requireFiniteResult(totalInvested),
+    totalInvested,
     estimatedGain: futureValue - totalInvested,
     months: rawMonths,
-    stepUpApplied: true,
+    stepUpApplied: stepUp !== 0,
+    series,
   }
 }
 
@@ -118,10 +120,20 @@ export function calculateProjectedValue({ startingValue, annualRate, durationYea
   requireAtMost(annualRate, 1_000, 'Annual growth rate')
   requireAtMost(durationYears, 1_000, 'Duration')
 
-  const endingValue = requireFiniteResult(startingValue * (1 + annualRate / 100) ** durationYears)
+  const rate = annualRate / 100
+  const endingValue = requireFiniteResult(startingValue * (1 + rate) ** durationYears)
+
+  const series = []
+  const wholeYears = Math.floor(durationYears)
+  for (let year = 1; year <= wholeYears; year += 1) {
+    series.push({ year, value: startingValue * (1 + rate) ** year })
+  }
+  if (durationYears !== wholeYears) series.push({ year: durationYears, value: endingValue })
+
   return {
     endingValue,
     totalGrowth: endingValue - startingValue,
+    series,
   }
 }
 

@@ -46,11 +46,26 @@ export function calculateCompoundInterest({
   const totalContribution = principal + contributionPerPeriod * rawPeriods
   const finalAmount = requireFiniteResult(principalValue + contributionValue)
 
+  const series = []
+  const wholeYears = Math.floor(durationYears)
+  for (let year = 1; year <= wholeYears; year += 1) {
+    const periods = year * compoundsPerYear
+    const yearGrowth = (1 + periodicRate) ** periods
+    const value =
+      principal * yearGrowth +
+      (periodicRate === 0
+        ? contributionPerPeriod * periods
+        : contributionPerPeriod * ((yearGrowth - 1) / periodicRate))
+    series.push({ year, value })
+  }
+  if (durationYears !== wholeYears) series.push({ year: durationYears, value: finalAmount })
+
   return {
     finalAmount,
     totalContribution,
     interestEarned: finalAmount - totalContribution,
     periods: rawPeriods,
+    series,
   }
 }
 

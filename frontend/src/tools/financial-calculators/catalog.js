@@ -149,6 +149,7 @@ function presentCompoundInterest(result) {
     ],
     formula: 'Future value combines compound growth and an ordinary annuity.',
     assumption: 'The rate stays constant. Recurring contributions occur at each period end.',
+    chart: { series: result.series, ariaLabel: 'Projected value each year' },
   }
 }
 

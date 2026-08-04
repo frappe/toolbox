@@ -12,6 +12,22 @@
       <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
+    <div class="mt-8 inline-flex gap-1 rounded-lg bg-surface-gray-2 p-1" role="tablist" aria-label="World clock mode">
+      <button v-for="tab in modeTabs" :key="tab.id" type="button" role="tab" class="h-9 rounded-md px-4 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :class="clock.mode.value === tab.id ? 'bg-surface-base text-ink-gray-9 shadow-sm' : 'text-ink-gray-6 hover:text-ink-gray-9'" :aria-selected="clock.mode.value === tab.id" :data-mode="tab.id" @click="setMode(tab.id)">{{ tab.label }}</button>
+    </div>
+
+    <div v-if="clock.mode.value === 'convert'" class="mt-5 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
+      <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Date and time
+        <input v-model="clock.convertDateTime.value" type="datetime-local" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" />
+      </label>
+      <label class="grid gap-2 text-sm font-medium text-ink-gray-7">In this city's time
+        <select v-model="clock.convertZone.value" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-8">
+          <option v-for="location in clock.locations.value" :key="location.id" :value="location.zone">{{ location.label }}</option>
+        </select>
+      </label>
+      <p class="text-sm leading-6 text-ink-gray-5 sm:col-span-2">The cards below show that exact moment in every city.</p>
+    </div>
+
     <div class="pt-8">
       <label for="zone-search" class="block text-sm font-medium text-ink-gray-7">Add a city or time zone</label>
       <div class="relative mt-2 max-w-xl">
@@ -67,8 +83,25 @@ const TOOL_ID = 'world-clock'
 const preferences = useToolboxPreferences()
 const clock = useWorldClock()
 const copyStatus = ref('')
+const modeTabs = [
+  { id: 'clocks', label: 'Clocks' },
+  { id: 'convert', label: 'Time converter' },
+]
 
 onMounted(() => preferences.recordRecent(TOOL_ID))
+
+function setMode(id) {
+  if (id === 'convert' && !clock.convertDateTime.value) {
+    clock.convertDateTime.value = currentLocalDateTime()
+  }
+  clock.mode.value = id
+}
+
+function currentLocalDateTime() {
+  const now = new Date()
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`
+}
 
 function formatTime(row) {
   return new Intl.DateTimeFormat('en-IN', { timeZone: row.zone, hour: '2-digit', minute: '2-digit', hour12: preferences.settings.timeFormat === '12-hour' }).format(clock.selectedTime.value)

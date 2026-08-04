@@ -102,6 +102,26 @@ export function selectedInstant(now, offsetHours) {
   return new Date(now.getTime() + Number(offsetHours) * 60 * 60 * 1000)
 }
 
+// The instant whose wall-clock time in `zone` is the given components (month 1-12).
+export function zonedWallTimeToInstant({ year, month, day, hour, minute }, zone) {
+  const asUtcComponents = Date.UTC(year, month - 1, day, hour, minute)
+  let instant = asUtcComponents
+  // Two refinements settle daylight-saving boundaries: wall = instant + offset,
+  // so instant = components − offset.
+  for (let index = 0; index < 2; index += 1) {
+    const offsetMinutes = timeZoneOffsetMinutes(new Date(instant), zone)
+    instant = asUtcComponents - offsetMinutes * 60_000
+  }
+  return new Date(instant)
+}
+
+export function parseDateTimeLocal(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(value ?? ''))
+  if (!match) return null
+  const [, year, month, day, hour, minute] = match.map(Number)
+  return { year, month, day, hour, minute }
+}
+
 export function formatUtcOffset(minutes) {
   if (minutes === 0) return 'UTC'
   const sign = minutes < 0 ? '−' : '+'

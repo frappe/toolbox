@@ -5,8 +5,10 @@ import {
   describeZonedTime,
   formatUtcOffset,
   isWithinWorkingHours,
+  parseDateTimeLocal,
   searchTimeZones,
   selectedInstant,
+  zonedWallTimeToInstant,
 } from './worldClock'
 import { canonicalizeZone } from './worldClockCities'
 
@@ -81,5 +83,30 @@ describe('world clock time-zone calculations', () => {
     expect(formatUtcOffset(0)).toBe('UTC')
     expect(formatUtcOffset(330)).toBe('UTC+05:30')
     expect(formatUtcOffset(-240)).toBe('UTC−04:00')
+  })
+
+  it('converts a wall-clock time in a zone to the correct UTC instant', () => {
+    // 15:30 on 2026-08-04 in Asia/Kolkata (UTC+05:30) is 10:00 UTC.
+    expect(
+      zonedWallTimeToInstant({ year: 2026, month: 8, day: 4, hour: 15, minute: 30 }, 'Asia/Kolkata').toISOString(),
+    ).toBe('2026-08-04T10:00:00.000Z')
+  })
+
+  it('resolves the offset through a daylight-saving zone', () => {
+    // 12:00 on 2026-07-01 in America/New_York (EDT, UTC−04:00) is 16:00 UTC.
+    expect(
+      zonedWallTimeToInstant({ year: 2026, month: 7, day: 1, hour: 12, minute: 0 }, 'America/New_York').toISOString(),
+    ).toBe('2026-07-01T16:00:00.000Z')
+  })
+
+  it('parses a datetime-local string', () => {
+    expect(parseDateTimeLocal('2026-08-04T15:30')).toEqual({
+      year: 2026,
+      month: 8,
+      day: 4,
+      hour: 15,
+      minute: 30,
+    })
+    expect(parseDateTimeLocal('')).toBeNull()
   })
 })

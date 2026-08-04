@@ -18,6 +18,7 @@ const implementedToolViews = {
   checklists: () => import('@/views/tools/ChecklistsView.vue'),
   notes: () => import('@/views/tools/NotesView.vue'),
   library: () => import('@/views/tools/LibraryView.vue'),
+  reminders: () => import('@/views/tools/RemindersView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

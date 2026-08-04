@@ -165,6 +165,16 @@ export const tools = [
     offlineCapability: 'cached',
     searchKeywords: ['links', 'bookmarks', 'read later', 'saved', 'url'],
   }),
+  defineTool({
+    id: 'reminders',
+    name: 'Reminders',
+    description: 'Schedule personal reminders the server delivers reliably, with repeats.',
+    icon: 'lucide-bell',
+    category: 'productivity',
+    route: '/reminders',
+    offlineCapability: 'none',
+    searchKeywords: ['reminder', 'alarm', 'schedule', 'repeat', 'recurring', 'notify', 'snooze'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

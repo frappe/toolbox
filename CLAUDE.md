@@ -54,6 +54,8 @@ Phase 2 personal records (notes, checklists, links, reminders, expenses, audio) 
 
 Reuse the shared Phase 2 primitives: `TagInput` (`components/inputs/TagInput.vue`) for tags, and `downloadTextFile` / `downloadJson` (`utils/fileExport.js`) for exports.
 
+Reminders use the Frappe scheduler as the source of truth, never a browser timer. Recurrence and DST math live in the dependency-free `toolbox/reminder_schedule.py` (unit-tested with controlled time); each occurrence is re-localised in the reminder's named IANA zone so a 09:00 reminder stays 09:00 across daylight-saving transitions. `toolbox/reminders.py` runs a 5-minute cron (`run_due_reminders`) that fires due reminders, records deliveries idempotently through a unique `idempotency_key` (so a retry never double-notifies), and advances or completes each reminder. Datetimes are computed as aware UTC and stored in the site's system time zone. In-app notifications are `Toolbox Reminder Delivery` rows; the inbox is unacknowledged in-app deliveries. Email uses the site's outgoing mail; browser notifications are a frontend-only enhancement.
+
 ## Styling and accessibility
 
 Use Frappe UI components for common controls and feedback.
@@ -206,6 +208,9 @@ These utilities are operational:
 - Weather
 - Dictionary
 - Checklists (Phase 2: private, owner-only checklists with items, reorder, and export)
+- Notes (Phase 2: private rich-text notes with autosave and Markdown/HTML export)
+- Library (Phase 2: private saved links with collections, tags, import/export)
+- Reminders (Phase 2: server-scheduled personal reminders with recurrence, snooze, and an in-app inbox)
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 

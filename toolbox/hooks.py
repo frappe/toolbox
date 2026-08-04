@@ -189,11 +189,13 @@ after_migrate = [
 permission_query_conditions = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
 	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.get_permission_query_conditions",
+	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
 	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.has_permission",
+	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.has_permission",
 }
 
 # Document Events

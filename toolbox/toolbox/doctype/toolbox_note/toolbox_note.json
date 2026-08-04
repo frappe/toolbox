@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-08-05 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "content_html",
+  "content_json",
+  "search_text",
+  "is_pinned",
+  "is_archived",
+  "tags"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "content_html",
+   "fieldtype": "Code",
+   "label": "Content HTML",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "content_json",
+   "fieldtype": "Code",
+   "label": "Content JSON",
+   "options": "JSON"
+  },
+  {
+   "description": "Plain-text index derived from the sanitized content, used for search.",
+   "fieldname": "search_text",
+   "fieldtype": "Long Text",
+   "label": "Search Text",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_pinned",
+   "fieldtype": "Check",
+   "label": "Pinned"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_archived",
+   "fieldtype": "Check",
+   "label": "Archived"
+  },
+  {
+   "description": "Comma-separated tags.",
+   "fieldname": "tags",
+   "fieldtype": "Small Text",
+   "label": "Tags"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-08-05 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Toolbox",
+ "name": "Toolbox Note",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Toolbox User",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

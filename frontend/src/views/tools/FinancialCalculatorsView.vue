@@ -64,6 +64,7 @@
             :currency="preferences.settings.defaultCurrency"
             :described-by="`${calculator.activeId.value}-feedback`"
             @update:model-value="calculator.updateInput(input.id, $event)"
+            @commit="calculator.recordHistory(formatValue)"
           />
         </div>
 
@@ -85,13 +86,27 @@
         </div>
       </section>
 
-      <FinancialResults
-        class="lg:sticky lg:top-6"
-        :presentation="calculator.presentedResult.value"
-        :format-value="formatValue"
-        :can-copy="Boolean(calculator.result.value)"
-        @copy="copyResult"
-      />
+      <div class="flex flex-col gap-8 lg:sticky lg:top-6">
+        <FinancialResults
+          :presentation="calculator.presentedResult.value"
+          :format-value="formatValue"
+          :can-copy="Boolean(calculator.result.value)"
+          @copy="copyResult"
+        />
+        <ToolHistory
+          :entries="calculator.historyEntries.value"
+          :copied-entry-id="copiedHistoryId"
+          list-label="Financial calculation history"
+          clear-label="Clear financial history"
+          empty-title="No results yet"
+          empty-description="Results you copy or commit appear here."
+          reuse-title="Reuse these inputs"
+          @reuse="calculator.reuseHistory"
+          @copy="copyHistoryEntry"
+          @remove="calculator.removeHistory"
+          @clear="calculator.clearHistory"
+        />
+      </div>
     </div>
 
     <p class="sr-only" role="status" aria-live="polite" data-testid="financial-result-status">
@@ -104,10 +119,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolHistory from '@/components/history/ToolHistory.vue'
 import FinancialInput from '@/tools/financial-calculators/FinancialInput.vue'
 import FinancialResults from '@/tools/financial-calculators/FinancialResults.vue'
 import { createFinancialFormatter } from '@/tools/financial-calculators/formatFinancialValue'
@@ -116,6 +132,7 @@ import { useFinancialCalculators } from '@/tools/financial-calculators/useFinanc
 const preferences = useToolboxPreferences()
 const calculator = useFinancialCalculators()
 const formatValue = computed(() => createFinancialFormatter(preferences.settings))
+const copiedHistoryId = ref('')
 
 onMounted(() => preferences.recordRecent('financial-calculators'))
 
@@ -133,5 +150,15 @@ function copyResult() {
     'Estimate only. Not financial advice or a guarantee of returns.',
   ]
   void calculator.copyResult(lines.join('\n'))
+  calculator.recordHistory(formatValue.value)
+}
+
+async function copyHistoryEntry(entry) {
+  try {
+    await globalThis.navigator?.clipboard?.writeText(entry.value)
+    copiedHistoryId.value = entry.id
+  } catch {
+    copiedHistoryId.value = ''
+  }
 }
 </script>

@@ -107,9 +107,15 @@
       </section>
 
       <aside class="min-w-0 lg:sticky lg:top-6">
-        <CalculatorHistory
+        <ToolHistory
           :entries="historyEntries"
           :copied-entry-id="copiedEntryId"
+          list-label="Calculator history entries"
+          clear-label="Clear calculator history"
+          empty-title="No calculations yet"
+          empty-description="Completed expressions will appear here for reuse."
+          reuse-title="Reuse this expression"
+          mono
           @reuse="reuseHistoryEntry"
           @copy="copyHistoryEntry"
           @remove="history.remove"
@@ -123,11 +129,11 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import CalculatorHistory from '@/tools/calculator/CalculatorHistory.vue'
+import ToolHistory from '@/components/history/ToolHistory.vue'
 import CalculatorKeypad from '@/tools/calculator/CalculatorKeypad.vue'
 import { ANGLE_MODES } from '@/tools/calculator'
 import { useCalculator } from '@/tools/calculator/useCalculator'
@@ -139,7 +145,16 @@ const copiedCurrentResultValue = ref(null)
 const copyStatus = ref('')
 const preferences = useToolboxPreferences()
 const history = useCalculatorHistory()
-const { entries: historyEntries } = history
+// The Calculator keeps its own storage shape ({ expression, result }); map it onto the
+// shared history contract ({ label, value }) so the panel matches every other tool.
+const historyEntries = computed(() =>
+  history.entries.value.map((entry) => ({
+    id: entry.id,
+    label: entry.expression,
+    value: entry.result,
+    timestamp: entry.timestamp,
+  })),
+)
 const calculator = useCalculator({ onCalculated: history.add })
 const { expression, result, errorMessage, angleMode } = calculator
 
@@ -205,12 +220,12 @@ async function runCalculation() {
 }
 
 async function reuseHistoryEntry(entry) {
-  calculator.reuseExpression(entry.expression)
-  await focusExpression(entry.expression.length)
+  calculator.reuseExpression(entry.label)
+  await focusExpression(entry.label.length)
 }
 
 async function copyHistoryEntry(entry) {
-  if (await copyText(entry.result)) {
+  if (await copyText(entry.value)) {
     copiedEntryId.value = entry.id
     copiedCurrentResultValue.value = null
   }

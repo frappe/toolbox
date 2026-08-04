@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 
+import { useToolHistory } from '@/composables/useToolHistory'
 import { convert, UnitConversionError } from './converter'
 import { conversionRegistry, getCategory, getUnit } from './registry'
-import { useRecentUnitPairs } from './recentPairs'
 
 export const DEFAULT_CATEGORY_ID = 'length'
 export const DEFAULT_UNIT_PAIRS = Object.freeze({
@@ -21,7 +21,7 @@ export const DEFAULT_UNIT_PAIRS = Object.freeze({
 })
 
 export function useUnitConverter(options = {}) {
-  const recentPairs = useRecentUnitPairs(options.storage)
+  const history = options.history ?? useToolHistory('unit-converter')
   const categoryId = ref(DEFAULT_CATEGORY_ID)
   const fromUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].fromUnitId)
   const toUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].toUnitId)
@@ -97,23 +97,51 @@ export function useUnitConverter(options = {}) {
     clearValues()
   }
 
-  function useRecentPair(pair) {
-    const pairCategory = getCategory(pair.categoryId)
-    const pairFromUnit = getUnit(pair.fromUnitId)
-    const pairToUnit = getUnit(pair.toUnitId)
+  // Snapshot the current settled conversion into shared history. The source is the side the
+  // user last edited; the result is the derived opposite side. De-duped against the last row.
+  function recordHistory() {
+    if (!canCopy.value) return
+    const fromSide = lastEditedSide.value === 'from'
+    const sourceRaw = fromSide ? fromInput.value : toInput.value
+    const sourceUnit = fromSide ? fromUnit.value : toUnit.value
+    const resultRaw = fromSide ? toInput.value : fromInput.value
+    const resultUnit = fromSide ? toUnit.value : fromUnit.value
+    if (parseEditableNumber(sourceRaw).kind !== 'valid') return
+
+    history.add({
+      label: `${sourceRaw} ${sourceUnit.symbol} → ${resultUnit.symbol}`,
+      value: `${resultRaw} ${resultUnit.symbol}`,
+      payload: {
+        categoryId: categoryId.value,
+        fromUnitId: fromUnitId.value,
+        toUnitId: toUnitId.value,
+        side: lastEditedSide.value,
+        value: sourceRaw,
+      },
+    })
+  }
+
+  function reuseHistory(entry) {
+    const payload = entry?.payload
+    if (!payload) return
+
+    const payloadCategory = getCategory(payload.categoryId)
+    const payloadFromUnit = getUnit(payload.fromUnitId)
+    const payloadToUnit = getUnit(payload.toUnitId)
     if (
-      !pairCategory ||
-      pairFromUnit?.category !== pairCategory.id ||
-      pairToUnit?.category !== pairCategory.id
+      !payloadCategory ||
+      payloadFromUnit?.category !== payloadCategory.id ||
+      payloadToUnit?.category !== payloadCategory.id
     ) {
       return
     }
 
-    categoryId.value = pairCategory.id
-    fromUnitId.value = pairFromUnit.id
-    toUnitId.value = pairToUnit.id
-    clearValues()
-    recentPairs.record(pair)
+    categoryId.value = payloadCategory.id
+    fromUnitId.value = payloadFromUnit.id
+    toUnitId.value = payloadToUnit.id
+    const side = payload.side === 'to' ? 'to' : 'from'
+    if (side === 'from') updateFromInput(String(payload.value ?? ''))
+    else updateToInput(String(payload.value ?? ''))
   }
 
   async function copyResult(clipboard = globalThis.navigator?.clipboard) {
@@ -123,6 +151,7 @@ export function useUnitConverter(options = {}) {
       await clipboard?.writeText(copyValue.value)
       if (!clipboard?.writeText) throw new Error('Clipboard unavailable')
       copyMessage.value = `Copied ${copyValue.value} ${copyUnit.value.symbol}.`
+      recordHistory()
       return true
     } catch {
       copyMessage.value = 'Could not copy the result. Select the value and copy it manually.'
@@ -171,21 +200,12 @@ export function useUnitConverter(options = {}) {
       oppositeInput.value = formattedResult
       conversionAnnouncement.value =
         `Converted value: ${formattedResult}. Unit: ${resultUnit.name.toLocaleLowerCase('en')}.`
-      recordCurrentPair()
     } catch (error) {
       errorMessage.value =
         error instanceof UnitConversionError
           ? error.message
           : 'The value could not be converted.'
     }
-  }
-
-  function recordCurrentPair() {
-    recentPairs.record({
-      categoryId: categoryId.value,
-      fromUnitId: fromUnitId.value,
-      toUnitId: toUnitId.value,
-    })
   }
 
   function clearFeedback() {
@@ -213,8 +233,11 @@ export function useUnitConverter(options = {}) {
     copyValue,
     copyUnit,
     canCopy,
-    recentPairs: recentPairs.pairs,
-    clearRecentPairs: recentPairs.clear,
+    historyEntries: history.entries,
+    recordHistory,
+    reuseHistory,
+    removeHistory: history.remove,
+    clearHistory: history.clear,
     setCategory,
     setFromUnit,
     setToUnit,
@@ -223,7 +246,6 @@ export function useUnitConverter(options = {}) {
     swap,
     clearValues,
     reset,
-    useRecentPair,
     copyResult,
   }
 }

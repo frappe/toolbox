@@ -1,5 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 
+import { useToolHistory } from '@/composables/useToolHistory'
 import {
   calculateFinancialCalculator,
   createDefaultFinancialInputs,
@@ -8,7 +9,8 @@ import {
 } from './catalog'
 import { FinancialCalculationError } from './errors'
 
-export function useFinancialCalculators() {
+export function useFinancialCalculators(options = {}) {
+  const history = options.history ?? useToolHistory('financial-calculators')
   const activeId = ref(financialCalculators[0].id)
   const inputValues = reactive(
     Object.fromEntries(
@@ -82,6 +84,31 @@ export function useFinancialCalculators() {
     }
   }
 
+  // Record the current result. The view owns the number formatter (locale + precision), so it
+  // is passed in. De-dupes against the last row.
+  function recordHistory(formatValue) {
+    const presentation = presentedResult.value
+    if (!presentation || typeof formatValue !== 'function') return
+
+    history.add({
+      label: activeCalculator.value.name,
+      value: formatValue(presentation.primary.value, presentation.primary.format),
+      payload: { calculatorId: activeId.value, inputs: { ...activeInputs.value } },
+    })
+  }
+
+  function reuseHistory(entry) {
+    const payload = entry?.payload
+    if (!payload || !financialCalculatorsById.has(payload.calculatorId)) return
+
+    activeId.value = payload.calculatorId
+    const target = activeInputs.value
+    for (const input of activeCalculator.value.inputs) {
+      target[input.id] = String(payload.inputs?.[input.id] ?? '')
+    }
+    recalculate()
+  }
+
   function clearFeedback() {
     errorMessage.value = ''
     copyStatus.value = ''
@@ -99,6 +126,11 @@ export function useFinancialCalculators() {
     errorMessage,
     copyStatus,
     resultAnnouncement,
+    historyEntries: history.entries,
+    recordHistory,
+    reuseHistory,
+    removeHistory: history.remove,
+    clearHistory: history.clear,
     selectCalculator,
     updateInput,
     clear,

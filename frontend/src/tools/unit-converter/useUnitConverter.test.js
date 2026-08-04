@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { useToolHistory } from '@/composables/useToolHistory'
 import {
   DEFAULT_CATEGORY_ID,
   DEFAULT_UNIT_PAIRS,
@@ -112,23 +113,24 @@ describe('unit converter state', () => {
     expect(converter.errorMessage.value).toContain('undefined')
   })
 
-  it('records valid pairs locally and restores them without values', () => {
-    const converter = useUnitConverter({ storage: localStorage })
+  it('records a settled conversion in history and reuses its pair and value', () => {
+    const converter = useUnitConverter({ history: useToolHistory('unit-converter', { storage: null }) })
     converter.setToUnit('foot')
     converter.updateFromInput('2')
+    converter.recordHistory()
+    // Re-committing the same conversion must not duplicate the row.
+    converter.recordHistory()
 
-    expect(converter.recentPairs.value[0]).toEqual({
-      categoryId: 'length',
-      fromUnitId: 'meter',
-      toUnitId: 'foot',
-    })
+    expect(converter.historyEntries.value).toHaveLength(1)
+    const [entry] = converter.historyEntries.value
+    expect(entry.label).toContain('2 m → ft')
+    expect(entry.payload).toMatchObject({ categoryId: 'length', fromUnitId: 'meter', toUnitId: 'foot' })
 
     converter.setCategory('time')
-    converter.useRecentPair(converter.recentPairs.value[0])
+    converter.reuseHistory(entry)
     expect(converter.categoryId.value).toBe('length')
     expect(converter.toUnitId.value).toBe('foot')
-    expect(converter.fromInput.value).toBe('')
-    expect(converter.toInput.value).toBe('')
+    expect(converter.fromInput.value).toBe('2')
   })
 
   it('copies only a valid converted result', async () => {

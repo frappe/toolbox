@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { useToolHistory } from '@/composables/useToolHistory'
 import { GST_MODES, GST_SUPPLY_TYPES } from './index'
 import {
   CUSTOM_RATE_ID,
@@ -8,6 +9,30 @@ import {
   parseGstDecimalInput,
   useGstCalculator,
 } from './useGstCalculator'
+
+describe('GST calculator history', () => {
+  it('records a result and reuses its full input state', () => {
+    const calculator = useGstCalculator({ history: useToolHistory('gst-calculator', { storage: null }) })
+    calculator.setSupplyType(GST_SUPPLY_TYPES.INTER_STATE)
+    calculator.updateAmount('1000')
+    calculator.recordHistory()
+    // Recording the same result again must not duplicate the row.
+    calculator.recordHistory()
+
+    expect(calculator.historyEntries.value).toHaveLength(1)
+    const [entry] = calculator.historyEntries.value
+    expect(entry.label).toBe(`${formatInr(1000)} · 18% added`)
+    expect(entry.value).toBe(formatInr(1180))
+    expect(entry.payload).toMatchObject({ supplyType: GST_SUPPLY_TYPES.INTER_STATE, amountInput: '1000' })
+
+    calculator.clear()
+    calculator.setSupplyType(GST_SUPPLY_TYPES.INTRA_STATE)
+    calculator.reuseHistory(entry)
+    expect(calculator.amountInput.value).toBe('1000')
+    expect(calculator.supplyType.value).toBe(GST_SUPPLY_TYPES.INTER_STATE)
+    expect(calculator.result.value.finalAmount).toBe(1180)
+  })
+})
 
 describe('GST calculator state', () => {
   it('starts in add, intra-state mode with the standard 18% rate', () => {

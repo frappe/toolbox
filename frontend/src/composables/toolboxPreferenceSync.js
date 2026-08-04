@@ -40,12 +40,8 @@ export class ToolboxPreferenceSynchronizer {
   }
 
   async initialize() {
-    if (!isLoggedInSession(this.session)) {
-      this.store.mode.value = this.store.storage ? 'local' : 'memory'
-      this.store.isReady.value = true
-      return this.store
-    }
-
+    // Toolbox is authenticated-only (server gate + router auth guard guarantee a session),
+    // so preferences always sync to the per-user server record. There is no guest local mode.
     this.store.useRemotePersistence((payload) => this.save(payload))
     // Preference loading must never gate navigation or tool rendering.
     this.store.isReady.value = true

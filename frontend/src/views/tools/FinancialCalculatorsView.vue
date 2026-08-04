@@ -81,15 +81,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2 pt-5">
-          <Button
-            class="h-11"
-            label="Copy result"
-            variant="solid"
-            :disabled="!calculator.result.value"
-            @click="copyResult"
-          />
           <Button class="h-11" label="Clear" variant="subtle" @click="calculator.clear" />
-          <Button class="h-11" label="Reset" variant="ghost" @click="calculator.reset" />
         </div>
       </section>
 
@@ -97,6 +89,8 @@
         class="lg:sticky lg:top-6"
         :presentation="calculator.presentedResult.value"
         :format-value="formatValue"
+        :can-copy="Boolean(calculator.result.value)"
+        @copy="copyResult"
       />
     </div>
 

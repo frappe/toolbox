@@ -23,6 +23,23 @@
         </div>
       </dl>
 
+      <div class="pt-5">
+        <Button
+          class="h-11"
+          label="Copy result"
+          variant="solid"
+          icon="lucide-copy"
+          :disabled="!canCopy"
+          @click="emit('copy')"
+        />
+      </div>
+
+      <AmortizationSchedule
+        v-if="presentation.schedule"
+        :schedule="presentation.schedule"
+        :format-currency="(value) => formatValue(value, 'currency')"
+      />
+
       <div class="space-y-4 border-t border-outline-gray-2 py-5">
         <div>
           <h3 class="text-sm font-medium text-ink-gray-8">Formula</h3>
@@ -37,12 +54,6 @@
           </p>
         </div>
       </div>
-
-      <AmortizationSchedule
-        v-if="presentation.schedule"
-        :schedule="presentation.schedule"
-        :format-currency="(value) => formatValue(value, 'currency')"
-      />
     </div>
 
     <div v-else class="flex min-h-72 flex-col items-center justify-center px-4 py-10 text-center">
@@ -63,12 +74,15 @@
 </template>
 
 <script setup>
-import { Icon } from 'frappe-ui'
+import { Button, Icon } from 'frappe-ui'
 
 import AmortizationSchedule from './AmortizationSchedule.vue'
 
 defineProps({
   presentation: { type: Object, default: null },
   formatValue: { type: Function, required: true },
+  canCopy: { type: Boolean, default: false },
 })
+
+const emit = defineEmits(['copy'])
 </script>

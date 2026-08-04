@@ -70,6 +70,7 @@
               aria-describedby="gst-feedback"
               :aria-invalid="Boolean(calculator.errorMessage.value) || undefined"
               @input="calculator.updateAmount($event.target.value)"
+              @change="calculator.recordHistory()"
             />
           </div>
         </div>
@@ -127,13 +128,27 @@
         </div>
       </section>
 
-      <GstResults
-        class="lg:sticky lg:top-6"
-        :result="calculator.result.value"
-        :final-amount-label="calculator.finalAmountLabel.value"
-        :can-copy="calculator.canCopy.value"
-        @copy="calculator.copyResult()"
-      />
+      <div class="flex flex-col gap-8 lg:sticky lg:top-6">
+        <GstResults
+          :result="calculator.result.value"
+          :final-amount-label="calculator.finalAmountLabel.value"
+          :can-copy="calculator.canCopy.value"
+          @copy="calculator.copyResult()"
+        />
+        <ToolHistory
+          :entries="calculator.historyEntries.value"
+          :copied-entry-id="copiedHistoryId"
+          list-label="GST calculation history"
+          clear-label="Clear GST history"
+          empty-title="No calculations yet"
+          empty-description="GST results you copy or commit appear here."
+          reuse-title="Reuse these inputs"
+          @reuse="calculator.reuseHistory"
+          @copy="copyHistoryEntry"
+          @remove="calculator.removeHistory"
+          @clear="calculator.clearHistory"
+        />
+      </div>
     </div>
 
     <p class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="gst-result-status">
@@ -146,10 +161,11 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolHistory from '@/components/history/ToolHistory.vue'
 import GstRatePicker from '@/tools/gst-calculator/GstRatePicker.vue'
 import GstResults from '@/tools/gst-calculator/GstResults.vue'
 import { GST_MODES, GST_SUPPLY_TYPES } from '@/tools/gst-calculator'
@@ -158,6 +174,16 @@ import { useGstCalculator } from '@/tools/gst-calculator/useGstCalculator'
 const preferences = useToolboxPreferences()
 const initialRate = new URLSearchParams(globalThis.location?.search ?? '').get('rate')
 const calculator = useGstCalculator({ initialRate })
+const copiedHistoryId = ref('')
 
 onMounted(() => preferences.recordRecent('gst-calculator'))
+
+async function copyHistoryEntry(entry) {
+  try {
+    await globalThis.navigator?.clipboard?.writeText(entry.value)
+    copiedHistoryId.value = entry.id
+  } catch {
+    copiedHistoryId.value = ''
+  }
+}
 </script>

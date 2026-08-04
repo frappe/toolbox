@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 
+import { useToolHistory } from '@/composables/useToolHistory'
 import {
   calculateGst,
   createGstCopySummary,
@@ -16,6 +17,7 @@ export const CUSTOM_RATE_ID = 'custom'
 export const DEFAULT_GST_RATE_ID = 'eighteen'
 
 export function useGstCalculator(options = {}) {
+  const history = options.history ?? useToolHistory('gst-calculator')
   const mode = ref(GST_MODES.ADD)
   const supplyType = ref(GST_SUPPLY_TYPES.INTRA_STATE)
   const amountInput = ref('')
@@ -92,11 +94,47 @@ export function useGstCalculator(options = {}) {
       const summary = createGstCopySummary(result.value)
       await clipboard.writeText(formatGstCopySummary(summary))
       copyStatus.value = 'GST summary copied.'
+      recordHistory()
       return true
     } catch {
       copyStatus.value = 'Copy is unavailable in this browser.'
       return false
     }
+  }
+
+  // Record the current GST result. De-dupes against the last row so recording on both the
+  // amount-commit and a copy of the same calculation never doubles an entry.
+  function recordHistory() {
+    const current = result.value
+    if (!current) return
+
+    const verb = current.mode === GST_MODES.ADD ? 'added' : 'removed'
+    history.add({
+      label: `${formatInr(current.inputAmount)} · ${current.rate}% ${verb}`,
+      value: formatInr(current.finalAmount),
+      payload: {
+        mode: mode.value,
+        supplyType: supplyType.value,
+        selectedRateId: selectedRateId.value,
+        customRateInput: customRateInput.value,
+        amountInput: amountInput.value,
+      },
+    })
+  }
+
+  function reuseHistory(entry) {
+    const payload = entry?.payload
+    if (!payload) return
+
+    if (Object.values(GST_MODES).includes(payload.mode)) mode.value = payload.mode
+    if (Object.values(GST_SUPPLY_TYPES).includes(payload.supplyType)) {
+      supplyType.value = payload.supplyType
+    }
+    selectedRateId.value = payload.selectedRateId ?? DEFAULT_GST_RATE_ID
+    customRateInput.value = String(payload.customRateInput ?? '')
+    amountInput.value = String(payload.amountInput ?? '')
+    handoffApplied.value = false
+    recalculate()
   }
 
   function recalculate() {
@@ -185,6 +223,11 @@ export function useGstCalculator(options = {}) {
     handoffApplied,
     finalAmountLabel,
     canCopy,
+    historyEntries: history.entries,
+    recordHistory,
+    reuseHistory,
+    removeHistory: history.remove,
+    clearHistory: history.clear,
     setMode,
     setSupplyType,
     updateAmount,

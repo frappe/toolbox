@@ -17,6 +17,7 @@ describe('useCalculatorHistory', () => {
       id: expect.any(String),
       expression: '1 + 2',
       result: '3',
+      timestamp: expect.any(Number),
     })
     expect(useCalculatorHistory().entries.value).toEqual([entry])
   })

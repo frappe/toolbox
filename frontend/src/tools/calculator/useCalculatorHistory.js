@@ -13,6 +13,7 @@ export function useCalculatorHistory({ storage = getBrowserStorage() } = {}) {
       id: `calculation-${Date.now()}-${nextHistoryId++}`,
       expression: String(expression).trim(),
       result: String(result),
+      timestamp: Date.now(),
     }
 
     entries.value = [entry, ...entries.value].slice(0, MAX_CALCULATOR_HISTORY_ENTRIES)

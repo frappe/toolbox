@@ -1,11 +1,12 @@
 import { computed, ref } from 'vue'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { useToolHistory } from '@/composables/useToolHistory'
 import { createCurrencyList } from './currencies'
 import { convertCurrency, CurrencyConversionError } from './converter'
 import { loadRateSnapshot, saveRateSnapshot, validRateData } from './rateSnapshot'
 
-export function useCurrencyConverter({ preferences = useToolboxPreferences(), storage, fetcher = fetchReferenceRates, now } = {}) {
+export function useCurrencyConverter({ preferences = useToolboxPreferences(), storage, fetcher = fetchReferenceRates, now, history = useToolHistory('currency-converter') } = {}) {
   const snapshot = loadRateSnapshot(storage)
   const rateData = ref(snapshot?.data ?? null)
   const snapshotRefreshedAt = ref(snapshot?.snapshotRefreshedAt ?? '')
@@ -124,11 +125,34 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     try {
       await clipboard.writeText(`${formatAmount(sourceValue.value)} ${sourceCurrency.value} = ${formatAmount(convertedAmount.value)} ${destinationCurrency.value} (ECB reference rate, ${rateData.value.rateDate})`)
       copyStatus.value = 'Conversion copied.'
+      recordHistory()
       return true
     } catch {
       copyStatus.value = 'Copy is unavailable in this browser.'
       return false
     }
+  }
+
+  // A settled, valid conversion is worth keeping; recording de-dupes against the last row,
+  // so calling this on both input-commit and copy never doubles an entry.
+  function recordHistory() {
+    if (!rateData.value || amountError.value) return
+    const from = sourceValue.value
+    const to = convertedAmount.value
+    if (from === null || to === null) return
+
+    history.add({
+      label: `${formatAmount(from)} ${sourceCurrency.value} → ${destinationCurrency.value}`,
+      value: `${formatAmount(to)} ${destinationCurrency.value}`,
+      payload: { amount: from, source: sourceCurrency.value, destination: destinationCurrency.value },
+    })
+  }
+
+  function reuseHistory(entry) {
+    const payload = entry?.payload
+    if (!payload) return
+    usePair({ baseCurrency: payload.source, quoteCurrency: payload.destination })
+    updateSourceAmount(String(payload.amount))
   }
 
   function formatAmount(value) {
@@ -141,7 +165,7 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     if (!currencies.value.some(({ code }) => code === destinationCurrency.value) || destinationCurrency.value === sourceCurrency.value) destinationCurrency.value = sourceCurrency.value === 'USD' ? 'INR' : 'USD'
   }
 
-  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, copyStatus, currencies, convertedAmount, amountError, isPairSaved, savedPairs: preferences.savedCurrencyPairs, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, toggleSavedPair, copyResult, formatAmount }
+  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, copyStatus, currencies, convertedAmount, amountError, isPairSaved, savedPairs: preferences.savedCurrencyPairs, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, toggleSavedPair, copyResult, formatAmount, historyEntries: history.entries, recordHistory, reuseHistory, removeHistory: history.remove, clearHistory: history.clear }
 }
 
 export async function fetchReferenceRates(fetchImpl = globalThis.fetch) {

@@ -110,15 +110,17 @@ describe('UnitConverterView', () => {
     expect(wrapper.get('[data-testid="copy-status"]').text()).toBe('Copied 1 km.')
   })
 
-  it('persists and restores recent pairs locally', async () => {
+  it('records settled conversions in a history panel that persists locally', async () => {
     const firstWrapper = mountView()
     await valueInputs(firstWrapper)[0].setValue('1000')
-    expect(firstWrapper.text()).toContain('Recent pairs')
+    await valueInputs(firstWrapper)[0].trigger('change')
+    await flushPromises()
+    expect(firstWrapper.text()).toContain('1000 m → km')
+    expect(firstWrapper.text()).toContain('1 km')
     firstWrapper.unmount()
 
     const secondWrapper = mountView()
-    expect(secondWrapper.text()).toContain('Recent pairs')
-    expect(secondWrapper.get('button[aria-label="Use Meter to Kilometer"]')).toBeTruthy()
+    expect(secondWrapper.get('button[aria-label="Reuse 1000 m → km"]')).toBeTruthy()
   })
 
   it('clears the values while keeping the chosen category', async () => {

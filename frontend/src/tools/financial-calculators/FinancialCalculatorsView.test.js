@@ -42,6 +42,26 @@ describe('FinancialCalculatorsView', () => {
     expect(preferences.toggleFavourite).toHaveBeenCalledWith('financial-calculators')
   })
 
+  it('records a committed result and reuses its inputs from history', async () => {
+    const wrapper = mountView()
+    // EMI is active by default with computed results; committing an input records it.
+    await wrapper.get('#emi-principal').setValue('500000')
+    await wrapper.get('#emi-principal').trigger('change')
+    await flushPromises()
+
+    const historyList = wrapper.get('[aria-label="Financial calculation history"]')
+    expect(historyList.text()).toContain('EMI')
+
+    // Move to a different calculator, then reuse the EMI row.
+    await selectCalculator(wrapper, 'sip')
+    expect(wrapper.get('[data-calculator-id="sip"]').attributes('aria-pressed')).toBe('true')
+    await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[data-calculator-id="emi"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('#emi-principal').element.value).toBe('500000')
+  })
+
   it('shows a reconciled EMI estimate and full schedule', () => {
     const wrapper = mountView()
 

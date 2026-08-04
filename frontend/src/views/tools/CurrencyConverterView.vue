@@ -59,6 +59,20 @@
       </aside>
     </div>
 
+    <div class="pt-8">
+      <RateChart
+        :series="rateChart.series.value"
+        :range="rateChart.range.value"
+        :ranges="RATE_CHART_RANGES"
+        :state="rateChart.state.value"
+        :error-message="rateChart.errorMessage.value"
+        :base="converter.sourceCurrency.value"
+        :quote="converter.destinationCurrency.value"
+        @set-range="rateChart.setRange"
+        @retry="rateChart.retry"
+      />
+    </div>
+
     <p class="sr-only" role="status" aria-live="polite">{{ converter.copyStatus.value }}</p>
   </div>
 </template>
@@ -69,8 +83,12 @@ import { useRoute } from 'vue-router'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
 import CurrencyPicker from '@/tools/currency-converter/CurrencyPicker.vue'
+import RateChart from '@/tools/currency-converter/RateChart.vue'
+import { RATE_CHART_RANGES } from '@/tools/currency-converter/rateHistory'
+import { useRateChart } from '@/tools/currency-converter/useRateChart'
 import { useCurrencyConverter } from '@/tools/currency-converter/useCurrencyConverter'
 const preferences = useToolboxPreferences(), converter = useCurrencyConverter({ preferences }), route = useRoute()
+const rateChart = useRateChart({ base: converter.sourceCurrency, quote: converter.destinationCurrency })
 const copiedHistoryId = ref('')
 // ECB reference rates are never described as "live" (spec §5.9); a fresh fetch reads "updated".
 const rateStatusLabels = { live: 'updated', cached: 'server cache', stale: 'stale server cache' }
@@ -92,5 +110,6 @@ onMounted(async () => {
   preferences.recordRecent('currency-converter')
   await converter.loadRates()
   converter.usePair({ baseCurrency: route.query.from, quoteCurrency: route.query.to })
+  rateChart.load()
 })
 </script>

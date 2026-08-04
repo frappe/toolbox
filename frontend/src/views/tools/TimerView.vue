@@ -22,7 +22,7 @@
             <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Minutes<input v-model="timerMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" type="number" min="1" max="1440" /></label>
             <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Label (optional)<input v-model="timerLabel" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" maxlength="80" placeholder="Tea break" /></label>
           </div>
-          <div class="flex flex-wrap gap-2 pt-5"><Button label="Set timer" variant="subtle" class="h-11" @click="setTimer" /><Button :label="timerAction" variant="solid" class="h-11" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" variant="ghost" class="h-11" @click="workspace.resetActiveTimer" /></div>
+          <div class="flex flex-wrap gap-2 pt-6"><Button label="Set timer" icon-left="lucide-timer" variant="subtle" class="h-12" @click="setTimer" /><Button :label="timerAction" :icon-left="timerActionIcon" variant="solid" class="h-12" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetActiveTimer" /></div>
         </div>
         <TimeDisplay :label="workspace.state.timer.label || 'Timer remaining'" :milliseconds="workspace.state.timer.remainingMs" :status="workspace.state.timer.status" />
       </section>
@@ -30,7 +30,7 @@
       <section v-else-if="activeTab === 'stopwatch'" aria-labelledby="stopwatch-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="stopwatch-heading" class="text-lg font-semibold text-ink-gray-9">Stopwatch</h2>
-          <div class="flex flex-wrap gap-2 pt-5"><Button :label="stopwatchAction" variant="solid" class="h-11" @click="workspace.toggleStopwatch" /><Button label="Lap" variant="subtle" class="h-11" :disabled="workspace.state.stopwatch.status !== 'running'" @click="workspace.lap" /><Button label="Reset" variant="ghost" class="h-11" @click="workspace.resetStopwatch" /></div>
+          <div class="flex flex-wrap gap-2 pt-6"><Button :label="stopwatchAction" :icon-left="stopwatchActionIcon" variant="solid" class="h-12" @click="workspace.toggleStopwatch" /><Button label="Lap" icon-left="lucide-flag" variant="outline" class="h-12" :disabled="workspace.state.stopwatch.status !== 'running'" @click="workspace.lap" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetStopwatch" /></div>
           <ol v-if="workspace.state.stopwatch.laps.length" class="grid gap-2 pt-6" aria-label="Lap times"><li v-for="(lap, index) in [...workspace.state.stopwatch.laps].reverse()" :key="lap.elapsedMs" class="flex items-center justify-between rounded-lg bg-surface-gray-2 px-3 py-2 text-sm"><span>Lap {{ workspace.state.stopwatch.laps.length - index }}</span><span class="font-mono text-ink-gray-8">{{ formatDuration(lap.splitMs, true) }} · {{ formatDuration(lap.elapsedMs, true) }}</span></li></ol>
         </div>
         <TimeDisplay label="Elapsed time" :milliseconds="stopwatchElapsed" :status="workspace.state.stopwatch.status" precise />
@@ -45,7 +45,7 @@
             <label v-else class="grid gap-2 text-sm font-medium text-ink-gray-7">Target date and time<input v-model="countdownDate" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-white px-3 text-base" type="datetime-local" /></label>
           </div>
           <p v-if="countdownError" class="pt-3 text-sm text-ink-red-3" role="alert">{{ countdownError }}</p>
-          <div class="flex gap-2 pt-5"><Button label="Start countdown" variant="solid" class="h-11" @click="startCountdown" /><Button label="Clear" variant="ghost" class="h-11" @click="workspace.clearCountdown" /></div>
+          <div class="flex flex-wrap gap-2 pt-6"><Button label="Start countdown" icon-left="lucide-play" variant="solid" class="h-12" @click="startCountdown" /><Button label="Clear" icon-left="lucide-x" variant="outline" class="h-12" @click="workspace.clearCountdown" /></div>
           <p v-if="workspace.state.countdown.targetAt" class="pt-5 text-sm text-ink-gray-6">Target: <time>{{ targetText }}</time></p>
         </div>
         <TimeDisplay label="Countdown remaining" :milliseconds="workspace.state.countdown.remainingMs" :status="workspace.state.countdown.status" />
@@ -70,6 +70,8 @@ const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
 const stopwatchElapsed = workspace.stopwatchElapsed
 const timerAction = computed(() => workspace.state.timer.status === 'running' ? 'Pause' : workspace.state.timer.status === 'paused' ? 'Resume' : 'Start')
 const stopwatchAction = computed(() => workspace.state.stopwatch.status === 'running' ? 'Stop' : workspace.state.stopwatch.status === 'paused' ? 'Resume' : 'Start')
+const timerActionIcon = computed(() => workspace.state.timer.status === 'running' ? 'lucide-pause' : 'lucide-play')
+const stopwatchActionIcon = computed(() => workspace.state.stopwatch.status === 'running' ? 'lucide-square' : 'lucide-play')
 const targetText = computed(() => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(workspace.state.countdown.targetAt))
 function setTimer() { const minutes = Number(timerMinutes.value); if (minutes >= 1 && minutes <= 1440) workspace.configureTimer(minutes * 60000, timerLabel.value) }
 function startCountdown() { countdownError.value = ''; const target = countdownMode.value === 'duration' ? Date.now() + Number(countdownMinutes.value) * 60000 : new Date(countdownDate.value).getTime(); if (!Number.isFinite(target) || target <= Date.now()) { countdownError.value = 'Choose a future date or a duration of at least one minute.'; return } workspace.setCountdown(target) }

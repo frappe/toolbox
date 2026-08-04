@@ -15,6 +15,7 @@ const implementedToolViews = {
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   weather: () => import('@/views/tools/WeatherView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
+  checklists: () => import('@/views/tools/ChecklistsView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

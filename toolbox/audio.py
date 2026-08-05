@@ -23,6 +23,11 @@ MAX_AUDIO_BYTES = 20 * 1024 * 1024  # 20 MB — voice-note scale; the Recorder i
 MAX_TITLE = 200
 MAX_TEXT = 2000
 
+# The tools that can save an asset and how each is recorded. Anything else falls back to the
+# Recorder defaults so a crafted payload can never set an unknown source.
+_SOURCE_TYPES = ("Recording", "Import", "Edited")
+_CREATED_TOOLS = ("recorder", "editor")
+
 # Detected container -> (canonical mime, file extension). The allowlist is exactly these.
 _FORMATS = {
 	"wav": ("audio/wav", "wav"),
@@ -70,14 +75,16 @@ def save_recording(payload: str) -> dict:
 
 	asset = frappe.new_doc(ASSET)
 	asset.title = _truncate((data.get("title") or "").strip(), MAX_TITLE) or _("Untitled recording")
-	asset.source_type = "Import" if data.get("source_type") == "Import" else "Recording"
+	asset.source_type = data.get("source_type") if data.get("source_type") in _SOURCE_TYPES else "Recording"
 	asset.category = _truncate((data.get("category") or "").strip(), MAX_TITLE) or None
 	asset.description = _truncate((data.get("description") or "").strip(), MAX_TEXT) or None
 	asset.tags = _join_tags(data.get("tags"))
 	asset.duration_seconds = max(flt(data.get("duration_seconds")), 0)
 	asset.file_size = len(content)
 	asset.container_format = fmt
-	asset.created_from_tool = "recorder"
+	asset.created_from_tool = (
+		data.get("created_from_tool") if data.get("created_from_tool") in _CREATED_TOOLS else "recorder"
+	)
 	asset.insert()
 
 	file_doc = save_file(

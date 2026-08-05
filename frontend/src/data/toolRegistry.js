@@ -207,6 +207,16 @@ export const tools = [
     offlineCapability: 'none',
     searchKeywords: ['audio', 'record', 'voice', 'microphone', 'memo', 'sound'],
   }),
+  defineTool({
+    id: 'audio-editor',
+    name: 'Audio Editor',
+    description: 'Trim, fade and adjust an audio clip in your browser and export a WAV.',
+    icon: 'lucide-audio-lines',
+    category: 'media',
+    route: '/audio-editor',
+    offlineCapability: 'none',
+    searchKeywords: ['audio', 'editor', 'trim', 'cut', 'fade', 'wav', 'convert', 'sound'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

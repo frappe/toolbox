@@ -82,6 +82,16 @@ class TestAudioLibrary(IntegrationTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				self._save()
 
+	def test_saves_edited_output_from_the_editor(self):
+		saved = self._save(source_type="Edited", created_from_tool="editor")
+		self.assertEqual(saved["source_type"], "Edited")
+		self.assertEqual(frappe.get_doc(ASSET, saved["name"]).created_from_tool, "editor")
+
+	def test_unknown_source_type_and_tool_fall_back_to_recorder(self):
+		saved = self._save(source_type="Hacked", created_from_tool="malware")
+		self.assertEqual(saved["source_type"], "Recording")
+		self.assertEqual(frappe.get_doc(ASSET, saved["name"]).created_from_tool, "recorder")
+
 	def test_data_url_prefix_is_stripped(self):
 		saved = save_recording(frappe.as_json({"title": "Prefixed", "data": "data:audio/wav;base64," + _b64(WAV)}))
 		self.assertEqual(saved["container_format"], "wav")

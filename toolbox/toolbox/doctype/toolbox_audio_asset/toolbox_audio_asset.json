@@ -38,7 +38,7 @@
    "fieldname": "source_type",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "Recording\nImport"
+   "options": "Recording\nImport\nEdited"
   },
   {
    "fieldname": "category",

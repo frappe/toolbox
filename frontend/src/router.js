@@ -20,6 +20,7 @@ const implementedToolViews = {
   library: () => import('@/views/tools/LibraryView.vue'),
   reminders: () => import('@/views/tools/RemindersView.vue'),
   expenses: () => import('@/views/tools/ExpensesView.vue'),
+  'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

@@ -186,6 +186,16 @@ export const tools = [
     offlineCapability: 'none',
     searchKeywords: ['expense', 'spending', 'budget', 'money', 'receipt', 'category', 'finance'],
   }),
+  defineTool({
+    id: 'script-conversion',
+    name: 'Script Conversion',
+    description: 'Transliterate text between Indic scripts and Roman schemes, on your device.',
+    icon: 'lucide-languages',
+    category: 'information',
+    route: '/script-conversion',
+    offlineCapability: 'full',
+    searchKeywords: ['transliterate', 'script', 'devanagari', 'tamil', 'iast', 'itrans', 'language', 'romanise'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

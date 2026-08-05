@@ -31,6 +31,7 @@ TOOL_IDS = frozenset(
 		"library",
 		"notes",
 		"reminders",
+		"script-conversion",
 		"timer",
 		"unit-converter",
 		"weather",

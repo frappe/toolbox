@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 const baseURL = process.env.TOOLBOX_E2E_BASE_URL || 'http://toolbox-test.localhost:8100'
 
+// Signed-in session shared by every browser project; produced by the `setup` project.
+const storageState = 'e2e/.auth/user.json'
+
 export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results/e2e',
@@ -24,26 +27,34 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: /auth\.setup\.js/,
+    },
+    {
       name: 'chromium',
-      testIgnore: /responsive\.spec\.js/,
-      use: { ...devices['Desktop Chrome'] },
+      testIgnore: /responsive\.spec\.js|auth\.setup\.js/,
+      use: { ...devices['Desktop Chrome'], storageState },
+      dependencies: ['setup'],
     },
     {
       name: 'mobile-chromium',
       testMatch: /responsive\.spec\.js/,
-      use: { ...devices['Pixel 7'] },
+      use: { ...devices['Pixel 7'], storageState },
+      dependencies: ['setup'],
     },
     {
       name: 'firefox',
-      testIgnore: /responsive\.spec\.js/,
-      use: { ...devices['Desktop Firefox'] },
+      testIgnore: /responsive\.spec\.js|auth\.setup\.js/,
+      use: { ...devices['Desktop Firefox'], storageState },
+      dependencies: ['setup'],
     },
     {
       name: 'webkit',
       // WebKit headless cannot drive service-worker offline mode (it raises an internal
       // error); offline behaviour is covered on Chromium and Firefox.
-      testIgnore: /responsive\.spec\.js|offline\.spec\.js/,
-      use: { ...devices['Desktop Safari'] },
+      testIgnore: /responsive\.spec\.js|offline\.spec\.js|auth\.setup\.js/,
+      use: { ...devices['Desktop Safari'], storageState },
+      dependencies: ['setup'],
     },
   ],
 })

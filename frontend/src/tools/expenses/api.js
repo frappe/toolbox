@@ -2,6 +2,17 @@ import { frappeRequest } from 'frappe-ui'
 
 const EXPENSES = 'toolbox.expenses'
 const SETTINGS = 'toolbox.expense_settings'
+const FX = 'toolbox.expense_fx'
+
+// Suggest a reference conversion rate (1 fromCurrency = rate toCurrency) from the ECB service.
+// Returns { ok: true, rate, date, source } or { ok: false, error }.
+export function suggestConversionRate(fromCurrency, toCurrency, request = frappeRequest) {
+  return request({
+    url: `${FX}.suggest_conversion_rate`,
+    method: 'GET',
+    params: { from_currency: fromCurrency, to_currency: toCurrency },
+  })
+}
 
 // Seed defaults on first use and return the category + payment-method pickers.
 export function setup(request = frappeRequest) {

@@ -200,6 +200,7 @@ permission_query_conditions = {
 	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.get_permission_query_conditions",
 	"Toolbox Expense Project": "toolbox.toolbox.doctype.toolbox_expense_project.toolbox_expense_project.get_permission_query_conditions",
 	"Toolbox Expense Budget": "toolbox.toolbox.doctype.toolbox_expense_budget.toolbox_expense_budget.get_permission_query_conditions",
+	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -216,6 +217,7 @@ has_permission = {
 	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.has_permission",
 	"Toolbox Expense Project": "toolbox.toolbox.doctype.toolbox_expense_project.toolbox_expense_project.has_permission",
 	"Toolbox Expense Budget": "toolbox.toolbox.doctype.toolbox_expense_budget.toolbox_expense_budget.has_permission",
+	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.has_permission",
 }
 
 # Document Events

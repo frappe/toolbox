@@ -22,6 +22,7 @@ const implementedToolViews = {
   expenses: () => import('@/views/tools/ExpensesView.vue'),
   'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),
+  'audio-editor': () => import('@/views/tools/AudioEditorView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

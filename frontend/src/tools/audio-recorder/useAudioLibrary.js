@@ -28,7 +28,10 @@ export function useAudioLibrary({ api = audioApi, readBlob = blobToBase64 } = {}
   }
 
   // Persist a captured Blob with a title/duration. Returns the saved record or null on failure.
-  async function saveBlob(blob, { title, durationSeconds = 0, category = '', tags = [], sourceType = 'Recording' } = {}) {
+  async function saveBlob(
+    blob,
+    { title, durationSeconds = 0, category = '', tags = [], sourceType = 'Recording', createdFromTool = 'recorder' } = {},
+  ) {
     if (!blob || !blob.size) {
       saveError.value = 'There is nothing recorded to save.'
       return null
@@ -44,6 +47,7 @@ export function useAudioLibrary({ api = audioApi, readBlob = blobToBase64 } = {}
         category,
         tags,
         source_type: sourceType,
+        created_from_tool: createdFromTool,
       })
       recordings.value = [saved, ...recordings.value]
       return saved

@@ -146,18 +146,69 @@ def serialize_preferences(payload: dict[str, object]) -> str:
 
 
 def deserialize_preferences(value: str | None) -> dict[str, object]:
+	"""Read stored preferences, recovering rather than throwing on drifted or corrupt data.
+
+	Stored preferences can fall behind the current schema (e.g. after an app upgrade adds a
+	settings field) or a removed tool can linger in a saved list. Reads must never brick the app,
+	so a payload that fails validation is repaired best-effort onto defaults. The write path
+	(``serialize_preferences``) stays strict.
+	"""
 	if not value:
 		return default_preferences()
 
 	try:
 		payload = json.loads(value)
 	except (TypeError, ValueError):
-		_invalid("The stored preference data is not valid JSON.")
+		return default_preferences()
 
 	if not isinstance(payload, dict):
-		_invalid("The stored preference data must be an object.")
+		return default_preferences()
 
-	return validate_preferences(payload)
+	try:
+		return validate_preferences(payload)
+	except frappe.ValidationError:
+		return _recover_preferences(payload)
+
+
+def _recover_preferences(payload: dict[str, object]) -> dict[str, object]:
+	"""Rebuild a valid payload from ``payload``, keeping every part that still validates."""
+	recovered = default_preferences()
+
+	settings = payload.get("settings")
+	if isinstance(settings, dict):
+		for key, options in SETTING_OPTIONS.items():
+			if settings.get(key) in options:
+				recovered["settings"][key] = settings[key]
+
+	for field, limit in (
+		("favouriteToolIds", len(TOOL_IDS)),
+		("hiddenToolIds", len(TOOL_IDS)),
+		("recentToolIds", MAX_RECENT_TOOLS),
+	):
+		ids = payload.get(field)
+		if isinstance(ids, list):
+			kept: list[str] = []
+			for tool_id in ids:
+				if isinstance(tool_id, str) and tool_id in TOOL_IDS and tool_id not in kept:
+					kept.append(tool_id)
+			recovered[field] = kept[:limit]
+
+	validator = PreferenceValidator()
+	for field in _SAVED_ITEM_FIELDS:
+		items = payload.get(field)
+		if isinstance(items, list):
+			kept_items: list[dict[str, object]] = []
+			for item in items:
+				if not isinstance(item, dict):
+					continue
+				try:
+					kept_items.append(validator._normalize_object(item, depth=0))
+				except frappe.ValidationError:
+					continue
+			recovered[field] = kept_items[:MAX_SAVED_ITEMS]
+
+	# Guaranteed valid now: every field was rebuilt from validated pieces.
+	return validate_preferences(recovered)
 
 
 class PreferenceValidator:

@@ -22,6 +22,7 @@ TOOL_IDS = frozenset(
 		"checklists",
 		"currency-converter",
 		"dictionary",
+		"expenses",
 		"financial-calculators",
 		"gst-calculator",
 		"health-calculators",

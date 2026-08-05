@@ -45,6 +45,12 @@ export function deleteLink(name, request = frappeRequest) {
   })
 }
 
+// Fetch title/description/site name for a URL through the SSRF-guarded server fetcher.
+// Returns { ok: true, ...metadata } or { ok: false, error }; the link is always still savable.
+export function fetchMetadata(url, request = frappeRequest) {
+  return request({ url: `${API_ROOT}.fetch_metadata`, method: 'POST', params: { url } })
+}
+
 export function setStatus(name, status, request = frappeRequest) {
   return request({
     url: `${API_ROOT}.set_status`,

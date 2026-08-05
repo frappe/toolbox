@@ -30,6 +30,8 @@ export function useLibrary({ api = libraryApi } = {}) {
   const isSaving = ref(false)
   const formError = ref('')
   const duplicateHint = ref(null)
+  const isFetchingMeta = ref(false)
+  const metaNotice = ref('')
 
   const importPreview = ref(null)
   const importResult = ref(null)
@@ -172,6 +174,34 @@ export function useLibrary({ api = libraryApi } = {}) {
       return null
     } finally {
       isSaving.value = false
+    }
+  }
+
+  // Fetch page metadata for the URL in the form and fill only the fields the user left blank,
+  // so a manual title/description is never overwritten. Failure is non-fatal — save still works.
+  async function fetchMetadata() {
+    const url = (form.value.url || '').trim()
+    if (!url) {
+      formError.value = 'Enter a URL first.'
+      return
+    }
+    isFetchingMeta.value = true
+    metaNotice.value = ''
+    formError.value = ''
+    try {
+      const result = await api.fetchMetadata(url)
+      if (!result || result.ok === false) {
+        metaNotice.value = (result && result.error) || 'No metadata could be fetched. You can still save manually.'
+        return
+      }
+      if (!form.value.title && result.title) form.value.title = result.title
+      if (!form.value.description && result.description) form.value.description = result.description
+      if (!form.value.site_name && result.site_name) form.value.site_name = result.site_name
+      metaNotice.value = 'Fetched. Review and save.'
+    } catch (error) {
+      metaNotice.value = readError(error, 'Metadata could not be fetched. You can still save manually.')
+    } finally {
+      isFetchingMeta.value = false
     }
   }
 
@@ -371,6 +401,8 @@ export function useLibrary({ api = libraryApi } = {}) {
     isSaving,
     formError,
     duplicateHint,
+    isFetchingMeta,
+    metaNotice,
     importPreview,
     importResult,
     importError,
@@ -383,6 +415,7 @@ export function useLibrary({ api = libraryApi } = {}) {
     startEdit,
     closeForm,
     saveForm,
+    fetchMetadata,
     openExistingDuplicate,
     removeLink,
     changeStatus,

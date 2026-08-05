@@ -225,7 +225,6 @@ export function isToolAvailable(tool) {
 
 function defineTool(tool) {
   return Object.freeze({
-    guestAvailable: true,
     featureFlag: null,
     releaseStatus: 'available',
     externalDependencyStatus: 'none',

@@ -34,7 +34,6 @@ describe('tool registry', () => {
       expect(tool.icon).toMatch(/^lucide-/)
       expect(categoryIds.has(tool.category)).toBe(true)
       expect(tool.route).toBe(`/${tool.id}`)
-      expect(tool.guestAvailable).toBe(true)
       expect(offlineCapabilities.has(tool.offlineCapability)).toBe(true)
       expect(releaseStatuses.has(tool.releaseStatus)).toBe(true)
       expect(externalDependencyStatuses.has(tool.externalDependencyStatus)).toBe(true)

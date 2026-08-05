@@ -194,6 +194,10 @@ permission_query_conditions = {
 	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.get_permission_query_conditions",
 	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.get_permission_query_conditions",
 	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.get_permission_query_conditions",
+	"Toolbox Expense": "toolbox.toolbox.doctype.toolbox_expense.toolbox_expense.get_permission_query_conditions",
+	"Toolbox Expense Category": "toolbox.toolbox.doctype.toolbox_expense_category.toolbox_expense_category.get_permission_query_conditions",
+	"Toolbox Payment Method": "toolbox.toolbox.doctype.toolbox_payment_method.toolbox_payment_method.get_permission_query_conditions",
+	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -204,6 +208,10 @@ has_permission = {
 	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.has_permission",
 	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.has_permission",
 	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.has_permission",
+	"Toolbox Expense": "toolbox.toolbox.doctype.toolbox_expense.toolbox_expense.has_permission",
+	"Toolbox Expense Category": "toolbox.toolbox.doctype.toolbox_expense_category.toolbox_expense_category.has_permission",
+	"Toolbox Payment Method": "toolbox.toolbox.doctype.toolbox_payment_method.toolbox_payment_method.has_permission",
+	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.has_permission",
 }
 
 # Document Events

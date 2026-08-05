@@ -20,10 +20,28 @@
       </p>
 
       <template v-else>
-        <!-- Idle -->
-        <div v-if="recorder.state.value === 'idle'" class="flex flex-col items-center gap-3 py-4">
-          <Button variant="solid" size="lg" icon="lucide-mic" label="Record" @click="recorder.start()" />
-          <p class="text-xs text-ink-gray-5">Your browser will ask for microphone permission.</p>
+        <!-- Idle: choose input + quality, then record -->
+        <div v-if="recorder.state.value === 'idle'" class="flex flex-col gap-5">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label v-if="recorder.inputDevices.value.length > 1" class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
+              Microphone
+              <select v-model="selectedDeviceId" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
+                <option value="">System default</option>
+                <option v-for="device in recorder.inputDevices.value" :key="device.deviceId" :value="device.deviceId">{{ device.label }}</option>
+              </select>
+            </label>
+            <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
+              Quality
+              <select v-model="selectedPresetId" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
+                <option v-for="preset in RECORDER_PRESETS" :key="preset.id" :value="preset.id">{{ preset.label }}</option>
+              </select>
+            </label>
+          </div>
+          <p class="text-xs text-ink-gray-5">{{ activePreset.description }} The exact format is captured by your browser and shown after you stop.</p>
+          <div class="flex flex-col items-center gap-3 py-1">
+            <Button variant="solid" size="lg" icon="lucide-mic" label="Record" @click="onStart" />
+            <p class="text-xs text-ink-gray-5">Your browser will ask for microphone permission.</p>
+          </div>
         </div>
 
         <!-- Recording / paused -->
@@ -36,6 +54,7 @@
             <span class="text-lg font-semibold tabular-nums text-ink-gray-9">{{ formatDuration(recorder.elapsed.value) }}</span>
             <span class="text-sm text-ink-gray-5">{{ recorder.state.value === 'paused' ? 'Paused' : 'Recording' }}</span>
           </div>
+          <canvas ref="waveformCanvas" width="600" height="56" class="h-14 w-full rounded-lg bg-surface-gray-2 text-ink-gray-7" role="img" aria-label="Live audio waveform" />
           <div class="h-2 w-full overflow-hidden rounded-full bg-surface-gray-3" role="meter" aria-label="Input level" :aria-valuenow="Math.round(recorder.level.value * 100)" aria-valuemin="0" aria-valuemax="100">
             <div class="h-full rounded-full bg-ink-gray-7 transition-[width] duration-100 motion-reduce:transition-none" :style="{ width: `${Math.round(recorder.level.value * 100)}%` }" />
           </div>
@@ -49,14 +68,14 @@
 
         <!-- Stopped: preview + save -->
         <form v-else class="flex flex-col gap-3" @submit.prevent="onSave">
-          <p class="text-sm font-medium text-ink-gray-7">Preview ({{ formatDuration(recorder.elapsed.value) }})</p>
+          <p class="text-sm font-medium text-ink-gray-7">Preview ({{ formatDuration(recorder.elapsed.value) }}<template v-if="recordedFormat"> · {{ recordedFormat }}</template>)</p>
           <audio :src="recorder.url.value" controls class="w-full" />
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <input v-model="title" type="text" placeholder="Name this recording" aria-label="Recording title" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            <div class="flex gap-2">
-              <Button variant="solid" icon="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" type="submit" />
-              <Button variant="ghost" icon="lucide-trash-2" label="Discard" @click="recorder.reset()" />
-            </div>
+          <input v-model="title" type="text" placeholder="Name this recording" aria-label="Recording title" class="h-10 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+          <input v-model="category" type="text" placeholder="Category (optional)" aria-label="Category" class="h-10 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+          <TagInput v-model="tags" label="Tags" placeholder="Add a tag…" />
+          <div class="flex gap-2">
+            <Button variant="solid" icon="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" type="submit" />
+            <Button variant="ghost" icon="lucide-trash-2" label="Discard" @click="recorder.reset()" />
           </div>
         </form>
 
@@ -82,20 +101,27 @@
 
     <ul v-else class="mt-3 flex flex-col gap-2">
       <li v-for="rec in library.recordings.value" :key="rec.name" :data-recording-name="rec.name" class="rounded-xl border border-outline-gray-2 bg-surface-base p-3">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div class="min-w-0 flex-1">
-            <div v-if="editing === rec.name" class="flex items-center gap-2">
-              <input v-model="editTitle" type="text" :aria-label="`Rename ${rec.title}`" class="h-9 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @keydown.enter.prevent="onRename(rec)" />
-              <Button variant="solid" label="Save" @click="onRename(rec)" />
-              <Button variant="ghost" label="Cancel" @click="editing = null" />
+            <div v-if="editing === rec.name" class="flex flex-col gap-2">
+              <input v-model="editTitle" type="text" :aria-label="`Rename ${rec.title}`" class="h-9 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @keydown.enter.prevent="onUpdate(rec)" />
+              <input v-model="editCategory" type="text" placeholder="Category (optional)" aria-label="Edit category" class="h-9 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
+              <TagInput v-model="editTags" label="Tags" placeholder="Add a tag…" />
+              <div class="flex gap-2">
+                <Button variant="solid" label="Save" @click="onUpdate(rec)" />
+                <Button variant="ghost" label="Cancel" @click="editing = null" />
+              </div>
             </div>
             <template v-else>
               <p class="truncate text-sm font-medium text-ink-gray-9">{{ rec.title }}</p>
-              <p class="mt-0.5 text-xs text-ink-gray-5">{{ formatDuration(rec.duration_seconds) }} · {{ formatSize(rec.file_size) }} · {{ rec.container_format }}</p>
+              <p class="mt-0.5 text-xs text-ink-gray-5">{{ formatDuration(rec.duration_seconds) }} · {{ formatSize(rec.file_size) }} · {{ rec.container_format }}<template v-if="rec.category"> · {{ rec.category }}</template></p>
+              <div v-if="rec.tags && rec.tags.length" class="mt-1.5 flex flex-wrap gap-1">
+                <span v-for="tag in rec.tags" :key="tag" class="rounded bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-6">{{ tag }}</span>
+              </div>
             </template>
           </div>
           <div class="flex shrink-0 items-center gap-1.5">
-            <Button variant="ghost" icon="lucide-pencil" aria-label="Rename recording" @click="startRename(rec)" />
+            <Button variant="ghost" icon="lucide-pencil" aria-label="Edit recording" @click="startEdit(rec)" />
             <a :href="rec.file" download class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :aria-label="`Download ${rec.title}`"><Icon name="lucide-download" class="size-4" /></a>
             <template v-if="confirmingDelete === rec.name">
               <span class="text-xs text-ink-gray-7">Delete?</span>
@@ -112,12 +138,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Button, Icon } from 'frappe-ui'
 
+import TagInput from '@/components/inputs/TagInput.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { formatDuration, formatSize, useAudioLibrary } from '@/tools/audio-recorder/useAudioLibrary'
-import { useAudioRecorder } from '@/tools/audio-recorder/useAudioRecorder'
+import { RECORDER_PRESETS, DEFAULT_PRESET_ID, resolvePreset } from '@/tools/audio-recorder/recorderPresets'
+import { useAudioRecorder, WAVEFORM_SIZE } from '@/tools/audio-recorder/useAudioRecorder'
 
 const TOOL_ID = 'audio-recorder'
 
@@ -125,37 +153,110 @@ const preferences = useToolboxPreferences()
 const recorder = useAudioRecorder()
 const library = useAudioLibrary()
 
+const selectedDeviceId = ref('')
+const selectedPresetId = ref(DEFAULT_PRESET_ID)
 const title = ref('')
+const category = ref('')
+const tags = ref([])
 const editing = ref(null)
 const editTitle = ref('')
+const editCategory = ref('')
+const editTags = ref([])
 const confirmingDelete = ref(null)
+
+const activePreset = computed(() => resolvePreset(selectedPresetId.value))
+// The browser's chosen codec/container, shown after a recording so we never promise a format.
+const recordedFormat = computed(() => (recorder.mimeType.value || '').split(';')[0].replace('audio/', '').toUpperCase())
+
+const waveformCanvas = ref(null)
+const waveBuffer = new Uint8Array(WAVEFORM_SIZE)
+const prefersReducedMotion =
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+let waveRaf = null
+
+function drawWaveform() {
+  const canvas = waveformCanvas.value
+  const ctx = canvas?.getContext('2d')
+  if (ctx && recorder.readWaveform(waveBuffer)) {
+    const { width, height } = canvas
+    ctx.clearRect(0, 0, width, height)
+    ctx.lineWidth = 2
+    ctx.strokeStyle = getComputedStyle(canvas).color
+    ctx.beginPath()
+    const step = width / waveBuffer.length
+    for (let i = 0; i < waveBuffer.length; i += 1) {
+      const y = (waveBuffer[i] / 255) * height
+      const x = i * step
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+  waveRaf = requestAnimationFrame(drawWaveform)
+}
+
+// Animate the waveform only while capturing; respect reduced-motion by leaving the level meter
+// (which conveys the same state without motion) as the sole indicator.
+watch(
+  () => recorder.state.value,
+  async (state) => {
+    const capturing = state === 'recording' || state === 'paused'
+    if (capturing && !prefersReducedMotion && waveRaf === null) {
+      await nextTick()
+      drawWaveform()
+    } else if (!capturing && waveRaf !== null) {
+      cancelAnimationFrame(waveRaf)
+      waveRaf = null
+    }
+  },
+)
 
 onMounted(() => {
   preferences.recordRecent(TOOL_ID)
   void library.load()
+  void recorder.refreshDevices()
 })
+
+onBeforeUnmount(() => {
+  if (waveRaf !== null) cancelAnimationFrame(waveRaf)
+})
+
+function onStart() {
+  void recorder.start({ deviceId: selectedDeviceId.value, presetId: selectedPresetId.value })
+}
 
 async function onSave() {
   const saved = await library.saveBlob(recorder.blob.value, {
     title: title.value,
     durationSeconds: recorder.durationSeconds.value,
+    category: category.value.trim(),
+    tags: tags.value,
   })
   if (saved) {
     title.value = ''
+    category.value = ''
+    tags.value = []
     recorder.reset()
   }
 }
 
-function startRename(rec) {
+function startEdit(rec) {
   confirmingDelete.value = null
   editing.value = rec.name
   editTitle.value = rec.title
+  editCategory.value = rec.category || ''
+  editTags.value = [...(rec.tags || [])]
 }
 
-async function onRename(rec) {
-  const next = editTitle.value.trim()
-  if (next && next !== rec.title) await library.rename(rec.name, next)
-  editing.value = null
+async function onUpdate(rec) {
+  const ok = await library.update(rec.name, {
+    title: editTitle.value.trim() || rec.title,
+    category: editCategory.value.trim(),
+    tags: editTags.value,
+  })
+  if (ok) editing.value = null
 }
 
 async function onDelete(name) {

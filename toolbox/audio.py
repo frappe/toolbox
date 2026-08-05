@@ -114,13 +114,21 @@ def list_recordings() -> list[dict]:
 
 @frappe.whitelist(methods=["POST"])
 def update_recording(payload: str) -> dict:
-	"""Rename / re-tag a recording. The audio file itself is immutable here."""
+	"""Rename / re-categorise / re-tag a recording. The audio file itself is immutable here.
+
+	Only fields present in the payload are touched, so a title-only rename never clears the
+	recording's category or tags.
+	"""
 	data = _parse(payload)
 	asset = _owned(data.get("name"))
-	asset.title = _truncate((data.get("title") or "").strip(), MAX_TITLE) or asset.title
-	asset.category = _truncate((data.get("category") or "").strip(), MAX_TITLE) or None
-	asset.description = _truncate((data.get("description") or "").strip(), MAX_TEXT) or None
-	asset.tags = _join_tags(data.get("tags"))
+	if "title" in data:
+		asset.title = _truncate((data.get("title") or "").strip(), MAX_TITLE) or asset.title
+	if "category" in data:
+		asset.category = _truncate((data.get("category") or "").strip(), MAX_TITLE) or None
+	if "description" in data:
+		asset.description = _truncate((data.get("description") or "").strip(), MAX_TEXT) or None
+	if "tags" in data:
+		asset.tags = _join_tags(data.get("tags"))
 	asset.save()
 	return _serialize(asset)
 

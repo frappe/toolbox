@@ -15,20 +15,11 @@ export async function loginAsAdministrator(page) {
   await page.getByRole('button', { name: 'Continue' }).click()
   expect((await loginResponse).ok()).toBe(true)
 
-  await page.goto('/toolbox/all-tools')
-  await expect(page.getByRole('heading', { name: 'All tools' })).toBeVisible()
-}
-
-export async function setCalculatorFavourite(page, shouldBeFavourite) {
-  const addButton = page.getByRole('button', { name: 'Add Calculator to favourites' })
-  const removeButton = page.getByRole('button', { name: 'Remove Calculator from favourites' })
-  const currentState = await removeButton.isVisible()
-  if (currentState === shouldBeFavourite) return
-
-  const saveResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes('.update_preferences') && response.request().method() === 'POST',
-  )
-  await (shouldBeFavourite ? addButton : removeButton).click()
-  expect((await saveResponse).ok()).toBe(true)
+  // The Frappe login page performs its own post-login redirect (to the desk); navigating to
+  // Toolbox at the same moment can abort our navigation (net::ERR_ABORTED). Retry the visit
+  // until the app shell renders so the shared auth setup is not flaky.
+  await expect(async () => {
+    await page.goto('/toolbox/all-tools')
+    await expect(page.getByRole('heading', { name: 'All tools' })).toBeVisible()
+  }).toPass({ timeout: 20_000 })
 }

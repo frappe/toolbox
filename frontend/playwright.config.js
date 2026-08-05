@@ -8,10 +8,13 @@ const storageState = 'e2e/.auth/user.json'
 export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results/e2e',
-  fullyParallel: true,
+  // Toolbox is single-owner: every browser project signs in as the same Administrator and
+  // shares one server-side preference record. Running specs in parallel lets one test's
+  // favourite/saved-pair/world-clock writes clobber another's, so the suite runs serially.
+  fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: 1,
   timeout: 30_000,
   expect: { timeout: 5_000 },
   reporter: process.env.CI
@@ -50,10 +53,12 @@ export default defineConfig({
     },
     {
       name: 'webkit',
-      // WebKit headless cannot drive service-worker offline mode (it raises an internal
-      // error); offline behaviour is covered on Chromium and Firefox.
+      // WebKit headless cannot drive service-worker offline mode (it raises an internal error),
+      // so offline behaviour is covered on Chromium and Firefox. Blocking the service worker
+      // here also stops WebKit routing app fetches through the SW, which otherwise escapes
+      // page.route and defeats the currency-rate mock. WebKit exercises no SW-dependent path.
       testIgnore: /responsive\.spec\.js|offline\.spec\.js|auth\.setup\.js/,
-      use: { ...devices['Desktop Safari'], storageState },
+      use: { ...devices['Desktop Safari'], storageState, serviceWorkers: 'block' },
       dependencies: ['setup'],
     },
   ],

@@ -20,7 +20,7 @@ describe('authGuard', () => {
     expect(redirect).not.toHaveBeenCalled()
   })
 
-  it('redirects an unauthenticated session to login and blocks navigation', () => {
+  it('redirects an explicitly signed-out session to login and blocks navigation', () => {
     const redirect = vi.fn()
     const guard = createAuthGuard({
       session: { is_logged_in: false, user: 'Guest' },
@@ -29,5 +29,14 @@ describe('authGuard', () => {
 
     expect(guard({ fullPath: '/settings' })).toBe(false)
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('/login?redirect-to='))
+  })
+
+  it('allows navigation on the boot-less offline shell instead of bouncing to login', () => {
+    const redirect = vi.fn()
+    // The cached offline shell carries no Frappe boot data, so is_logged_in is undefined.
+    const guard = createAuthGuard({ session: {}, redirect })
+
+    expect(guard({ fullPath: '/calculator' })).toBe(true)
+    expect(redirect).not.toHaveBeenCalled()
   })
 })

@@ -65,6 +65,25 @@
     </nav>
 
     <div class="mt-2 border-t border-outline-gray-2 pt-2">
+      <!-- A new build is waiting: offer the refresh here rather than as a floating card. -->
+      <button
+        v-if="pwa.updateReady.value"
+        type="button"
+        class="mb-1 flex h-9 w-full items-center rounded-lg bg-surface-gray-2 text-sm font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+        :class="collapsed ? 'justify-center px-0' : 'px-2'"
+        :aria-label="collapsed ? 'Update ready — refresh Toolbox' : undefined"
+        :title="collapsed ? 'Update ready' : undefined"
+        @click="pwa.applyUpdate"
+      >
+        <span class="flex size-7 shrink-0 items-center justify-center">
+          <Icon name="lucide-refresh-cw" class="size-4" :class="pwa.updateApplying.value ? 'animate-spin motion-reduce:animate-none' : ''" />
+        </span>
+        <template v-if="!collapsed">
+          <span class="min-w-0 flex-1 truncate text-left">Update ready</span>
+          <Icon name="lucide-arrow-right" class="size-4 shrink-0 text-ink-gray-5" />
+        </template>
+      </button>
+
       <!-- Mobile keeps Settings in the footer; on desktop it moves into the brand menu. -->
       <NavigationItem
         v-if="!showBrand"
@@ -99,6 +118,7 @@
 import { computed } from 'vue'
 import { Icon } from 'frappe-ui'
 
+import { usePwaStatus } from '@/composables/usePwaStatus'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { getToolsByCategory, toolCategories, tools, toolsById } from '@/data/toolRegistry'
 import AppBrandMenu from './AppBrandMenu.vue'
@@ -114,6 +134,7 @@ defineProps({
 defineEmits(['navigate', 'search', 'toggle-collapse'])
 
 const preferences = useToolboxPreferences()
+const pwa = usePwaStatus()
 const categoryGroups = computed(() =>
   toolCategories
     .map((category) => ({

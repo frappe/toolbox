@@ -17,6 +17,7 @@
   "project_or_trip",
   "account_label",
   "reference_number",
+  "receipt",
   "tags",
   "note",
   "categorisation_rule",
@@ -98,6 +99,13 @@
    "fieldname": "reference_number",
    "fieldtype": "Data",
    "label": "Reference Number"
+  },
+  {
+   "description": "Private Frappe File; an image or PDF receipt.",
+   "fieldname": "receipt",
+   "fieldtype": "Attach",
+   "label": "Receipt",
+   "read_only": 1
   },
   {
    "description": "Comma-separated tags.",

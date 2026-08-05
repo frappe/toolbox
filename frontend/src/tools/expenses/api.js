@@ -29,6 +29,15 @@ export function deleteExpense(name, request = frappeRequest) {
   return request({ url: `${EXPENSES}.delete_expense`, method: 'POST', params: { name } })
 }
 
+// Attach a receipt (base64 image/PDF; a data: URL is accepted). Returns the updated expense.
+export function attachReceipt(name, data, request = frappeRequest) {
+  return request({ url: `${EXPENSES}.attach_receipt`, method: 'POST', params: { name, data } })
+}
+
+export function removeReceipt(name, request = frappeRequest) {
+  return request({ url: `${EXPENSES}.remove_receipt`, method: 'POST', params: { name } })
+}
+
 // Filtered, paginated page of expenses plus the total match count.
 export function listExpenses(filters = {}, limit = 50, start = 0, request = frappeRequest) {
   return request({

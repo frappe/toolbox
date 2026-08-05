@@ -4,6 +4,7 @@ export const toolCategories = [
   { id: 'india', name: 'India', icon: 'lucide-map-pinned' },
   { id: 'time', name: 'Time', icon: 'lucide-clock-3' },
   { id: 'productivity', name: 'Productivity', icon: 'lucide-list-todo' },
+  { id: 'money', name: 'Money', icon: 'lucide-wallet' },
   { id: 'information', name: 'Information', icon: 'lucide-library' },
 ]
 
@@ -174,6 +175,16 @@ export const tools = [
     route: '/reminders',
     offlineCapability: 'none',
     searchKeywords: ['reminder', 'alarm', 'schedule', 'repeat', 'recurring', 'notify', 'snooze'],
+  }),
+  defineTool({
+    id: 'expenses',
+    name: 'Expenses',
+    description: 'Track personal spending with categories, budgets-ready totals, and export.',
+    icon: 'lucide-wallet',
+    category: 'money',
+    route: '/expenses',
+    offlineCapability: 'none',
+    searchKeywords: ['expense', 'spending', 'budget', 'money', 'receipt', 'category', 'finance'],
   }),
 ]
 

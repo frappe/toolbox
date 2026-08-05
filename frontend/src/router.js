@@ -19,6 +19,7 @@ const implementedToolViews = {
   notes: () => import('@/views/tools/NotesView.vue'),
   library: () => import('@/views/tools/LibraryView.vue'),
   reminders: () => import('@/views/tools/RemindersView.vue'),
+  expenses: () => import('@/views/tools/ExpensesView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

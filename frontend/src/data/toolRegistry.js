@@ -5,6 +5,7 @@ export const toolCategories = [
   { id: 'time', name: 'Time', icon: 'lucide-clock-3' },
   { id: 'productivity', name: 'Productivity', icon: 'lucide-list-todo' },
   { id: 'money', name: 'Money', icon: 'lucide-wallet' },
+  { id: 'media', name: 'Media', icon: 'lucide-mic' },
   { id: 'information', name: 'Information', icon: 'lucide-library' },
 ]
 
@@ -195,6 +196,16 @@ export const tools = [
     route: '/script-conversion',
     offlineCapability: 'full',
     searchKeywords: ['transliterate', 'script', 'devanagari', 'tamil', 'iast', 'itrans', 'language', 'romanise'],
+  }),
+  defineTool({
+    id: 'audio-recorder',
+    name: 'Audio Recorder',
+    description: 'Record voice notes in your browser and keep them in a private library.',
+    icon: 'lucide-mic',
+    category: 'media',
+    route: '/audio-recorder',
+    offlineCapability: 'none',
+    searchKeywords: ['audio', 'record', 'voice', 'microphone', 'memo', 'sound'],
   }),
 ]
 

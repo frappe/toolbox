@@ -6,7 +6,7 @@
   >
     <a
       href="#main-content"
-      class="fixed left-3 top-3 z-[60] -translate-y-20 rounded-lg bg-surface-gray-7 px-3 py-2 text-sm font-medium text-ink-white focus:translate-y-0"
+      class="fixed left-3 top-3 z-[60] -translate-y-20 rounded-lg border border-outline-gray-2 bg-surface-gray-2 px-3 py-2 text-sm font-medium text-ink-gray-9 focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
     >
       Skip to content
     </a>
@@ -60,7 +60,7 @@
         aria-label="Primary mobile navigation"
       >
         <RouterLink to="/all-tools" class="mobile-nav-item text-ink-gray-9">
-          <span class="flex size-9 items-center justify-center rounded-xl bg-surface-gray-7 text-ink-white">
+          <span class="flex size-9 items-center justify-center rounded-xl bg-surface-gray-2 text-ink-gray-9">
             <Icon name="lucide-layout-grid" class="size-5" />
           </span>
           <span>All tools</span>

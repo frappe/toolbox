@@ -32,6 +32,7 @@ function makeApi(overrides = {}) {
     bulkDelete: vi.fn(async () => 2),
     attachReceipt: vi.fn(async () => ({ name: 'e1', receipt: '/private/files/r.png' })),
     removeReceipt: vi.fn(async () => ({ name: 'e1', receipt: null })),
+    suggestConversionRate: vi.fn(async () => ({ ok: true, rate: 83.5, date: '2026-08-01', source: 'ecb-reference' })),
     listProjects: vi.fn(async () => []),
     saveProject: vi.fn(async () => ({ name: 'pr1' })),
     deleteProject: vi.fn(async () => {}),
@@ -239,6 +240,30 @@ describe('useExpenses — trips, budgets, bulk', () => {
     await x.bulkRemove()
     expect(api.bulkDelete).toHaveBeenCalledWith(['e1'])
     expect(x.selectedCount.value).toBe(0)
+  })
+
+  it('fetches a reference conversion rate into the form', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    x.newExpense()
+    x.activeExpense.value.currency = 'USD'
+    x.activeExpense.value.base_currency = 'INR'
+    await x.fetchRate()
+    expect(api.suggestConversionRate).toHaveBeenCalledWith('USD', 'INR')
+    expect(x.activeExpense.value.conversion_rate).toBe(83.5)
+    expect(x.activeExpense.value.conversion_source).toBe('ecb-reference')
+    expect(x.fxNotice.value).toContain('83.5')
+  })
+
+  it('reports when a rate is unavailable without changing the form', async () => {
+    const api = makeApi({ suggestConversionRate: vi.fn(async () => ({ ok: false, error: 'No reference rate for USD to JPY.' })) })
+    const x = useExpenses({ api })
+    x.newExpense()
+    x.activeExpense.value.currency = 'USD'
+    x.activeExpense.value.base_currency = 'JPY'
+    await x.fetchRate()
+    expect(x.activeExpense.value.conversion_rate).toBe('')
+    expect(x.fxNotice.value).toContain('JPY')
   })
 
   it('attaches and removes a receipt, reflecting it on the open form', async () => {

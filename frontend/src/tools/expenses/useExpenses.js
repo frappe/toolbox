@@ -37,6 +37,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
   const suggestion = ref(null)
   const saving = ref(false)
   const saveError = ref('')
+  const fxNotice = ref('')
   const dashboardData = ref(null)
 
   const projects = ref([])
@@ -280,6 +281,30 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     await loadRules()
   }
 
+  // --- live base-currency rate ---
+
+  async function fetchRate() {
+    const e = activeExpense.value
+    if (!e || !e.currency || !e.base_currency) {
+      fxNotice.value = 'Set the expense currency and a base currency first.'
+      return
+    }
+    fxNotice.value = ''
+    try {
+      const result = await api.suggestConversionRate(e.currency, e.base_currency)
+      if (!result || result.ok === false) {
+        fxNotice.value = (result && result.error) || 'No reference rate is available.'
+        return
+      }
+      e.conversion_rate = result.rate
+      e.conversion_source = result.source || 'ecb-reference'
+      const on = result.date ? ` (${result.date})` : ''
+      fxNotice.value = `Reference rate${on}: 1 ${e.currency} = ${result.rate} ${e.base_currency}`
+    } catch (error) {
+      fxNotice.value = readError(error, 'The rate could not be fetched.')
+    }
+  }
+
   // --- receipts ---
 
   async function attachReceipt(name, file) {
@@ -476,6 +501,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     canLearnRule,
     saving,
     saveError,
+    fxNotice,
     dashboardData,
     projects,
     activeProjectSummary,
@@ -497,6 +523,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     requestSuggestion,
     saveActive,
     removeExpense,
+    fetchRate,
     attachReceipt,
     removeReceipt,
     loadRules,

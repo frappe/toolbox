@@ -337,6 +337,10 @@
                     <input id="expense-conversion" v-model.number="form.conversion_rate" type="number" min="0" step="0.0001" placeholder="1.0000" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
                   </div>
                 </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" icon="lucide-refresh-cw" label="Fetch rate" @click="expenses.fetchRate()" />
+                  <p v-if="expenses.fxNotice.value" class="text-xs text-ink-gray-5">{{ expenses.fxNotice.value }}</p>
+                </div>
 
                 <div class="flex flex-col gap-1.5">
                   <span class="text-sm font-medium text-ink-gray-7">Receipt</span>

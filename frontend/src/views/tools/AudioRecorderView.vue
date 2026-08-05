@@ -1,0 +1,165 @@
+<template>
+  <div class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
+    <header class="flex items-start gap-4">
+      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
+        <Icon name="lucide-mic" class="size-6 text-ink-gray-7" />
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-ink-gray-5">Media</p>
+        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Recorder</h1>
+        <p class="pt-2 text-base leading-7 text-ink-gray-6">Record a voice note in your browser and keep it in your private library.</p>
+      </div>
+      <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
+    </header>
+
+    <!-- Recorder -->
+    <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" aria-label="Recorder">
+      <p v-if="!recorder.isSupported.value" class="flex items-center gap-2 text-sm text-ink-gray-6">
+        <Icon name="lucide-mic-off" class="size-5 shrink-0 text-ink-gray-5" />
+        Recording needs a browser with microphone support. You can still play and manage saved recordings below.
+      </p>
+
+      <template v-else>
+        <!-- Idle -->
+        <div v-if="recorder.state.value === 'idle'" class="flex flex-col items-center gap-3 py-4">
+          <Button variant="solid" size="lg" icon="lucide-mic" label="Record" @click="recorder.start()" />
+          <p class="text-xs text-ink-gray-5">Your browser will ask for microphone permission.</p>
+        </div>
+
+        <!-- Recording / paused -->
+        <div v-else-if="recorder.state.value === 'recording' || recorder.state.value === 'paused'" class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <span class="relative flex size-3 shrink-0">
+              <span v-if="recorder.state.value === 'recording'" class="absolute inline-flex size-full animate-ping rounded-full bg-surface-red-3 opacity-75 motion-reduce:hidden" />
+              <span class="relative inline-flex size-3 rounded-full" :class="recorder.state.value === 'recording' ? 'bg-ink-red-4' : 'bg-ink-gray-5'" />
+            </span>
+            <span class="text-lg font-semibold tabular-nums text-ink-gray-9">{{ formatDuration(recorder.elapsed.value) }}</span>
+            <span class="text-sm text-ink-gray-5">{{ recorder.state.value === 'paused' ? 'Paused' : 'Recording' }}</span>
+          </div>
+          <div class="h-2 w-full overflow-hidden rounded-full bg-surface-gray-3" role="meter" aria-label="Input level" :aria-valuenow="Math.round(recorder.level.value * 100)" aria-valuemin="0" aria-valuemax="100">
+            <div class="h-full rounded-full bg-ink-gray-7 transition-[width] duration-100 motion-reduce:transition-none" :style="{ width: `${Math.round(recorder.level.value * 100)}%` }" />
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <Button v-if="recorder.state.value === 'recording'" variant="outline" icon="lucide-pause" label="Pause" @click="recorder.pause()" />
+            <Button v-else variant="outline" icon="lucide-play" label="Resume" @click="recorder.resume()" />
+            <Button variant="solid" icon="lucide-square" label="Stop" @click="recorder.stop()" />
+            <Button variant="ghost" icon="lucide-x" label="Discard" @click="recorder.reset()" />
+          </div>
+        </div>
+
+        <!-- Stopped: preview + save -->
+        <form v-else class="flex flex-col gap-3" @submit.prevent="onSave">
+          <p class="text-sm font-medium text-ink-gray-7">Preview ({{ formatDuration(recorder.elapsed.value) }})</p>
+          <audio :src="recorder.url.value" controls class="w-full" />
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <input v-model="title" type="text" placeholder="Name this recording" aria-label="Recording title" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+            <div class="flex gap-2">
+              <Button variant="solid" icon="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" type="submit" />
+              <Button variant="ghost" icon="lucide-trash-2" label="Discard" @click="recorder.reset()" />
+            </div>
+          </div>
+        </form>
+
+        <p v-if="recorder.error.value" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ recorder.error.value }}</p>
+      </template>
+      <p v-if="library.saveError.value" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.saveError.value }}</p>
+    </section>
+
+    <!-- Library -->
+    <h2 class="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-gray-5">Saved recordings</h2>
+
+    <div v-if="library.state.value === 'error'" class="mt-3 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-8 text-center" role="alert">
+      <Icon name="lucide-wifi-off" class="mx-auto size-7 text-ink-gray-5" />
+      <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">{{ library.errorMessage.value }}</p>
+      <Button class="mt-4" label="Try again" @click="library.load" />
+    </div>
+
+    <div v-else-if="library.state.value === 'loading'" class="mt-3 space-y-3" aria-hidden="true">
+      <div v-for="row in 3" :key="row" class="h-16 animate-pulse rounded-xl bg-surface-gray-2 motion-reduce:animate-none" />
+    </div>
+
+    <p v-else-if="library.isEmpty.value" class="mt-3 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 px-4 py-10 text-center text-sm text-ink-gray-6">No recordings yet. Record one above and save it here.</p>
+
+    <ul v-else class="mt-3 flex flex-col gap-2">
+      <li v-for="rec in library.recordings.value" :key="rec.name" :data-recording-name="rec.name" class="rounded-xl border border-outline-gray-2 bg-surface-base p-3">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="min-w-0 flex-1">
+            <div v-if="editing === rec.name" class="flex items-center gap-2">
+              <input v-model="editTitle" type="text" :aria-label="`Rename ${rec.title}`" class="h-9 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @keydown.enter.prevent="onRename(rec)" />
+              <Button variant="solid" label="Save" @click="onRename(rec)" />
+              <Button variant="ghost" label="Cancel" @click="editing = null" />
+            </div>
+            <template v-else>
+              <p class="truncate text-sm font-medium text-ink-gray-9">{{ rec.title }}</p>
+              <p class="mt-0.5 text-xs text-ink-gray-5">{{ formatDuration(rec.duration_seconds) }} · {{ formatSize(rec.file_size) }} · {{ rec.container_format }}</p>
+            </template>
+          </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <Button variant="ghost" icon="lucide-pencil" aria-label="Rename recording" @click="startRename(rec)" />
+            <a :href="rec.file" download class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :aria-label="`Download ${rec.title}`"><Icon name="lucide-download" class="size-4" /></a>
+            <template v-if="confirmingDelete === rec.name">
+              <span class="text-xs text-ink-gray-7">Delete?</span>
+              <Button variant="ghost" label="Cancel" @click="confirmingDelete = null" />
+              <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDelete(rec.name)" />
+            </template>
+            <Button v-else variant="ghost" icon="lucide-trash-2" aria-label="Delete recording" @click="confirmingDelete = rec.name" />
+          </div>
+        </div>
+        <audio :src="rec.file" controls preload="none" class="mt-2 w-full" />
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref } from 'vue'
+import { Button, Icon } from 'frappe-ui'
+
+import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { formatDuration, formatSize, useAudioLibrary } from '@/tools/audio-recorder/useAudioLibrary'
+import { useAudioRecorder } from '@/tools/audio-recorder/useAudioRecorder'
+
+const TOOL_ID = 'audio-recorder'
+
+const preferences = useToolboxPreferences()
+const recorder = useAudioRecorder()
+const library = useAudioLibrary()
+
+const title = ref('')
+const editing = ref(null)
+const editTitle = ref('')
+const confirmingDelete = ref(null)
+
+onMounted(() => {
+  preferences.recordRecent(TOOL_ID)
+  void library.load()
+})
+
+async function onSave() {
+  const saved = await library.saveBlob(recorder.blob.value, {
+    title: title.value,
+    durationSeconds: recorder.durationSeconds.value,
+  })
+  if (saved) {
+    title.value = ''
+    recorder.reset()
+  }
+}
+
+function startRename(rec) {
+  confirmingDelete.value = null
+  editing.value = rec.name
+  editTitle.value = rec.title
+}
+
+async function onRename(rec) {
+  const next = editTitle.value.trim()
+  if (next && next !== rec.title) await library.rename(rec.name, next)
+  editing.value = null
+}
+
+async function onDelete(name) {
+  await library.remove(name)
+  confirmingDelete.value = null
+}
+</script>

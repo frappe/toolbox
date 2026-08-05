@@ -7,6 +7,7 @@ Money is summed with ``Decimal`` so 2-decimal amounts never drift. Categorisatio
 deterministic (see ``expense_categorizer``); no remote service is ever called.
 """
 
+import base64
 from calendar import monthrange
 from collections import Counter
 from datetime import date
@@ -14,9 +15,12 @@ from decimal import Decimal
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, flt, getdate, nowdate
+from frappe.utils.file_manager import save_file
 
 from toolbox.expense_categorizer import categorize, normalise
+from toolbox.receipt_files import MAX_RECEIPT_BYTES, RECEIPT_TYPES, detect_receipt_type
 from toolbox.expense_settings import (
 	CATEGORY,
 	EXPENSE,
@@ -69,7 +73,42 @@ def save_expense(payload: str) -> dict:
 @frappe.whitelist(methods=["POST"])
 def delete_expense(name: str) -> None:
 	_owned(name)
-	frappe.delete_doc(EXPENSE, name)
+	frappe.delete_doc(EXPENSE, name)  # on_trash removes the receipt file too
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=60, seconds=60)
+def attach_receipt(name: str, data: str) -> dict:
+	"""Validate a base64 image/PDF by its magic bytes and store it as the expense's private receipt."""
+	expense = _owned(name)
+	content = _decode_base64(data)
+	if len(content) > MAX_RECEIPT_BYTES:
+		frappe.throw(_("That receipt is larger than the {0} MB limit.").format(MAX_RECEIPT_BYTES // (1024 * 1024)))
+	rtype = detect_receipt_type(content[:16])
+	if not rtype:
+		frappe.throw(_("A receipt must be an image (JPEG, PNG, GIF, WebP) or a PDF."))
+
+	_delete_receipt_file(expense)  # replace any existing receipt
+	file_doc = save_file(
+		f"receipt-{expense.name}.{RECEIPT_TYPES[rtype][1]}",
+		content,
+		EXPENSE,
+		expense.name,
+		decode=False,
+		is_private=1,
+	)
+	expense.receipt = file_doc.file_url
+	expense.save()
+	return _serialize(expense)
+
+
+@frappe.whitelist(methods=["POST"])
+def remove_receipt(name: str) -> dict:
+	expense = _owned(name)
+	_delete_receipt_file(expense)
+	expense.receipt = None
+	expense.save()
+	return _serialize(expense)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -235,6 +274,7 @@ def _serialize(doc) -> dict:
 		"project_name": _name_of(PROJECT, doc.project_or_trip, "project_name"),
 		"account_label": doc.account_label,
 		"reference_number": doc.reference_number,
+		"receipt": doc.receipt,
 		"note": doc.note,
 		"tags": _split_tags(doc.tags),
 		"base_currency": doc.base_currency,
@@ -477,6 +517,27 @@ def _join_tags(value) -> str | None:
 
 def _truncate(text: str, limit: int) -> str:
 	return text if len(text) <= limit else text[:limit]
+
+
+def _decode_base64(value: object) -> bytes:
+	if not isinstance(value, str) or not value.strip():
+		frappe.throw(_("No receipt data was received."))
+	raw = value.strip()
+	if raw.startswith("data:") and "," in raw:
+		raw = raw.split(",", 1)[1]
+	try:
+		content = base64.b64decode(raw, validate=True)
+	except (ValueError, base64.binascii.Error):
+		frappe.throw(_("The receipt could not be read."))
+	if not content:
+		frappe.throw(_("The receipt is empty."))
+	return content
+
+
+def _delete_receipt_file(expense) -> None:
+	if expense.receipt:
+		for name in frappe.get_all("File", filters={"file_url": expense.receipt}, pluck="name"):
+			frappe.delete_doc("File", name, ignore_permissions=True, force=True)
 
 
 def _parse(payload: str) -> dict:

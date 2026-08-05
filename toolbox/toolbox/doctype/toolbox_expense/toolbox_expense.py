@@ -25,6 +25,12 @@ class ToolboxExpense(Document):
 		self.merchant = (self.merchant or "").strip() or None
 		self._apply_base_conversion()
 
+	def on_trash(self):
+		# Remove the private receipt file this expense owns so deleting never orphans it.
+		if self.receipt:
+			for name in frappe.get_all("File", filters={"file_url": self.receipt}, pluck="name"):
+				frappe.delete_doc("File", name, ignore_permissions=True, force=True)
+
 	def _apply_base_conversion(self):
 		"""Derive the base amount from the stored rate. A missing rate leaves it unconverted,
 		so a mixed-currency ledger stays honest rather than inventing a total."""

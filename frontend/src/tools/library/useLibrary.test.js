@@ -38,6 +38,7 @@ function makeApi(overrides = {}) {
     toggleFavourite: vi.fn().mockImplementation((name) => Promise.resolve(link({ name, is_favourite: true }))),
     saveCollection: vi.fn().mockResolvedValue({ name: 'C-1', collection_name: 'Work' }),
     deleteCollection: vi.fn().mockResolvedValue(null),
+    fetchMetadata: vi.fn().mockResolvedValue({ ok: true, title: 'Fetched Title', description: 'Fetched desc', site_name: 'Site' }),
     exportLinks: vi.fn().mockResolvedValue({
       links: [link()],
       csv_columns: ['url', 'title'],
@@ -171,5 +172,29 @@ describe('useLibrary', () => {
     expect(safeHref('data:text/html,x')).toBeNull()
     expect(safeHref('https://example.com')).toBe('https://example.com')
     expect(safeHref('example.com/x')).toBe('https://example.com/x')
+  })
+
+  it('fetches metadata and fills only the blank fields', async () => {
+    const api = makeApi()
+    const lib = useLibrary({ api })
+    lib.startCreate()
+    lib.form.value.url = 'https://example.com/a'
+    lib.form.value.title = 'My own title'
+    await lib.fetchMetadata()
+
+    expect(api.fetchMetadata).toHaveBeenCalledWith('https://example.com/a')
+    expect(lib.form.value.title).toBe('My own title') // not overwritten
+    expect(lib.form.value.description).toBe('Fetched desc') // filled because blank
+  })
+
+  it('reports a fetch failure without blocking a manual save', async () => {
+    const api = makeApi({ fetchMetadata: vi.fn().mockResolvedValue({ ok: false, error: 'That link is not an HTML page.' }) })
+    const lib = useLibrary({ api })
+    lib.startCreate()
+    lib.form.value.url = 'https://example.com/a'
+    await lib.fetchMetadata()
+
+    expect(lib.metaNotice.value).toContain('HTML')
+    expect(lib.form.value.url).toBe('https://example.com/a') // still savable
   })
 })

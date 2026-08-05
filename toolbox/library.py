@@ -16,6 +16,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 DOCTYPE = "Toolbox Saved Link"
 COLLECTION_DOCTYPE = "Toolbox Link Collection"
@@ -198,6 +199,25 @@ def save_link(payload: str) -> dict:
 	result["saved"] = True
 	result["duplicate_of"] = None
 	return result
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=30, seconds=60)
+def fetch_metadata(url: str) -> dict:
+	"""Fetch title/description/site name for a URL through the SSRF-guarded fetcher.
+
+	Returns ``{"ok": True, ...metadata}`` on success, or ``{"ok": False, "error": <message>}`` so
+	the caller can always still save the link manually. POST keeps the URL out of access logs, and
+	failures are not written to the shared Error Log, so one user's URLs never leak to another.
+	"""
+	from toolbox.link_metadata import LinkMetadataError, fetch_link_metadata
+
+	normalised = normalise_url(url)
+	try:
+		metadata = fetch_link_metadata(normalised)
+	except LinkMetadataError as exc:
+		return {"ok": False, "error": str(exc)}
+	return {"ok": True, **metadata}
 
 
 @frappe.whitelist(methods=["POST"])

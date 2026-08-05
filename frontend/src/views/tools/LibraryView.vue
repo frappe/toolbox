@@ -18,6 +18,7 @@
         <div class="flex flex-col gap-2 sm:flex-row">
           <input v-model="library.form.value.url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a link (https://…)" aria-label="Link URL" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
           <div class="flex gap-2">
+            <Button variant="outline" icon="lucide-sparkles" label="Fetch" title="Fetch the page title and description" :loading="library.isFetchingMeta.value" @click="library.fetchMetadata()" />
             <Button variant="subtle" :label="showDetails ? 'Fewer details' : 'More details'" @click="showDetails = !showDetails" />
             <Button variant="solid" :label="library.editingName.value ? 'Update' : 'Save link'" :loading="library.isSaving.value" type="submit" />
           </div>
@@ -43,6 +44,8 @@
         </div>
 
         <p v-if="library.formError.value" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.formError.value }}</p>
+
+        <p v-if="library.metaNotice.value" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm text-ink-gray-7" role="status" aria-live="polite">{{ library.metaNotice.value }}</p>
 
         <div v-if="library.duplicateHint.value" class="flex flex-wrap items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-amber-1 px-3 py-2 text-sm text-ink-gray-8" role="status">
           <Icon name="lucide-copy" class="size-4 shrink-0 text-ink-gray-6" />

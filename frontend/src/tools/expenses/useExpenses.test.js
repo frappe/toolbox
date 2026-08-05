@@ -30,6 +30,8 @@ function makeApi(overrides = {}) {
     deleteRule: vi.fn(async () => {}),
     bulkUpdate: vi.fn(async () => 2),
     bulkDelete: vi.fn(async () => 2),
+    attachReceipt: vi.fn(async () => ({ name: 'e1', receipt: '/private/files/r.png' })),
+    removeReceipt: vi.fn(async () => ({ name: 'e1', receipt: null })),
     listProjects: vi.fn(async () => []),
     saveProject: vi.fn(async () => ({ name: 'pr1' })),
     deleteProject: vi.fn(async () => {}),
@@ -237,6 +239,19 @@ describe('useExpenses — trips, budgets, bulk', () => {
     await x.bulkRemove()
     expect(api.bulkDelete).toHaveBeenCalledWith(['e1'])
     expect(x.selectedCount.value).toBe(0)
+  })
+
+  it('attaches and removes a receipt, reflecting it on the open form', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    x.editExpense({ name: 'e1', tags: [] })
+    await x.attachReceipt('e1', new Blob(['x'], { type: 'image/png' }))
+    expect(api.attachReceipt).toHaveBeenCalled()
+    expect(x.activeExpense.value.receipt).toBe('/private/files/r.png')
+
+    await x.removeReceipt('e1')
+    expect(api.removeReceipt).toHaveBeenCalledWith('e1')
+    expect(x.activeExpense.value.receipt).toBeNull()
   })
 })
 

@@ -140,6 +140,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       reference_number: '',
       note: '',
       tags: [],
+      receipt: null,
       base_currency: '',
       conversion_rate: '',
       conversion_source: '',
@@ -164,6 +165,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       reference_number: row.reference_number || '',
       note: row.note || '',
       tags: Array.isArray(row.tags) ? [...row.tags] : [],
+      receipt: row.receipt || null,
       base_currency: row.base_currency || '',
       conversion_rate: row.conversion_rate || '',
       conversion_source: row.conversion_source || '',
@@ -276,6 +278,36 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
   async function removeRule(name) {
     await api.deleteRule(name)
     await loadRules()
+  }
+
+  // --- receipts ---
+
+  async function attachReceipt(name, file) {
+    if (!name || !file) return
+    saveError.value = ''
+    try {
+      const data = await readFileAsBase64(file)
+      _applyExpenseUpdate(await api.attachReceipt(name, data))
+    } catch (error) {
+      saveError.value = readError(error, 'The receipt could not be attached.')
+    }
+  }
+
+  async function removeReceipt(name) {
+    if (!name) return
+    try {
+      _applyExpenseUpdate(await api.removeReceipt(name))
+    } catch (error) {
+      saveError.value = readError(error, 'The receipt could not be removed.')
+    }
+  }
+
+  // Reflect a server-updated expense into the open form and the loaded list without a refetch.
+  function _applyExpenseUpdate(updated) {
+    if (!updated) return
+    if (activeExpense.value?.name === updated.name) activeExpense.value.receipt = updated.receipt
+    const index = expenses.value.findIndex((e) => e.name === updated.name)
+    if (index !== -1) expenses.value.splice(index, 1, { ...expenses.value[index], receipt: updated.receipt })
   }
 
   // --- trips / projects ---
@@ -465,6 +497,8 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     requestSuggestion,
     saveActive,
     removeExpense,
+    attachReceipt,
+    removeReceipt,
     loadRules,
     saveCategory,
     removeCategory,
@@ -507,6 +541,16 @@ export function confidenceLabel(confidence) {
 function today() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Read a File as a base64 data URL; the server accepts and strips the data: prefix.
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error || new Error('Could not read the file.'))
+    reader.onload = () => resolve(reader.result)
+    reader.readAsDataURL(file)
+  })
 }
 
 function csvCell(value) {

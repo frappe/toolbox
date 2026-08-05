@@ -337,6 +337,18 @@
                     <input id="expense-conversion" v-model.number="form.conversion_rate" type="number" min="0" step="0.0001" placeholder="1.0000" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
                   </div>
                 </div>
+
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-sm font-medium text-ink-gray-7">Receipt</span>
+                  <p v-if="!form.name" class="text-xs text-ink-gray-5">Save the expense first, then you can attach a receipt.</p>
+                  <div v-else-if="form.receipt" class="flex flex-wrap items-center gap-2">
+                    <a :href="form.receipt" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm text-ink-gray-8 underline decoration-outline-gray-3 underline-offset-2 hover:text-ink-gray-9">
+                      <Icon name="lucide-paperclip" class="size-4" /> View receipt
+                    </a>
+                    <Button variant="ghost" icon="lucide-x" label="Remove" @click="expenses.removeReceipt(form.name)" />
+                  </div>
+                  <input v-else type="file" accept="image/*,application/pdf" aria-label="Attach receipt" class="text-sm text-ink-gray-7 file:mr-3 file:rounded-lg file:border file:border-outline-gray-2 file:bg-surface-base file:px-3 file:py-1.5 file:text-sm file:text-ink-gray-8" @change="onReceiptSelected" />
+                </div>
               </div>
             </details>
 
@@ -400,6 +412,7 @@
                     <span v-if="row.category_name">{{ row.category_name }}</span>
                     <span v-if="row.payment_method_name">{{ row.payment_method_name }}</span>
                     <span v-if="row.project_name">{{ row.project_name }}</span>
+                    <a v-if="row.receipt" :href="row.receipt" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-ink-gray-6 hover:text-ink-gray-9" :aria-label="`View receipt for ${row.description}`" @click.stop><Icon name="lucide-paperclip" class="size-3.5" /> Receipt</a>
                   </div>
                   <ul v-if="row.tags && row.tags.length" class="mt-2 flex flex-wrap gap-1" aria-label="Tags">
                     <li v-for="tag in row.tags" :key="tag" class="rounded-md bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-7">{{ tag }}</li>
@@ -913,6 +926,12 @@ function onExport(format) {
 
 async function onSave() {
   await expenses.saveActive()
+}
+
+async function onReceiptSelected(event) {
+  const file = event.target.files && event.target.files[0]
+  if (file && form.value) await expenses.attachReceipt(form.value.name, file)
+  event.target.value = ''
 }
 
 async function onSaveAndLearn() {

@@ -1,8 +1,11 @@
 import { computed, ref } from 'vue'
 
-// Browser-only capture via MediaRecorder + a Web Audio level meter. Construction only creates
-// refs (safe under SSR/jsdom); the browser APIs are touched in start(). Not unit-tested — it
-// needs a real microphone — so it is kept defensive and always cleans up its stream/context.
+import { resolvePreset } from './recorderPresets'
+
+// Browser-only capture via MediaRecorder + a Web Audio analyser (drives both the level meter and
+// the live waveform). Construction only creates refs (safe under SSR/jsdom); the browser APIs are
+// touched in start(). Not unit-tested — it needs a real microphone — so it is kept defensive and
+// always cleans up its stream/context.
 
 const MIME_CANDIDATES = [
   'audio/webm;codecs=opus',
@@ -10,6 +13,9 @@ const MIME_CANDIDATES = [
   'audio/ogg;codecs=opus',
   'audio/mp4',
 ]
+
+// Time-domain sample count read from the analyser; the view sizes its waveform buffer to match.
+export const WAVEFORM_SIZE = 1024
 
 export function useAudioRecorder() {
   const state = ref('idle') // idle | recording | paused | stopped
@@ -19,6 +25,7 @@ export function useAudioRecorder() {
   const blob = ref(null)
   const url = ref('')
   const mimeType = ref('')
+  const inputDevices = ref([]) // { deviceId, label }
 
   const isSupported = computed(
     () =>
@@ -32,19 +39,40 @@ export function useAudioRecorder() {
   let stream = null
   let chunks = []
   let audioContext = null
+  let analyser = null
   let rafId = null
   let timerId = null
   let startedAt = 0
   let accumulated = 0
 
-  async function start() {
+  // Enumerate audio inputs. Device labels only appear once the user has granted permission, so
+  // this is called both on mount (ids only) and again after the first successful capture.
+  async function refreshDevices() {
+    if (!navigator?.mediaDevices?.enumerateDevices) return
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices()
+      inputDevices.value = all
+        .filter((device) => device.kind === 'audioinput' && device.deviceId)
+        .map((device, index) => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${index + 1}`,
+        }))
+    } catch {
+      // Enumeration is optional; the default microphone still works.
+    }
+  }
+
+  async function start({ deviceId = '', presetId = '' } = {}) {
     if (!isSupported.value) {
       error.value = 'Recording is not supported in this browser.'
       return false
     }
     error.value = ''
+    const preset = resolvePreset(presetId)
+    const audioConstraints = { channelCount: preset.channelCount }
+    if (deviceId) audioConstraints.deviceId = { exact: deviceId }
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints })
     } catch (err) {
       error.value =
         err?.name === 'NotAllowedError'
@@ -52,14 +80,17 @@ export function useAudioRecorder() {
           : 'Could not access a microphone.'
       return false
     }
+    // Labels are available now that permission is granted.
+    void refreshDevices()
 
     _revoke()
     blob.value = null
     chunks = []
     mimeType.value = _pickMime()
-    recorder = mimeType.value
-      ? new window.MediaRecorder(stream, { mimeType: mimeType.value })
-      : new window.MediaRecorder(stream)
+    const options = {}
+    if (mimeType.value) options.mimeType = mimeType.value
+    if (preset.audioBitsPerSecond) options.audioBitsPerSecond = preset.audioBitsPerSecond
+    recorder = new window.MediaRecorder(stream, options)
     recorder.ondataavailable = (event) => {
       if (event.data && event.data.size) chunks.push(event.data)
     }
@@ -122,6 +153,14 @@ export function useAudioRecorder() {
     state.value = 'idle'
   }
 
+  // Copy the latest time-domain samples into a caller-owned Uint8Array (length WAVEFORM_SIZE).
+  // Returns false when no analyser is active so the view can skip drawing.
+  function readWaveform(out) {
+    if (!analyser || !out) return false
+    analyser.getByteTimeDomainData(out)
+    return true
+  }
+
   function _finalize() {
     const type = mimeType.value || (chunks[0] && chunks[0].type) || 'audio/webm'
     blob.value = new Blob(chunks, { type })
@@ -155,10 +194,10 @@ export function useAudioRecorder() {
       if (!Ctx) return
       audioContext = new Ctx()
       const source = audioContext.createMediaStreamSource(stream)
-      const analyser = audioContext.createAnalyser()
-      analyser.fftSize = 512
+      analyser = audioContext.createAnalyser()
+      analyser.fftSize = WAVEFORM_SIZE
       source.connect(analyser)
-      const buffer = new Uint8Array(analyser.frequencyBinCount)
+      const buffer = new Uint8Array(analyser.fftSize)
       const tick = () => {
         analyser.getByteTimeDomainData(buffer)
         let sum = 0
@@ -171,7 +210,7 @@ export function useAudioRecorder() {
       }
       tick()
     } catch {
-      // The meter is optional; recording continues without it.
+      // The meter/waveform is optional; recording continues without it.
     }
   }
 
@@ -182,6 +221,7 @@ export function useAudioRecorder() {
       audioContext.close().catch(() => {})
       audioContext = null
     }
+    analyser = null
     level.value = 0
   }
 
@@ -211,8 +251,11 @@ export function useAudioRecorder() {
     blob,
     url,
     mimeType,
+    inputDevices,
     isSupported,
     durationSeconds,
+    refreshDevices,
+    readWaveform,
     start,
     pause,
     resume,

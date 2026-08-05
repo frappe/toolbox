@@ -56,11 +56,19 @@ export function useAudioLibrary({ api = audioApi, readBlob = blobToBase64 } = {}
   }
 
   async function rename(name, title) {
+    return update(name, { title })
+  }
+
+  // Update editable metadata (title / category / tags) on a saved recording. The audio file
+  // itself is immutable. Returns true on success.
+  async function update(name, fields) {
     try {
-      const updated = await api.updateRecording({ name, title })
+      const updated = await api.updateRecording({ name, ...fields })
       replace(updated)
+      return true
     } catch (error) {
       saveError.value = readError(error, 'This recording could not be updated.')
+      return false
     }
   }
 
@@ -88,6 +96,7 @@ export function useAudioLibrary({ api = audioApi, readBlob = blobToBase64 } = {}
     load,
     saveBlob,
     rename,
+    update,
     remove,
   }
 }

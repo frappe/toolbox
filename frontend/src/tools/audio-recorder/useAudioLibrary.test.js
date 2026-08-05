@@ -60,6 +60,28 @@ describe('useAudioLibrary', () => {
     await lib.remove('A1')
     expect(lib.recordings.value).toHaveLength(0)
   })
+
+  it('updates title, category and tags together', async () => {
+    const api = makeApi({
+      listRecordings: vi.fn(async () => [{ name: 'A1', title: 'Old', category: 'Notes', tags: ['a'] }]),
+      updateRecording: vi.fn(async (data) => ({ name: data.name, title: data.title, category: data.category, tags: data.tags })),
+    })
+    const lib = useAudioLibrary({ api, readBlob: fakeReadBlob })
+    await lib.load()
+    const ok = await lib.update('A1', { title: 'New', category: 'Ideas', tags: ['x', 'y'] })
+    expect(ok).toBe(true)
+    expect(api.updateRecording).toHaveBeenCalledWith({ name: 'A1', title: 'New', category: 'Ideas', tags: ['x', 'y'] })
+    expect(lib.recordings.value[0]).toMatchObject({ title: 'New', category: 'Ideas', tags: ['x', 'y'] })
+  })
+
+  it('saves category and tags with a recording', async () => {
+    const api = makeApi()
+    const lib = useAudioLibrary({ api, readBlob: fakeReadBlob })
+    await lib.saveBlob({ size: 12 }, { title: 'Note', durationSeconds: 2, category: 'Memo', tags: ['work'] })
+    expect(api.saveRecording).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Memo', tags: ['work'] }),
+    )
+  })
 })
 
 describe('audio format helpers', () => {

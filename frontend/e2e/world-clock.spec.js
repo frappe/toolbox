@@ -6,7 +6,7 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
   await page.goto('/toolbox/world-clock')
 
   await expect(page.getByRole('heading', { name: 'World Clock', level: 1 })).toBeVisible()
-  await page.getByRole('searchbox', { name: 'Add a city or IANA time zone' }).fill('Tokyo')
+  await page.getByRole('searchbox', { name: 'Add a city or time zone' }).fill('Tokyo')
   await page.getByRole('button', { name: /Tokyo.*Asia\/Tokyo/ }).click()
 
   const tokyo = page.getByRole('listitem').filter({ hasText: 'Asia/Tokyo' })

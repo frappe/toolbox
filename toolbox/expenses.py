@@ -21,6 +21,7 @@ from toolbox.expense_settings import (
 	CATEGORY,
 	EXPENSE,
 	PAYMENT_METHOD,
+	PROJECT,
 	RULE,
 	ensure_defaults,
 	list_categories,
@@ -69,6 +70,39 @@ def save_expense(payload: str) -> dict:
 def delete_expense(name: str) -> None:
 	_owned(name)
 	frappe.delete_doc(EXPENSE, name)
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_update(
+	names: str,
+	category: str | None = None,
+	add_tag: str | None = None,
+	project_or_trip: str | None = None,
+) -> int:
+	"""Apply a category, a tag, and/or a trip to several of the caller's expenses at once."""
+	ids = _id_list(names)
+	category_id = _owned_link(CATEGORY, category) if category else None
+	project_id = _owned_link(PROJECT, project_or_trip) if project_or_trip else None
+	tag = (add_tag or "").strip()
+	for name in ids:
+		doc = _owned(name)
+		if category_id:
+			doc.category = category_id
+		if project_id:
+			doc.project_or_trip = project_id
+		if tag:
+			doc.tags = _join_tags([*_split_tags(doc.tags), tag])
+		doc.save()
+	return len(ids)
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_delete(names: str) -> int:
+	ids = _id_list(names)
+	for name in ids:
+		_owned(name)
+		frappe.delete_doc(EXPENSE, name)
+	return len(ids)
 
 
 @frappe.whitelist()
@@ -173,6 +207,7 @@ def _apply(doc, data: dict) -> None:
 	doc.merchant = _truncate((data.get("merchant") or "").strip(), MAX_TEXT) or None
 	doc.category = _owned_category(data.get("category"))
 	doc.payment_method = _owned_link(PAYMENT_METHOD, data.get("payment_method"))
+	doc.project_or_trip = _owned_link(PROJECT, data.get("project_or_trip"))
 	doc.account_label = (data.get("account_label") or "").strip() or None
 	doc.reference_number = (data.get("reference_number") or "").strip() or None
 	doc.note = (data.get("note") or "").strip() or None
@@ -196,6 +231,8 @@ def _serialize(doc) -> dict:
 		"category_name": _name_of(CATEGORY, doc.category, "category_name"),
 		"payment_method": doc.payment_method,
 		"payment_method_name": _name_of(PAYMENT_METHOD, doc.payment_method, "method_name"),
+		"project_or_trip": doc.project_or_trip,
+		"project_name": _name_of(PROJECT, doc.project_or_trip, "project_name"),
 		"account_label": doc.account_label,
 		"reference_number": doc.reference_number,
 		"note": doc.note,
@@ -214,7 +251,12 @@ def _serialize(doc) -> dict:
 
 def _build_filters(criteria: dict) -> tuple[dict, list]:
 	conditions: dict = {"owner": frappe.session.user}
-	for key, field in (("category", "category"), ("payment_method", "payment_method"), ("currency", "currency")):
+	for key, field in (
+		("category", "category"),
+		("payment_method", "payment_method"),
+		("currency", "currency"),
+		("project_or_trip", "project_or_trip"),
+	):
 		if criteria.get(key):
 			conditions[field] = criteria[key]
 	if criteria.get("from_date"):
@@ -442,3 +484,12 @@ def _parse(payload: str) -> dict:
 	if not isinstance(data, dict):
 		frappe.throw(_("Invalid payload."))
 	return data
+
+
+def _id_list(names: str) -> list[str]:
+	ids = frappe.parse_json(names)
+	if not isinstance(ids, list) or not ids:
+		frappe.throw(_("Select at least one expense."))
+	if len(ids) > MAX_PAGE:
+		frappe.throw(_("Too many expenses selected at once."))
+	return [str(name) for name in ids]

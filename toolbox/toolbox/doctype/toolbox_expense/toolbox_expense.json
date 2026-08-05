@@ -14,6 +14,7 @@
   "details_section",
   "category",
   "payment_method",
+  "project_or_trip",
   "account_label",
   "reference_number",
   "tags",
@@ -80,6 +81,13 @@
    "fieldtype": "Link",
    "label": "Payment Method",
    "options": "Toolbox Payment Method"
+  },
+  {
+   "fieldname": "project_or_trip",
+   "fieldtype": "Link",
+   "label": "Trip or Project",
+   "options": "Toolbox Expense Project",
+   "search_index": 1
   },
   {
    "fieldname": "account_label",

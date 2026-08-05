@@ -17,6 +17,8 @@ CATEGORY = "Toolbox Expense Category"
 PAYMENT_METHOD = "Toolbox Payment Method"
 RULE = "Toolbox Expense Rule"
 EXPENSE = "Toolbox Expense"
+PROJECT = "Toolbox Expense Project"
+BUDGET = "Toolbox Expense Budget"
 
 DEFAULT_CATEGORIES = (
 	"Food and Dining", "Groceries", "Transport", "Travel", "Accommodation", "Shopping",

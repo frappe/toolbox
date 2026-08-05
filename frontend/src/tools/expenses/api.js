@@ -113,3 +113,76 @@ export function saveRule(data, request = frappeRequest) {
 export function deleteRule(name, request = frappeRequest) {
   return request({ url: `${SETTINGS}.delete_rule`, method: 'POST', params: { name } })
 }
+
+// --- bulk actions ---
+
+export function bulkUpdate(names, { category, addTag, project } = {}, request = frappeRequest) {
+  const params = { names: JSON.stringify(names) }
+  if (category) params.category = category
+  if (addTag) params.add_tag = addTag
+  if (project) params.project_or_trip = project
+  return request({ url: `${EXPENSES}.bulk_update`, method: 'POST', params })
+}
+
+export function bulkDelete(names, request = frappeRequest) {
+  return request({ url: `${EXPENSES}.bulk_delete`, method: 'POST', params: { names: JSON.stringify(names) } })
+}
+
+// --- trips / projects ---
+
+const PROJECTS = 'toolbox.expense_projects'
+
+export function listProjects(includeArchived = 0, request = frappeRequest) {
+  return request({
+    url: `${PROJECTS}.list_projects`,
+    method: 'GET',
+    params: { include_archived: includeArchived ? 1 : 0 },
+  })
+}
+
+export function saveProject(data, request = frappeRequest) {
+  return request({
+    url: `${PROJECTS}.save_project`,
+    method: 'POST',
+    params: { payload: JSON.stringify(data) },
+  })
+}
+
+export function deleteProject(name, request = frappeRequest) {
+  return request({ url: `${PROJECTS}.delete_project`, method: 'POST', params: { name } })
+}
+
+export function projectSummary(name, request = frappeRequest) {
+  return request({ url: `${PROJECTS}.project_summary`, method: 'GET', params: { name } })
+}
+
+// --- budgets ---
+
+const BUDGETS = 'toolbox.expense_budgets'
+
+export function listBudgets({ month, year } = {}, request = frappeRequest) {
+  const params = {}
+  if (month) params.month = month
+  if (year) params.year = year
+  return request({ url: `${BUDGETS}.list_budgets`, method: 'GET', params })
+}
+
+export function setBudget(data, request = frappeRequest) {
+  return request({
+    url: `${BUDGETS}.set_budget`,
+    method: 'POST',
+    params: { payload: JSON.stringify(data) },
+  })
+}
+
+export function deleteBudget(name, request = frappeRequest) {
+  return request({ url: `${BUDGETS}.delete_budget`, method: 'POST', params: { name } })
+}
+
+export function budgetProgress({ month, year, currency } = {}, request = frappeRequest) {
+  const params = {}
+  if (month) params.month = month
+  if (year) params.year = year
+  if (currency) params.currency = currency
+  return request({ url: `${BUDGETS}.budget_progress`, method: 'GET', params })
+}

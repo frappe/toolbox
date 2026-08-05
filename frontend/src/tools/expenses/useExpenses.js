@@ -26,6 +26,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     search: '',
     category: '',
     payment_method: '',
+    project_or_trip: '',
     currency: '',
     from_date: '',
     to_date: '',
@@ -38,6 +39,12 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
   const saveError = ref('')
   const dashboardData = ref(null)
 
+  const projects = ref([])
+  const activeProjectSummary = ref(null)
+  const budgets = ref([])
+  const budgetData = ref(null)
+  const selectedIds = ref([])
+
   // Whether the user has hand-picked the category, so a later suggestion never overrides them.
   let categoryTouched = false
   let suggestTimer = null
@@ -45,6 +52,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
 
   const activeCategories = computed(() => categories.value.filter((c) => !c.is_archived))
   const hasMore = computed(() => expenses.value.length < total.value)
+  const selectedCount = computed(() => selectedIds.value.length)
   const canLearnRule = computed(() => {
     const e = activeExpense.value
     return Boolean(e && e.merchant && e.category && suggestion.value && suggestion.value.category !== e.category)
@@ -57,7 +65,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       const data = await api.setup()
       categories.value = data.categories || []
       paymentMethods.value = data.payment_methods || []
-      await Promise.all([loadExpenses(), loadDashboard()])
+      await Promise.all([loadExpenses(), loadDashboard(), loadProjects(), loadBudgetProgress()])
       state.value = 'ready'
     } catch (error) {
       state.value = 'error'
@@ -98,7 +106,8 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
 
   function resetFilters() {
     Object.assign(filters, {
-      search: '', category: '', payment_method: '', currency: '', from_date: '', to_date: '', sort: 'date_desc',
+      search: '', category: '', payment_method: '', project_or_trip: '', currency: '',
+      from_date: '', to_date: '', sort: 'date_desc',
     })
     void loadExpenses()
   }
@@ -126,6 +135,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       merchant: '',
       category: '',
       payment_method: '',
+      project_or_trip: '',
       account_label: '',
       reference_number: '',
       note: '',
@@ -149,6 +159,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       merchant: row.merchant || '',
       category: row.category || '',
       payment_method: row.payment_method || '',
+      project_or_trip: row.project_or_trip || '',
       account_label: row.account_label || '',
       reference_number: row.reference_number || '',
       note: row.note || '',
@@ -267,6 +278,97 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     await loadRules()
   }
 
+  // --- trips / projects ---
+
+  async function loadProjects() {
+    try {
+      projects.value = await api.listProjects()
+    } catch {
+      projects.value = []
+    }
+  }
+
+  async function saveProject(data) {
+    await api.saveProject(data)
+    await loadProjects()
+  }
+
+  async function removeProject(name) {
+    await api.deleteProject(name)
+    if (activeProjectSummary.value?.name === name) activeProjectSummary.value = null
+    await loadProjects()
+  }
+
+  async function openProjectSummary(name) {
+    try {
+      activeProjectSummary.value = await api.projectSummary(name)
+    } catch (error) {
+      saveError.value = readError(error, 'This trip could not be opened.')
+    }
+  }
+
+  function closeProjectSummary() {
+    activeProjectSummary.value = null
+  }
+
+  // --- budgets ---
+
+  async function loadBudgets(params = {}) {
+    try {
+      budgets.value = await api.listBudgets(params)
+    } catch {
+      budgets.value = []
+    }
+  }
+
+  async function loadBudgetProgress(params = {}) {
+    try {
+      budgetData.value = await api.budgetProgress(params)
+    } catch {
+      budgetData.value = null
+    }
+  }
+
+  async function setBudget(data) {
+    await api.setBudget(data)
+    await Promise.all([loadBudgets({ month: data.month, year: data.year }), loadBudgetProgress()])
+  }
+
+  async function removeBudget(name) {
+    await api.deleteBudget(name)
+    await Promise.all([loadBudgets(), loadBudgetProgress()])
+  }
+
+  // --- bulk selection ---
+
+  function toggleSelected(name) {
+    const index = selectedIds.value.indexOf(name)
+    if (index === -1) selectedIds.value.push(name)
+    else selectedIds.value.splice(index, 1)
+  }
+
+  function isSelected(name) {
+    return selectedIds.value.includes(name)
+  }
+
+  function clearSelection() {
+    selectedIds.value = []
+  }
+
+  async function bulkApply({ category = null, addTag = null, project = null } = {}) {
+    if (!selectedIds.value.length) return
+    await api.bulkUpdate(selectedIds.value, { category, addTag, project })
+    clearSelection()
+    await Promise.all([loadExpenses(), loadDashboard(), loadBudgetProgress()])
+  }
+
+  async function bulkRemove() {
+    if (!selectedIds.value.length) return
+    await api.bulkDelete(selectedIds.value)
+    clearSelection()
+    await Promise.all([loadExpenses(), loadDashboard(), loadBudgetProgress()])
+  }
+
   // --- export (the loaded, filtered results) ---
 
   async function exportRows() {
@@ -304,6 +406,7 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
       merchant: e.merchant || '',
       category: e.category,
       payment_method: e.payment_method || '',
+      project_or_trip: e.project_or_trip || '',
       account_label: e.account_label || '',
       reference_number: e.reference_number || '',
       note: e.note || '',
@@ -342,6 +445,12 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     saving,
     saveError,
     dashboardData,
+    projects,
+    activeProjectSummary,
+    budgets,
+    budgetData,
+    selectedIds,
+    selectedCount,
     load,
     loadExpenses,
     loadMore,
@@ -363,6 +472,20 @@ export function useExpenses({ api = expensesApi, defaultCurrency = 'INR' } = {})
     removePaymentMethod,
     saveRule,
     removeRule,
+    loadProjects,
+    saveProject,
+    removeProject,
+    openProjectSummary,
+    closeProjectSummary,
+    loadBudgets,
+    loadBudgetProgress,
+    setBudget,
+    removeBudget,
+    toggleSelected,
+    isSelected,
+    clearSelection,
+    bulkApply,
+    bulkRemove,
     exportCsv,
     exportJson,
   }

@@ -30,6 +30,16 @@ const api = vi.hoisted(() => ({
   listRules: vi.fn(),
   saveRule: vi.fn(),
   deleteRule: vi.fn(),
+  bulkUpdate: vi.fn(async () => ({})),
+  bulkDelete: vi.fn(async () => ({})),
+  listProjects: vi.fn(async () => []),
+  saveProject: vi.fn(async () => ({})),
+  deleteProject: vi.fn(async () => ({})),
+  projectSummary: vi.fn(async () => ({})),
+  listBudgets: vi.fn(async () => []),
+  setBudget: vi.fn(async () => ({})),
+  deleteBudget: vi.fn(async () => ({})),
+  budgetProgress: vi.fn(async () => ({ currency: 'INR', overall: null, categories: [] })),
 }))
 
 vi.mock('@/tools/expenses/api', () => api)
@@ -131,5 +141,51 @@ describe('ExpensesView', () => {
     expect(wrapper.text()).toContain('Spend this month')
     expect(wrapper.text()).toContain('Last month')
     expect(wrapper.text()).toContain('+23%')
+  })
+
+  it('renders a project on the Trips tab', async () => {
+    setupResolved()
+    api.listProjects.mockResolvedValue([
+      { name: 'pr1', project_name: 'Goa trip', project_type: 'Trip', status: 'Active' },
+    ])
+    const wrapper = await mountView()
+
+    const tripsTab = wrapper.findAll('button').find((button) => button.text() === 'Trips')
+    await tripsTab.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Goa trip')
+  })
+
+  it('shows a budget section on the Dashboard when a budget is set', async () => {
+    setupResolved()
+    api.budgetProgress.mockResolvedValue({
+      currency: 'INR',
+      month: 8,
+      year: 2026,
+      overall: { budget: 5000, spent: 1234, remaining: 3766, pct: 24.68 },
+      overall_spent: 1234,
+      categories: [],
+    })
+    const wrapper = await mountView()
+
+    const dashboardTab = wrapper.findAll('button').find((button) => button.text() === 'Dashboard')
+    await dashboardTab.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Budget')
+    expect(wrapper.text()).toContain('Overall')
+  })
+
+  it('reveals the bulk action bar when an expense is selected', async () => {
+    setupResolved()
+    const wrapper = await mountView()
+
+    const checkbox = wrapper.find('[data-expense-name="e1"] input[type="checkbox"]')
+    await checkbox.setValue(true)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('1 selected')
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Apply')).toBe(true)
   })
 })

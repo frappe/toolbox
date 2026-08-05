@@ -28,6 +28,16 @@ function makeApi(overrides = {}) {
     deletePaymentMethod: vi.fn(async () => {}),
     saveRule: vi.fn(async () => ({})),
     deleteRule: vi.fn(async () => {}),
+    bulkUpdate: vi.fn(async () => 2),
+    bulkDelete: vi.fn(async () => 2),
+    listProjects: vi.fn(async () => []),
+    saveProject: vi.fn(async () => ({ name: 'pr1' })),
+    deleteProject: vi.fn(async () => {}),
+    projectSummary: vi.fn(async () => ({ name: 'pr1', total_spent: 0, category_breakdown: [], currencies: [] })),
+    listBudgets: vi.fn(async () => []),
+    setBudget: vi.fn(async () => ({ name: 'b1' })),
+    deleteBudget: vi.fn(async () => {}),
+    budgetProgress: vi.fn(async () => ({ currency: 'INR', overall: null, categories: [] })),
     ...overrides,
   }
 }
@@ -166,6 +176,67 @@ describe('useExpenses', () => {
     await x.exportCsv()
     expect(downloadTextFile).toHaveBeenCalled()
     expect(downloadTextFile.mock.calls[0][1]).toContain('Lunch')
+  })
+})
+
+describe('useExpenses — trips, budgets, bulk', () => {
+  it('loads projects and budget progress on load', async () => {
+    const api = makeApi({
+      listProjects: vi.fn(async () => [{ name: 'pr1', project_name: 'Goa' }]),
+      budgetProgress: vi.fn(async () => ({ currency: 'INR', overall: { budget: 1000, spent: 400 }, categories: [] })),
+    })
+    const x = useExpenses({ api })
+    await x.load()
+    expect(x.projects.value).toHaveLength(1)
+    expect(x.budgetData.value.overall.spent).toBe(400)
+  })
+
+  it('saves a project and reloads the list', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    await x.saveProject({ project_name: 'Goa' })
+    expect(api.saveProject).toHaveBeenCalled()
+    expect(api.listProjects).toHaveBeenCalled()
+  })
+
+  it('opens a project summary', async () => {
+    const api = makeApi({ projectSummary: vi.fn(async () => ({ name: 'pr1', total_spent: 500, category_breakdown: [], currencies: [] })) })
+    const x = useExpenses({ api })
+    await x.openProjectSummary('pr1')
+    expect(x.activeProjectSummary.value.total_spent).toBe(500)
+    x.closeProjectSummary()
+    expect(x.activeProjectSummary.value).toBeNull()
+  })
+
+  it('sets a budget through the api and reloads', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    await x.setBudget({ month: 8, year: 2026, budget_amount: 5000 })
+    expect(api.setBudget).toHaveBeenCalled()
+    expect(api.budgetProgress).toHaveBeenCalled()
+  })
+
+  it('tracks a bulk selection and applies changes', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    x.toggleSelected('e1')
+    x.toggleSelected('e2')
+    x.toggleSelected('e1') // toggle off
+    expect(x.selectedCount.value).toBe(1)
+    expect(x.isSelected('e2')).toBe(true)
+
+    await x.bulkApply({ category: 'c1', addTag: 'work' })
+    expect(api.bulkUpdate).toHaveBeenCalledWith(['e2'], { category: 'c1', addTag: 'work', project: null })
+    expect(x.selectedCount.value).toBe(0)
+  })
+
+  it('bulk deletes the selection', async () => {
+    const api = makeApi()
+    const x = useExpenses({ api })
+    x.toggleSelected('e1')
+    await x.bulkRemove()
+    expect(api.bulkDelete).toHaveBeenCalledWith(['e1'])
+    expect(x.selectedCount.value).toBe(0)
   })
 })
 

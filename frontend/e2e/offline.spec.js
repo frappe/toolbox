@@ -52,7 +52,8 @@ test('@smoke keeps Calculator functional while offline', async ({ context, page 
 test('uses the last Currency reference-rate snapshot offline', async ({ context, page }) => {
   await mockCurrencyRates(page)
   await page.goto('/toolbox/currency-converter')
-  await expect(page.getByRole('status', { name: 'Converted amount' })).toHaveText('12.00 USD')
+  const destination = page.getByRole('spinbutton', { name: 'Destination amount', exact: true })
+  await expect(destination).toHaveValue('12') // 1000 INR → USD at the mocked rate
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
@@ -60,7 +61,7 @@ test('uses the last Currency reference-rate snapshot offline', async ({ context,
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('status', { name: 'Converted amount' })).toHaveText('12.00 USD')
+    await expect(destination).toHaveValue('12')
     await expect(page.getByText('offline snapshot', { exact: true })).toBeVisible()
   } finally {
     await context.setOffline(false)
@@ -96,7 +97,7 @@ test('keeps Financial Calculators functional while offline', async ({ context, p
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.getByRole('button', { name: 'CAGR' }).click()
+    await page.getByRole('tab', { name: 'CAGR' }).click()
     await page.getByRole('spinbutton', { name: 'Starting value' }).fill('100')
     await page.getByRole('spinbutton', { name: 'Ending value' }).fill('121')
     await page.getByRole('spinbutton', { name: 'Duration' }).fill('2')

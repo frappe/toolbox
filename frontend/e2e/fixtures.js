@@ -1,5 +1,17 @@
 import { expect, test as base } from '@playwright/test'
 
+// Going offline surfaces different failure strings per engine: Chromium disconnects requests,
+// Firefox reports NS_ERROR_OFFLINE and aborts in-flight ones with NS_BINDING_ABORTED. All are
+// expected once the app runs from its cache with no network.
+const OFFLINE_FAILURE_SIGNATURES = [
+  'ERR_INTERNET_DISCONNECTED',
+  'NS_ERROR_OFFLINE',
+  'NS_BINDING_ABORTED',
+  'A ServiceWorker intercepted the request',
+]
+
+const isOfflineFailure = (text) => OFFLINE_FAILURE_SIGNATURES.some((signature) => text.includes(signature))
+
 export const test = base.extend({
   allowOfflineNetworkErrors: [false, { option: true }],
   allowFrappeLoginRedirectAbort: [false, { option: true }],
@@ -23,8 +35,7 @@ export const test = base.extend({
     })
     page.on('requestfailed', (request) => {
       const failure = request.failure()?.errorText || 'unknown failure'
-      const expectedOfflineError =
-        allowOfflineNetworkErrors && failure.includes('ERR_INTERNET_DISCONNECTED')
+      const expectedOfflineError = allowOfflineNetworkErrors && isOfflineFailure(failure)
       const expectedRealtimeNoise = request.url().includes(':9000/socket.io/')
       const expectedLoginRedirectAbort =
         allowFrappeLoginRedirectAbort &&
@@ -36,8 +47,7 @@ export const test = base.extend({
     })
     page.on('console', (message) => {
       const text = message.text()
-      const expectedOfflineError =
-        allowOfflineNetworkErrors && text.includes('net::ERR_INTERNET_DISCONNECTED')
+      const expectedOfflineError = allowOfflineNetworkErrors && isOfflineFailure(text)
       const reportedByNetworkListener = text.startsWith('Failed to load resource:')
       // Firefox and WebKit log the cross-origin Frappe realtime attempt (socket.io on :9000)
       // as a console error; Toolbox does not use realtime, so it is environment noise.

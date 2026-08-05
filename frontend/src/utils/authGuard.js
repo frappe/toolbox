@@ -12,6 +12,14 @@ export function buildLoginRedirect(fullPath, base = __FRONTEND_ROUTE__) {
 export function createAuthGuard({ session = globalThis, redirect = defaultRedirect } = {}) {
   return (to) => {
     if (getToolboxSession(session).isLoggedIn) return true
+    // The offline cached shell is the built index.html, served without Frappe boot data,
+    // so is_logged_in is absent (undefined) rather than false. The server gate only ever
+    // renders this app to a signed-in user, so "no boot data" means the browser is offline
+    // on that cached shell — let the client-side tools run instead of bouncing to a /login
+    // page the network cannot reach. A real signed-out session (boot present, is_logged_in
+    // === false) still goes to login. navigator.onLine is not used: a freshly reloaded
+    // document reports online before the offline state propagates, so it fires too early.
+    if (session?.is_logged_in === undefined) return true
     redirect(buildLoginRedirect(to.fullPath))
     return false
   }

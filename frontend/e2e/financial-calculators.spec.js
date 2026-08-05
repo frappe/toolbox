@@ -22,13 +22,13 @@ test('calculates investment growth and rejects an impossible break-even margin',
 }) => {
   await page.goto('/toolbox/financial-calculators')
 
-  await page.getByRole('button', { name: 'CAGR' }).click()
+  await page.getByRole('tab', { name: 'CAGR' }).click()
   await page.getByRole('spinbutton', { name: 'Starting value' }).fill('100')
   await page.getByRole('spinbutton', { name: 'Ending value' }).fill('121')
   await page.getByRole('spinbutton', { name: 'Duration' }).fill('2')
   await expect(page.getByRole('status', { name: 'Primary financial result' })).toHaveText('10.00%')
 
-  await page.getByRole('button', { name: 'Break-even' }).click()
+  await page.getByRole('tab', { name: 'Break-even' }).click()
   await page.getByRole('spinbutton', { name: 'Fixed cost' }).fill('1001')
   await page.getByRole('spinbutton', { name: 'Selling price per unit' }).fill('50')
   await page.getByRole('spinbutton', { name: 'Variable cost per unit' }).fill('30')

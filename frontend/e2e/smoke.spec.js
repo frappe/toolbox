@@ -50,7 +50,10 @@ test('@smoke serves a valid manifest, release, and service worker', async ({ req
   expect(await workerResponse.text()).toContain("const SHELL_CACHE_PREFIX = 'toolbox-shell-'")
 })
 
-test('@smoke installs the service worker at the Toolbox scope', async ({ page }) => {
+test('@smoke installs the service worker at the Toolbox scope', async ({ browserName, page }) => {
+  // The WebKit project blocks the service worker (it cannot drive SW/offline headless); service
+  // worker installation is covered on Chromium and Firefox.
+  test.skip(browserName === 'webkit', 'The WebKit project runs with the service worker blocked')
   await page.goto('/toolbox/all-tools')
 
   const scope = await page.evaluate(async () => {

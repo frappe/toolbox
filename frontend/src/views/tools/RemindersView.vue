@@ -16,7 +16,7 @@
       <div class="flex items-center gap-2">
         <Icon name="lucide-bell-ring" class="size-5 text-ink-amber-3" aria-hidden="true" />
         <h2 class="text-sm font-semibold text-ink-gray-8">Due now</h2>
-        <span class="rounded-full bg-surface-gray-3 px-2 py-0.5 text-xs font-medium tabular-nums text-ink-gray-7">{{ reminders.dueCount.value }}</span>
+        <Badge theme="gray" variant="subtle" size="sm" :label="reminders.dueCount.value" />
       </div>
       <ul class="mt-3 flex flex-col gap-2">
         <li v-for="item in reminders.dueList.value" :key="item.name" :data-due-name="item.name" class="rounded-xl border border-outline-gray-2 bg-surface-base p-3">
@@ -28,12 +28,9 @@
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-1.5">
               <Button variant="subtle" icon="lucide-check" label="Complete" @click="reminders.complete(item.reminder)" />
-              <div class="relative">
-                <Button variant="ghost" icon="lucide-clock" label="Snooze" aria-haspopup="menu" :aria-expanded="openSnoozeFor === item.name" @click="toggleSnooze(item.name)" />
-                <div v-if="openSnoozeFor === item.name" class="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-                  <button v-for="option in snoozeOptions" :key="option.preset" type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onSnooze(item.reminder, option.preset)">{{ option.label }}</button>
-                </div>
-              </div>
+              <Dropdown :options="snoozeMenuFor(item)">
+                <Button variant="ghost" icon="lucide-clock" label="Snooze" />
+              </Dropdown>
               <Button variant="ghost" icon="lucide-x" label="Dismiss" @click="reminders.acknowledgeDue(item.name)" />
             </div>
           </div>
@@ -66,24 +63,36 @@
     <div v-else class="mt-8">
       <!-- Toolbar -->
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="inline-flex shrink-0 rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-0.5" role="tablist" aria-label="Reminder scope">
-          <button v-for="tab in scopeTabs" :key="tab.value" type="button" role="tab" :aria-selected="reminders.scope.value === tab.value" class="rounded-md px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :class="reminders.scope.value === tab.value ? 'bg-surface-base text-ink-gray-9 shadow-sm' : 'text-ink-gray-6 hover:text-ink-gray-8'" @click="onSetScope(tab.value)">{{ tab.label }}</button>
+        <div class="shrink-0 overflow-x-auto">
+          <TabButtons
+            :options="scopeTabs"
+            :model-value="reminders.scope.value"
+            size="md"
+            aria-label="Reminder scope"
+            @update:model-value="onSetScope"
+          />
         </div>
 
-        <div class="relative min-w-0 flex-1">
-          <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
-          <input v-model="reminders.searchQuery.value" type="search" autocomplete="off" spellcheck="false" placeholder="Search reminders" aria-label="Search reminders" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base pl-9 pr-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-        </div>
+        <TextInput
+          type="search"
+          size="md"
+          class="min-w-0 flex-1"
+          placeholder="Search reminders"
+          aria-label="Search reminders"
+          spellcheck="false"
+          :model-value="reminders.searchQuery.value"
+          @update:model-value="reminders.searchQuery.value = $event"
+        >
+          <template #prefix>
+            <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
+          </template>
+        </TextInput>
 
         <div class="flex items-center gap-2">
           <Button variant="solid" icon="lucide-plus" label="New reminder" @click="onNew" />
-          <div class="relative">
-            <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
-            <div v-if="showExportMenu" class="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-              <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('json')">JSON</button>
-              <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('csv')">CSV</button>
-            </div>
-          </div>
+          <Dropdown :options="exportOptions">
+            <Button variant="outline" icon="lucide-download" label="Export" />
+          </Dropdown>
         </div>
       </div>
 
@@ -95,79 +104,120 @@
         </div>
 
         <div class="mt-4 flex flex-col gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label for="reminder-title" class="text-sm font-medium text-ink-gray-7">Title</label>
-            <input id="reminder-title" v-model="form.title" type="text" required placeholder="What is this reminder about?" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-          </div>
+          <FormControl
+            id="reminder-title"
+            type="text"
+            size="md"
+            label="Title"
+            required
+            placeholder="What is this reminder about?"
+            :model-value="form.title"
+            @update:model-value="form.title = $event"
+          />
 
-          <div class="flex flex-col gap-1.5">
-            <label for="reminder-note" class="text-sm font-medium text-ink-gray-7">Note</label>
-            <textarea id="reminder-note" v-model="form.note" rows="2" placeholder="Add a note (optional)" class="w-full resize-y rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-8 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-          </div>
+          <FormControl
+            id="reminder-note"
+            type="textarea"
+            size="md"
+            label="Note"
+            :rows="2"
+            placeholder="Add a note (optional)"
+            :model-value="form.note"
+            @update:model-value="form.note = $event"
+          />
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="reminder-date" class="text-sm font-medium text-ink-gray-7">Date</label>
-              <input id="reminder-date" v-model="form.local_date" type="date" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="reminder-time" class="text-sm font-medium text-ink-gray-7">Time</label>
-              <input id="reminder-time" v-model="form.local_time" type="time" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
+            <FormControl
+              id="reminder-date"
+              type="date"
+              size="md"
+              label="Date"
+              :model-value="form.local_date"
+              @update:model-value="form.local_date = $event"
+            />
+            <FormControl
+              id="reminder-time"
+              type="time"
+              size="md"
+              label="Time"
+              :model-value="form.local_time"
+              @update:model-value="form.local_time = $event"
+            />
           </div>
 
-          <div class="flex flex-col gap-1.5">
-            <label for="reminder-timezone" class="text-sm font-medium text-ink-gray-7">Time zone</label>
-            <select id="reminder-timezone" v-model="form.time_zone" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-              <option v-for="zone in timeZoneOptions" :key="zone" :value="zone">{{ zone }}</option>
-            </select>
-          </div>
+          <FormControl
+            id="reminder-timezone"
+            type="combobox"
+            size="md"
+            label="Time zone"
+            :options="zoneOptions"
+            :model-value="form.time_zone"
+            @update:model-value="form.time_zone = $event"
+          />
 
-          <div class="flex flex-col gap-1.5">
-            <label for="reminder-repeat" class="text-sm font-medium text-ink-gray-7">Repeat</label>
-            <select id="reminder-repeat" v-model="form.repeat_type" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-              <option v-for="option in repeatTypes" :key="option" :value="option">{{ option }}</option>
-            </select>
-          </div>
+          <FormControl
+            id="reminder-repeat"
+            type="select"
+            size="md"
+            label="Repeat"
+            :options="repeatTypes"
+            :model-value="form.repeat_type"
+            @update:model-value="form.repeat_type = $event"
+          />
 
           <div v-if="form.repeat_type !== 'None'" class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="reminder-interval" class="text-sm font-medium text-ink-gray-7">Repeat every</label>
-              <div class="flex items-center gap-2">
-                <input id="reminder-interval" v-model.number="form.repeat_interval" type="number" min="1" step="1" class="h-10 w-24 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                <span class="text-sm text-ink-gray-6">{{ repeatUnitLabel }}</span>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="reminder-end" class="text-sm font-medium text-ink-gray-7">Ends on</label>
-              <input id="reminder-end" v-model="form.repeat_end_date" type="date" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-              <p class="text-xs text-ink-gray-5">Optional — leave blank to repeat indefinitely.</p>
-            </div>
+            <FormControl
+              id="reminder-interval"
+              type="number"
+              size="md"
+              label="Repeat every"
+              min="1"
+              step="1"
+              :model-value="form.repeat_interval"
+              @update:model-value="form.repeat_interval = $event"
+            >
+              <template #suffix>
+                <span class="text-sm text-ink-gray-5">{{ repeatUnitLabel }}</span>
+              </template>
+            </FormControl>
+            <FormControl
+              id="reminder-end"
+              type="date"
+              size="md"
+              label="Ends on"
+              description="Optional — leave blank to repeat indefinitely."
+              :model-value="form.repeat_end_date"
+              @update:model-value="form.repeat_end_date = $event"
+            />
           </div>
 
           <fieldset class="flex flex-col gap-2">
             <legend class="text-sm font-medium text-ink-gray-7">Notify me</legend>
-            <label class="flex items-center gap-2 text-sm text-ink-gray-7">
-              <input v-model="form.delivery_in_app" type="checkbox" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-              In-app
-            </label>
-            <label class="flex items-center gap-2 text-sm text-ink-gray-7">
-              <input v-model="form.delivery_email" type="checkbox" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-              Email
-            </label>
-            <label class="flex items-center gap-2 text-sm" :class="browserDisabled ? 'text-ink-gray-4' : 'text-ink-gray-7'">
-              <input v-model="form.delivery_browser" type="checkbox" :disabled="browserDisabled" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed" @change="onToggleBrowser" />
-              Browser notification
-            </label>
+            <Checkbox
+              label="In-app"
+              :model-value="form.delivery_in_app"
+              @update:model-value="form.delivery_in_app = $event"
+            />
+            <Checkbox
+              label="Email"
+              :model-value="form.delivery_email"
+              @update:model-value="form.delivery_email = $event"
+            />
+            <Checkbox
+              label="Browser notification"
+              :disabled="browserDisabled"
+              :model-value="form.delivery_browser"
+              @update:model-value="(value) => { form.delivery_browser = value; onToggleBrowser() }"
+            />
             <p v-if="reminders.browserPermission.value === 'unsupported'" class="text-xs text-ink-gray-5">This browser does not support notifications.</p>
             <p v-else-if="reminders.browserPermission.value === 'denied'" class="text-xs text-ink-gray-5">Your browser has blocked notifications. Allow them in your browser settings to use this.</p>
           </fieldset>
 
-          <TagInput :model-value="form.tags" label="Tags" placeholder="Add a tag…" @update:model-value="form.tags = $event" />
+          <TagInput variant="subtle" :model-value="form.tags" label="Tags" placeholder="Add a tag…" @update:model-value="form.tags = $event" />
         </div>
 
         <p class="sr-only" role="status" aria-live="polite">{{ savingStatus }}</p>
-        <p v-if="reminders.saveError.value" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ reminders.saveError.value }}</p>
+        <ErrorMessage class="mt-4" :message="reminders.saveError.value" />
 
         <div class="mt-5 flex items-center gap-2 border-t border-outline-gray-2 pt-4">
           <Button variant="solid" type="submit" :loading="reminders.isSaving.value" :label="reminders.isSaving.value ? 'Saving…' : 'Save reminder'" />
@@ -186,16 +236,16 @@
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
                       <p class="truncate text-sm font-medium text-ink-gray-9">{{ row.title || 'Untitled reminder' }}</p>
-                      <span v-if="section.key === 'overdue'" class="shrink-0 rounded-full bg-surface-red-1 px-2 py-0.5 text-xs font-medium text-ink-red-4">Overdue</span>
+                      <Badge v-if="section.key === 'overdue'" class="shrink-0" theme="red" variant="subtle" size="sm" label="Overdue" />
                     </div>
                     <p v-if="row.next_trigger" class="mt-0.5 text-xs text-ink-gray-6">{{ formatInstant(row.next_trigger, { timeZone: row.time_zone }) }}</p>
                     <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-ink-gray-5">
                       <span>{{ describeRepeat(row) }}</span>
                       <span v-if="row.snoozed_until">Snoozed until {{ formatInstant(row.snoozed_until, { timeZone: row.time_zone }) }}</span>
                     </div>
-                    <ul v-if="row.tags && row.tags.length" class="mt-2 flex flex-wrap gap-1" aria-label="Tags">
-                      <li v-for="tag in row.tags" :key="tag" class="rounded-md bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-7">{{ tag }}</li>
-                    </ul>
+                    <div v-if="row.tags && row.tags.length" class="mt-2 flex flex-wrap gap-1" role="list" aria-label="Tags">
+                      <Badge v-for="tag in row.tags" :key="tag" role="listitem" theme="gray" variant="subtle" size="sm" :label="tag" />
+                    </div>
                   </div>
                   <div class="flex shrink-0 flex-wrap items-center gap-1.5">
                     <Button variant="subtle" icon="lucide-pencil" label="Edit" @click="onEdit(row.name)" />
@@ -220,7 +270,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Badge, Button, Checkbox, Dropdown, ErrorMessage, FormControl, Icon, TabButtons, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TagInput from '@/components/inputs/TagInput.vue'
@@ -231,9 +281,7 @@ const TOOL_ID = 'reminders'
 const preferences = useToolboxPreferences()
 const reminders = useReminders()
 
-const showExportMenu = ref(false)
 const confirmingDeleteName = ref(null)
-const openSnoozeFor = ref(null)
 
 const scopeTabs = [
   { value: 'active', label: 'Active' },
@@ -248,6 +296,19 @@ const snoozeOptions = [
   { preset: '1h', label: '1 hour' },
   { preset: 'tomorrow', label: 'Tomorrow' },
 ]
+
+const exportOptions = [
+  { label: 'JSON', onClick: () => onExport('json') },
+  { label: 'CSV', onClick: () => onExport('csv') },
+]
+
+// A per-item snooze menu for the Dropdown; each preset snoozes that reminder.
+function snoozeMenuFor(item) {
+  return snoozeOptions.map((option) => ({
+    label: option.label,
+    onClick: () => reminders.snooze(item.reminder, { preset: option.preset }),
+  }))
+}
 
 // A convenience view over the open form so the template stays readable. Fields v-model directly
 // onto this reactive object; the form is explicit-save, so nothing persists until Save.
@@ -291,6 +352,9 @@ const timeZoneOptions = computed(() => {
   return supportedTimeZones
 })
 
+// Combobox wants {label, value}; the zone string is both.
+const zoneOptions = computed(() => timeZoneOptions.value.map((zone) => ({ label: zone, value: zone })))
+
 onMounted(() => {
   preferences.recordRecent(TOOL_ID)
   void reminders.loadList()
@@ -305,7 +369,6 @@ function readSupportedTimeZones() {
 }
 
 function onNew() {
-  showExportMenu.value = false
   confirmingDeleteName.value = null
   reminders.newReminder()
 }
@@ -317,12 +380,10 @@ function onEdit(name) {
 
 async function onSetScope(next) {
   confirmingDeleteName.value = null
-  showExportMenu.value = false
   await reminders.setScope(next)
 }
 
 function onExport(format) {
-  showExportMenu.value = false
   if (format === 'json') reminders.exportJson()
   else reminders.exportCsv()
 }
@@ -330,15 +391,6 @@ function onExport(format) {
 async function onDelete(name) {
   await reminders.removeReminder(name)
   confirmingDeleteName.value = null
-}
-
-function toggleSnooze(name) {
-  openSnoozeFor.value = openSnoozeFor.value === name ? null : name
-}
-
-function onSnooze(reminderName, preset) {
-  openSnoozeFor.value = null
-  void reminders.snooze(reminderName, { preset })
 }
 
 // Ticking Browser prompts for permission the first time; the composable owns the request.

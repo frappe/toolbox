@@ -19,6 +19,7 @@ MAX_PREFERENCE_OPERATIONS = 64
 TOOL_IDS = frozenset(
 	{
 		"audio-editor",
+		"audio-inspector",
 		"audio-recorder",
 		"calculator",
 		"checklists",

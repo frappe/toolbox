@@ -237,6 +237,16 @@ export const tools = [
     offlineCapability: 'none',
     searchKeywords: ['metronome', 'tempo', 'bpm', 'beat', 'click', 'rhythm', 'practice', 'music'],
   }),
+  defineTool({
+    id: 'audio-inspector',
+    name: 'Audio Inspector',
+    description: "Check an audio file's duration, sample rate, channels and waveform.",
+    icon: 'lucide-file-audio',
+    category: 'media',
+    route: '/audio-inspector',
+    offlineCapability: 'none',
+    searchKeywords: ['audio', 'inspector', 'metadata', 'duration', 'sample rate', 'channels', 'waveform', 'info'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

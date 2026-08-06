@@ -67,7 +67,8 @@ const open = computed({
   set: (value) => emit('update:modelValue', value),
 })
 const searchableTools = tools.filter(isToolAvailable)
-const results = computed(() => searchTools(query.value, searchableTools).slice(0, 20))
+// The tool set is small and bounded by the registry, so show every match rather than capping it.
+const results = computed(() => searchTools(query.value, searchableTools))
 
 watch(open, async (isOpen) => {
   if (isOpen) {

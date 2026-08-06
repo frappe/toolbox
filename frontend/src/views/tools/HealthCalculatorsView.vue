@@ -7,7 +7,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Health &amp; Fitness Calculators</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Explore formula-based estimates without saving or sending your health inputs.</p>
       </div>
-      <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite('health-calculators') ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite('health-calculators')" />
     </header>
 
     <nav class="-mx-1 overflow-x-auto px-1 pt-8" aria-label="Health calculator">

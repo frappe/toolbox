@@ -9,7 +9,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Tone Generator</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Play a precise pure tone for tuning, testing speakers, or a reference pitch — generated locally in your browser.</p>
       </div>
-      <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <p v-if="!tone.isSupported.value" class="mt-8 flex items-center gap-2 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 text-sm text-ink-gray-6">

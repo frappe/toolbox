@@ -19,9 +19,9 @@ from toolbox.preferences import (
 class TestPreferenceRecovery(unittest.TestCase):
 	def test_valid_payload_round_trips(self):
 		valid = default_preferences()
-		valid["favouriteToolIds"] = ["calculator"]
+		valid["hiddenToolIds"] = ["calculator"]
 		result = deserialize_preferences(json.dumps(valid))
-		self.assertEqual(result["favouriteToolIds"], ["calculator"])
+		self.assertEqual(result["hiddenToolIds"], ["calculator"])
 		self.assertEqual(set(result["settings"]), set(SETTING_OPTIONS))
 
 	def test_drifted_settings_are_filled_from_defaults(self):
@@ -36,9 +36,9 @@ class TestPreferenceRecovery(unittest.TestCase):
 
 	def test_unknown_tool_ids_are_dropped_but_valid_ones_kept(self):
 		drifted = default_preferences()
-		drifted["favouriteToolIds"] = ["calculator", "a-removed-tool"]
+		drifted["hiddenToolIds"] = ["calculator", "a-removed-tool"]
 		result = deserialize_preferences(json.dumps(drifted))
-		self.assertEqual(result["favouriteToolIds"], ["calculator"])
+		self.assertEqual(result["hiddenToolIds"], ["calculator"])
 
 	def test_valid_saved_items_survive_recovery(self):
 		drifted = default_preferences()

@@ -18,12 +18,9 @@ function mountView() {
 }
 
 describe('IndiaBusinessLookupView', () => {
-  it('tracks recent use and exposes Favourite', async () => {
-    const wrapper = mountView()
-
+  it('tracks recent use', () => {
+    mountView()
     expect(preferences.recordRecent).toHaveBeenCalledWith('india-business-lookup')
-    await wrapper.findAll('button').find((button) => button.text() === 'Favourite').trigger('click')
-    expect(preferences.toggleFavourite).toHaveBeenCalledWith('india-business-lookup')
   })
 
   it('opens on the PIN tab and switches to IFSC with honest queued states', async () => {

@@ -34,7 +34,6 @@ describe('ToolboxPreferencesStore', () => {
       const store = new ToolboxPreferencesStore(new MemoryStorage(value))
       expect(store.snapshot()).toEqual({
         version: 1,
-        favouriteToolIds: [],
         hiddenToolIds: [],
         recentToolIds: [],
         savedCurrencyPairs: [],
@@ -48,7 +47,6 @@ describe('ToolboxPreferencesStore', () => {
   it('normalizes stored tool IDs, list shapes, and settings', () => {
     const stored = JSON.stringify({
       version: 1,
-      favouriteToolIds: ['calculator', 'missing', 'calculator'],
       recentToolIds: [...tools.map((tool) => tool.id), 'calculator'],
       savedCurrencyPairs: [{ from: 'INR', to: 'USD' }, null, 'bad'],
       savedWeatherLocations: 'bad',
@@ -57,7 +55,6 @@ describe('ToolboxPreferencesStore', () => {
     })
     const store = new ToolboxPreferencesStore(new MemoryStorage(stored))
 
-    expect(store.favouriteIds.value).toEqual(['calculator'])
     expect(store.recentToolIds.value).toEqual(
       tools.slice(0, MAX_RECENT_TOOLS).map((tool) => tool.id),
     )
@@ -68,16 +65,13 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.settings.timeFormat).toBe(defaultSettings.timeFormat)
   })
 
-  it('persists favourites and ten distinct recent tools', () => {
+  it('persists ten distinct recent tools', () => {
     const storage = new MemoryStorage()
     const store = new ToolboxPreferencesStore(storage)
 
-    store.toggleFavourite('calculator')
-    store.toggleFavourite('missing')
     for (const tool of tools) store.recordRecent(tool.id)
     store.recordRecent(tools[4].id)
 
-    expect(store.favouriteIds.value).toEqual(['calculator'])
     expect(store.recentToolIds.value).toHaveLength(MAX_RECENT_TOOLS)
     expect(store.recentToolIds.value[0]).toBe(tools[4].id)
     expect(new Set(store.recentToolIds.value).size).toBe(MAX_RECENT_TOOLS)
@@ -149,7 +143,7 @@ describe('ToolboxPreferencesStore', () => {
   it('continues safely when browser storage throws', () => {
     const store = new ToolboxPreferencesStore(new MemoryStorage(null, true))
 
-    expect(() => store.toggleFavourite('calculator')).not.toThrow()
-    expect(store.favouriteIds.value).toEqual(['calculator'])
+    expect(() => store.toggleHidden('calculator')).not.toThrow()
+    expect(store.hiddenIds.value).toEqual(['calculator'])
   })
 })

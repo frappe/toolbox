@@ -9,7 +9,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Inspector</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Check an audio file's duration, sample rate, channels and waveform — decoded locally, nothing uploaded.</p>
       </div>
-      <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <section v-if="state === 'empty' || state === 'error'" class="mt-8 rounded-2xl border border-dashed border-outline-gray-3 bg-surface-gray-1 p-8 text-center" aria-label="Choose audio">

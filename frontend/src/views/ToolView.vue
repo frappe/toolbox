@@ -11,12 +11,6 @@
         </div>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }}</p>
       </div>
-      <Button
-        variant="subtle"
-        icon="lucide-star"
-        :label="preferences.isFavourite(tool.id) ? 'Favourited' : 'Favourite'"
-        @click="preferences.toggleFavourite(tool.id)"
-      />
     </header>
 
     <ToolState

@@ -9,7 +9,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Reminders</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Schedule one-off and recurring reminders, and get nudged when they are due.</p>
       </div>
-      <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <!-- Due-now inbox -->

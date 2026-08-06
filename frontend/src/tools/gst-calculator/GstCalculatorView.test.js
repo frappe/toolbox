@@ -27,12 +27,9 @@ describe('GstCalculatorView', () => {
     globalThis.history.replaceState({}, '', '/toolbox/gst-calculator')
   })
 
-  it('tracks recent use and exposes the Favourite action', async () => {
-    const wrapper = mountView()
+  it('tracks recent use', () => {
+    mountView()
     expect(preferences.recordRecent).toHaveBeenCalledWith('gst-calculator')
-
-    await buttonByText(wrapper, 'Favourite').trigger('click')
-    expect(preferences.toggleFavourite).toHaveBeenCalledWith('gst-calculator')
   })
 
   it('calculates add-mode intra-state results immediately', async () => {

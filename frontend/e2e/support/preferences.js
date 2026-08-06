@@ -8,14 +8,6 @@ import { expect } from '@playwright/test'
 const PREFERENCE_METHOD =
   '/api/method/toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.update_preferences'
 
-// Mirrors TOOL_IDS in toolbox/preferences.py; used to clear every possible favourite.
-const ALL_TOOL_IDS = [
-  'audio-recorder', 'calculator', 'checklists', 'currency-converter', 'dictionary', 'expenses',
-  'financial-calculators', 'gst-calculator', 'health-calculators', 'hsn-sac-lookup',
-  'india-business-lookup', 'library', 'notes', 'reminders', 'script-conversion', 'timer',
-  'unit-converter', 'weather', 'world-clock',
-]
-
 // Applies a semantic operation batch to the signed-in user's preferences. Runs inside the page
 // so it reuses the session cookie and the boot CSRF token; the page must already be on a
 // Toolbox route (so window.csrf_token exists).
@@ -34,12 +26,11 @@ async function applyPreferenceOperations(page, operations) {
   expect(result.ok, `preference update failed (HTTP ${result.status})`).toBe(true)
 }
 
-// Resets preferences to a clean baseline: no favourites or recents, default settings, and empty
-// saved lists. Call from a beforeEach (after navigating to any Toolbox route) so each test starts
-// from the same state regardless of order or prior runs.
+// Resets preferences to a clean baseline: no recents, default settings, and empty saved lists.
+// Call from a beforeEach (after navigating to any Toolbox route) so each test starts from the same
+// state regardless of order or prior runs.
 export async function resetToolboxPreferences(page) {
   await applyPreferenceOperations(page, [
-    ...ALL_TOOL_IDS.map((toolId) => ({ type: 'setFavourite', toolId, isFavourite: false })),
     { type: 'clearRecent' },
     { type: 'resetSettings' },
     { type: 'replaceSavedItems', field: 'savedCurrencyPairs', value: [] },
@@ -48,12 +39,12 @@ export async function resetToolboxPreferences(page) {
   ])
 }
 
-// Seeds specific saved items or favourites for tests that read persisted state (e.g. Home).
+// Seeds specific saved items for tests that read persisted state.
 export async function seedToolboxPreferences(
   page,
-  { favourites = [], savedCurrencyPairs, savedWorldClockLocations } = {},
+  { savedCurrencyPairs, savedWorldClockLocations } = {},
 ) {
-  const operations = favourites.map((toolId) => ({ type: 'setFavourite', toolId, isFavourite: true }))
+  const operations = []
   if (savedCurrencyPairs) {
     operations.push({ type: 'replaceSavedItems', field: 'savedCurrencyPairs', value: savedCurrencyPairs })
   }

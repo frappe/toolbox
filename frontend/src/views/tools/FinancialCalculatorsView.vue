@@ -13,13 +13,6 @@
           Compare transparent estimates without sending your financial inputs anywhere.
         </p>
       </div>
-      <Button
-        class="h-11"
-        variant="subtle"
-        icon="lucide-star"
-        :label="preferences.isFavourite('financial-calculators') ? 'Favourited' : 'Favourite'"
-        @click="preferences.toggleFavourite('financial-calculators')"
-      />
     </header>
 
     <SegmentedTabs

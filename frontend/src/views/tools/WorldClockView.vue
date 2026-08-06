@@ -9,7 +9,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">World Clock</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">See the current time across the cities you care about.</p>
       </div>
-      <Button variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <div class="mt-8 inline-flex gap-1 rounded-lg bg-surface-gray-2 p-1" role="tablist" aria-label="World clock mode">

@@ -35,8 +35,14 @@
     <!-- Main -->
     <div v-else class="mt-8">
       <!-- Sub navigation -->
-      <div class="inline-flex rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-0.5" role="tablist" aria-label="Expenses sections">
-        <button v-for="tab in viewTabs" :key="tab.value" type="button" role="tab" :aria-selected="expenses.view.value === tab.value" class="rounded-md px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :class="expenses.view.value === tab.value ? 'bg-surface-base text-ink-gray-9 shadow-sm' : 'text-ink-gray-6 hover:text-ink-gray-8'" @click="onSetView(tab.value)">{{ tab.label }}</button>
+      <div class="overflow-x-auto">
+        <TabButtons
+          :options="viewTabs"
+          :model-value="expenses.view.value"
+          size="md"
+          aria-label="Expenses sections"
+          @update:model-value="onSetView"
+        />
       </div>
 
       <!-- Dashboard -->
@@ -107,23 +113,38 @@
 
             <form v-if="showBudgetForm" class="mt-3 flex flex-col gap-3 rounded-xl border border-outline-gray-2 bg-surface-gray-1 p-3" aria-label="Set budget" @submit.prevent="onSetBudget">
               <div class="grid gap-3 sm:grid-cols-3">
-                <div class="flex flex-col gap-1.5">
-                  <label for="budget-category" class="text-sm font-medium text-ink-gray-7">Category</label>
-                  <select id="budget-category" v-model="budgetForm.category" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                    <option value="">Overall</option>
-                    <option v-for="cat in expenses.activeCategories.value" :key="cat.name" :value="cat.name">{{ cat.category_name }}</option>
-                  </select>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                  <label for="budget-amount" class="text-sm font-medium text-ink-gray-7">Amount</label>
-                  <input id="budget-amount" v-model.number="budgetForm.amount" type="number" min="0" step="0.01" placeholder="0.00" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                </div>
-                <div class="flex flex-col gap-1.5">
-                  <label for="budget-currency" class="text-sm font-medium text-ink-gray-7">Currency</label>
-                  <input id="budget-currency" v-model="budgetForm.currency" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. INR" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm uppercase text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                </div>
+                <FormControl
+                  id="budget-category"
+                  type="select"
+                  size="md"
+                  label="Category"
+                  :model-value="budgetForm.category"
+                  :options="budgetCategoryOptions"
+                  @update:model-value="budgetForm.category = $event"
+                />
+                <FormControl
+                  id="budget-amount"
+                  type="number"
+                  size="md"
+                  label="Amount"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  :model-value="budgetForm.amount"
+                  @update:model-value="budgetForm.amount = $event"
+                />
+                <FormControl
+                  id="budget-currency"
+                  type="text"
+                  size="md"
+                  label="Currency"
+                  spellcheck="false"
+                  placeholder="e.g. INR"
+                  :model-value="budgetForm.currency"
+                  @update:model-value="budgetForm.currency = $event"
+                />
               </div>
-              <p v-if="budgetError" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ budgetError }}</p>
+              <ErrorMessage :message="budgetError" />
               <div class="flex items-center gap-2">
                 <Button variant="solid" type="submit" label="Save budget" />
                 <Button variant="ghost" label="Cancel" @click="showBudgetForm = false" />
@@ -180,63 +201,92 @@
         <!-- Toolbar -->
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div class="relative min-w-0 flex-1">
-              <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
-              <input :value="expenses.filters.search" type="search" autocomplete="off" spellcheck="false" placeholder="Search expenses" aria-label="Search expenses" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base pl-9 pr-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="expenses.setSearch($event.target.value)" />
-            </div>
+            <TextInput
+              type="search"
+              size="md"
+              class="min-w-0 flex-1"
+              placeholder="Search expenses"
+              aria-label="Search expenses"
+              spellcheck="false"
+              :model-value="expenses.filters.search"
+              @update:model-value="expenses.setSearch"
+            >
+              <template #prefix>
+                <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
+              </template>
+            </TextInput>
             <div class="flex items-center gap-2">
               <Button variant="solid" icon="lucide-plus" label="Add expense" @click="onNewExpense" />
-              <div class="relative">
-                <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
-                <div v-if="showExportMenu" class="absolute right-0 z-10 mt-1 w-40 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-                  <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('json')">JSON</button>
-                  <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('csv')">CSV</button>
-                </div>
-              </div>
+              <Dropdown :options="exportOptions">
+                <Button variant="outline" icon="lucide-download" label="Export" />
+              </Dropdown>
             </div>
           </div>
 
           <!-- Filters -->
           <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-category" class="text-xs font-medium text-ink-gray-6">Category</label>
-              <select id="filter-category" v-model="expenses.filters.category" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()">
-                <option value="">All categories</option>
-                <option v-for="cat in expenses.activeCategories.value" :key="cat.name" :value="cat.name">{{ cat.category_name }}</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-method" class="text-xs font-medium text-ink-gray-6">Payment method</label>
-              <select id="filter-method" v-model="expenses.filters.payment_method" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()">
-                <option value="">All methods</option>
-                <option v-for="method in expenses.paymentMethods.value" :key="method.name" :value="method.name">{{ method.method_name }}</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-project" class="text-xs font-medium text-ink-gray-6">Trip</label>
-              <select id="filter-project" v-model="expenses.filters.project_or_trip" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()">
-                <option value="">All trips</option>
-                <option v-for="project in expenses.projects.value" :key="project.name" :value="project.name">{{ project.project_name }}</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-currency" class="text-xs font-medium text-ink-gray-6">Currency</label>
-              <input id="filter-currency" v-model="expenses.filters.currency" type="text" autocomplete="off" spellcheck="false" placeholder="Any" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm uppercase text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-from" class="text-xs font-medium text-ink-gray-6">From</label>
-              <input id="filter-from" v-model="expenses.filters.from_date" type="date" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-to" class="text-xs font-medium text-ink-gray-6">To</label>
-              <input id="filter-to" v-model="expenses.filters.to_date" type="date" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="filter-sort" class="text-xs font-medium text-ink-gray-6">Sort</label>
-              <select id="filter-sort" v-model="expenses.filters.sort" class="h-9 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.applyFilters()">
-                <option v-for="option in sortOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-            </div>
+            <FormControl
+              id="filter-category"
+              type="select"
+              size="sm"
+              label="Category"
+              :model-value="expenses.filters.category"
+              :options="filterCategoryOptions"
+              @update:model-value="setFilter('category', $event)"
+            />
+            <FormControl
+              id="filter-method"
+              type="select"
+              size="sm"
+              label="Payment method"
+              :model-value="expenses.filters.payment_method"
+              :options="filterMethodOptions"
+              @update:model-value="setFilter('payment_method', $event)"
+            />
+            <FormControl
+              id="filter-project"
+              type="select"
+              size="sm"
+              label="Trip"
+              :model-value="expenses.filters.project_or_trip"
+              :options="filterTripOptions"
+              @update:model-value="setFilter('project_or_trip', $event)"
+            />
+            <FormControl
+              id="filter-currency"
+              type="text"
+              size="sm"
+              label="Currency"
+              placeholder="Any"
+              spellcheck="false"
+              :model-value="expenses.filters.currency"
+              @update:model-value="setFilter('currency', $event)"
+            />
+            <FormControl
+              id="filter-from"
+              type="date"
+              size="sm"
+              label="From"
+              :model-value="expenses.filters.from_date"
+              @update:model-value="setFilter('from_date', $event)"
+            />
+            <FormControl
+              id="filter-to"
+              type="date"
+              size="sm"
+              label="To"
+              :model-value="expenses.filters.to_date"
+              @update:model-value="setFilter('to_date', $event)"
+            />
+            <FormControl
+              id="filter-sort"
+              type="select"
+              size="sm"
+              label="Sort"
+              :model-value="expenses.filters.sort"
+              :options="sortOptions"
+              @update:model-value="setFilter('sort', $event)"
+            />
           </div>
 
           <div v-if="hasActiveFilters" class="flex justify-end">
@@ -253,88 +303,151 @@
 
           <div class="mt-4 flex flex-col gap-4">
             <div class="grid gap-4 sm:grid-cols-2">
-              <div class="flex flex-col gap-1.5">
-                <label for="expense-amount" class="text-sm font-medium text-ink-gray-7">Amount</label>
-                <input id="expense-amount" v-model.number="form.amount" type="number" min="0" step="0.01" required placeholder="0.00" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <label for="expense-currency" class="text-sm font-medium text-ink-gray-7">Currency</label>
-                <select id="expense-currency" v-model="form.currency" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                  <option v-for="code in currencyOptions" :key="code" :value="code">{{ code }}</option>
-                </select>
-              </div>
+              <FormControl
+                id="expense-amount"
+                type="number"
+                size="md"
+                label="Amount"
+                min="0"
+                step="0.01"
+                required
+                placeholder="0.00"
+                :model-value="form.amount"
+                @update:model-value="form.amount = $event"
+              />
+              <FormControl
+                id="expense-currency"
+                type="select"
+                size="md"
+                label="Currency"
+                :model-value="form.currency"
+                :options="currencyOptions"
+                @update:model-value="form.currency = $event"
+              />
             </div>
 
-            <div class="flex flex-col gap-1.5">
-              <label for="expense-date" class="text-sm font-medium text-ink-gray-7">Date</label>
-              <input id="expense-date" v-model="form.expense_date" type="date" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
+            <FormControl
+              id="expense-date"
+              type="date"
+              size="md"
+              label="Date"
+              :model-value="form.expense_date"
+              @update:model-value="form.expense_date = $event"
+            />
+
+            <FormControl
+              id="expense-description"
+              type="text"
+              size="md"
+              label="Description"
+              required
+              placeholder="What was this for?"
+              :model-value="form.description"
+              @update:model-value="(value) => { form.description = value; expenses.requestSuggestion() }"
+            />
+
+            <FormControl
+              id="expense-merchant"
+              type="text"
+              size="md"
+              label="Merchant"
+              placeholder="Where did you spend it? (optional)"
+              :model-value="form.merchant"
+              @update:model-value="(value) => { form.merchant = value; expenses.requestSuggestion() }"
+            />
 
             <div class="flex flex-col gap-1.5">
-              <label for="expense-description" class="text-sm font-medium text-ink-gray-7">Description</label>
-              <input id="expense-description" v-model="form.description" type="text" required placeholder="What was this for?" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="expenses.requestSuggestion()" />
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label for="expense-merchant" class="text-sm font-medium text-ink-gray-7">Merchant</label>
-              <input id="expense-merchant" v-model="form.merchant" type="text" placeholder="Where did you spend it? (optional)" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="expenses.requestSuggestion()" />
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label for="expense-category" class="text-sm font-medium text-ink-gray-7">Category</label>
-              <select id="expense-category" v-model="form.category" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @change="expenses.markCategoryTouched()">
-                <option value="">Select a category</option>
-                <option v-for="cat in expenses.activeCategories.value" :key="cat.name" :value="cat.name">{{ cat.category_name }}</option>
-              </select>
+              <FormControl
+                id="expense-category"
+                type="select"
+                size="md"
+                label="Category"
+                :model-value="form.category"
+                :options="formCategoryOptions"
+                @update:model-value="(value) => { form.category = value; expenses.markCategoryTouched() }"
+              />
               <p v-if="expenses.suggestion.value" class="text-xs leading-5 text-ink-gray-5">
                 <Icon name="lucide-sparkles" class="mr-0.5 inline size-3.5 align-text-bottom" aria-hidden="true" />{{ confidenceLabel(expenses.suggestion.value.confidence) }} · {{ expenses.suggestion.value.explanation }}
               </p>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-              <label for="expense-method" class="text-sm font-medium text-ink-gray-7">Payment method</label>
-              <select id="expense-method" v-model="form.payment_method" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option value="">None</option>
-                <option v-for="method in expenses.paymentMethods.value" :key="method.name" :value="method.name">{{ method.method_name }}</option>
-              </select>
-            </div>
+            <FormControl
+              id="expense-method"
+              type="select"
+              size="md"
+              label="Payment method"
+              :model-value="form.payment_method"
+              :options="formMethodOptions"
+              @update:model-value="form.payment_method = $event"
+            />
 
-            <div class="flex flex-col gap-1.5">
-              <label for="expense-project" class="text-sm font-medium text-ink-gray-7">Trip or project</label>
-              <select id="expense-project" v-model="form.project_or_trip" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option value="">None</option>
-                <option v-for="project in expenses.projects.value" :key="project.name" :value="project.name">{{ project.project_name }}</option>
-              </select>
-            </div>
+            <FormControl
+              id="expense-project"
+              type="select"
+              size="md"
+              label="Trip or project"
+              :model-value="form.project_or_trip"
+              :options="formTripOptions"
+              @update:model-value="form.project_or_trip = $event"
+            />
 
             <details class="rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2">
               <summary class="cursor-pointer select-none text-sm font-medium text-ink-gray-7 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3">More details</summary>
               <div class="mt-3 flex flex-col gap-4">
                 <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="expense-account" class="text-sm font-medium text-ink-gray-7">Account label</label>
-                    <input id="expense-account" v-model="form.account_label" type="text" placeholder="e.g. HDFC ••4321" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="expense-reference" class="text-sm font-medium text-ink-gray-7">Reference number</label>
-                    <input id="expense-reference" v-model="form.reference_number" type="text" placeholder="Optional" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                  </div>
+                  <FormControl
+                    id="expense-account"
+                    type="text"
+                    size="md"
+                    label="Account label"
+                    placeholder="e.g. HDFC ••4321"
+                    :model-value="form.account_label"
+                    @update:model-value="form.account_label = $event"
+                  />
+                  <FormControl
+                    id="expense-reference"
+                    type="text"
+                    size="md"
+                    label="Reference number"
+                    placeholder="Optional"
+                    :model-value="form.reference_number"
+                    @update:model-value="form.reference_number = $event"
+                  />
                 </div>
 
-                <div class="flex flex-col gap-1.5">
-                  <label for="expense-note" class="text-sm font-medium text-ink-gray-7">Note</label>
-                  <textarea id="expense-note" v-model="form.note" rows="2" placeholder="Add a note (optional)" class="w-full resize-y rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-8 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                </div>
+                <FormControl
+                  id="expense-note"
+                  type="textarea"
+                  size="md"
+                  label="Note"
+                  :rows="2"
+                  placeholder="Add a note (optional)"
+                  :model-value="form.note"
+                  @update:model-value="form.note = $event"
+                />
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="flex flex-col gap-1.5">
-                    <label for="expense-base-currency" class="text-sm font-medium text-ink-gray-7">Base currency</label>
-                    <input id="expense-base-currency" v-model="form.base_currency" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. INR" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm uppercase text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <label for="expense-conversion" class="text-sm font-medium text-ink-gray-7">Conversion rate</label>
-                    <input id="expense-conversion" v-model.number="form.conversion_rate" type="number" min="0" step="0.0001" placeholder="1.0000" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-                  </div>
+                  <FormControl
+                    id="expense-base-currency"
+                    type="text"
+                    size="md"
+                    label="Base currency"
+                    spellcheck="false"
+                    placeholder="e.g. INR"
+                    :model-value="form.base_currency"
+                    @update:model-value="form.base_currency = $event"
+                  />
+                  <FormControl
+                    id="expense-conversion"
+                    type="number"
+                    size="md"
+                    label="Conversion rate"
+                    min="0"
+                    step="0.0001"
+                    placeholder="1.0000"
+                    :model-value="form.conversion_rate"
+                    @update:model-value="form.conversion_rate = $event"
+                  />
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <Button variant="outline" icon="lucide-refresh-cw" label="Fetch rate" @click="expenses.fetchRate()" />
@@ -355,11 +468,11 @@
               </div>
             </details>
 
-            <TagInput :model-value="form.tags" label="Tags" placeholder="Add a tag…" @update:model-value="form.tags = $event" />
+            <TagInput variant="subtle" :model-value="form.tags" label="Tags" placeholder="Add a tag…" @update:model-value="form.tags = $event" />
           </div>
 
           <p class="sr-only" role="status" aria-live="polite">{{ savingStatus }}</p>
-          <p v-if="expenses.saveError.value" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ expenses.saveError.value }}</p>
+          <ErrorMessage class="mt-4" :message="expenses.saveError.value" />
 
           <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-outline-gray-2 pt-4">
             <Button variant="solid" type="submit" :loading="expenses.saving.value" :label="expenses.saving.value ? 'Saving…' : 'Save expense'" />
@@ -374,15 +487,33 @@
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-sm font-medium text-ink-gray-9" aria-live="polite">{{ expenses.selectedCount.value }} selected</span>
             <div class="flex flex-1 flex-wrap items-center gap-2">
-              <select v-model="bulkForm.category" aria-label="Set category for selected expenses" class="h-9 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option value="">Set category…</option>
-                <option v-for="cat in expenses.activeCategories.value" :key="cat.name" :value="cat.name">{{ cat.category_name }}</option>
-              </select>
-              <input v-model="bulkForm.addTag" type="text" autocomplete="off" placeholder="Add tag" aria-label="Add a tag to selected expenses" class="h-9 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-              <select v-model="bulkForm.project" aria-label="Set trip for selected expenses" class="h-9 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option value="">Set trip…</option>
-                <option v-for="project in expenses.projects.value" :key="project.name" :value="project.name">{{ project.project_name }}</option>
-              </select>
+              <FormControl
+                type="select"
+                size="sm"
+                class="min-w-0"
+                aria-label="Set category for selected expenses"
+                :model-value="bulkForm.category"
+                :options="bulkCategoryOptions"
+                @update:model-value="bulkForm.category = $event"
+              />
+              <TextInput
+                type="text"
+                size="sm"
+                class="min-w-0 flex-1"
+                placeholder="Add tag"
+                aria-label="Add a tag to selected expenses"
+                :model-value="bulkForm.addTag"
+                @update:model-value="bulkForm.addTag = $event"
+              />
+              <FormControl
+                type="select"
+                size="sm"
+                class="min-w-0"
+                aria-label="Set trip for selected expenses"
+                :model-value="bulkForm.project"
+                :options="bulkTripOptions"
+                @update:model-value="bulkForm.project = $event"
+              />
               <Button variant="solid" label="Apply" @click="onBulkApply" />
             </div>
             <div class="flex items-center gap-1.5">
@@ -395,7 +526,7 @@
               <Button variant="ghost" label="Clear" @click="expenses.clearSelection()" />
             </div>
           </div>
-          <p v-if="bulkError" class="mt-2 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ bulkError }}</p>
+          <ErrorMessage class="mt-2" :message="bulkError" />
         </div>
 
         <!-- List -->
@@ -403,7 +534,12 @@
           <ul v-if="expenses.expenses.value.length" class="flex flex-col gap-1.5">
             <li v-for="row in expenses.expenses.value" :key="row.name" :data-expense-name="row.name" class="rounded-xl border border-outline-gray-2 bg-surface-base p-3">
               <div class="flex items-start gap-3">
-                <input type="checkbox" :checked="expenses.isSelected(row.name)" :aria-label="`Select ${row.description || 'expense'}`" class="mt-1 size-4 shrink-0 cursor-pointer rounded border-outline-gray-3 text-ink-gray-9 accent-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="expenses.toggleSelected(row.name)" />
+                <Checkbox
+                  class="mt-1 shrink-0"
+                  :model-value="expenses.isSelected(row.name)"
+                  :aria-label="`Select ${row.description || 'expense'}`"
+                  @update:model-value="expenses.toggleSelected(row.name)"
+                />
                 <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-baseline gap-2">
@@ -417,9 +553,9 @@
                     <span v-if="row.project_name">{{ row.project_name }}</span>
                     <a v-if="row.receipt" :href="row.receipt" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-ink-gray-6 hover:text-ink-gray-9" :aria-label="`View receipt for ${row.description}`" @click.stop><Icon name="lucide-paperclip" class="size-3.5" /> Receipt</a>
                   </div>
-                  <ul v-if="row.tags && row.tags.length" class="mt-2 flex flex-wrap gap-1" aria-label="Tags">
-                    <li v-for="tag in row.tags" :key="tag" class="rounded-md bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-7">{{ tag }}</li>
-                  </ul>
+                  <div v-if="row.tags && row.tags.length" class="mt-2 flex flex-wrap gap-1" role="list" aria-label="Tags">
+                    <Badge v-for="tag in row.tags" :key="tag" role="listitem" theme="gray" variant="subtle" size="sm" :label="tag" />
+                  </div>
                 </div>
                 <div class="flex shrink-0 items-start gap-3">
                   <div class="text-right">
@@ -463,54 +599,93 @@
             <Button variant="ghost" icon="lucide-x" aria-label="Close form" @click="projectForm = null" />
           </div>
 
-          <div class="flex flex-col gap-1.5">
-            <label for="project-name" class="text-sm font-medium text-ink-gray-7">Name</label>
-            <input id="project-name" v-model="projectForm.project_name" type="text" required placeholder="e.g. Goa trip" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+          <FormControl
+            id="project-name"
+            type="text"
+            size="md"
+            label="Name"
+            required
+            placeholder="e.g. Goa trip"
+            :model-value="projectForm.project_name"
+            @update:model-value="projectForm.project_name = $event"
+          />
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <FormControl
+              id="project-type"
+              type="select"
+              size="md"
+              label="Type"
+              :model-value="projectForm.project_type"
+              :options="PROJECT_TYPES"
+              @update:model-value="projectForm.project_type = $event"
+            />
+            <FormControl
+              id="project-status"
+              type="select"
+              size="md"
+              label="Status"
+              :model-value="projectForm.status"
+              :options="PROJECT_STATUSES"
+              @update:model-value="projectForm.status = $event"
+            />
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="project-type" class="text-sm font-medium text-ink-gray-7">Type</label>
-              <select id="project-type" v-model="projectForm.project_type" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option v-for="type in PROJECT_TYPES" :key="type" :value="type">{{ type }}</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="project-status" class="text-sm font-medium text-ink-gray-7">Status</label>
-              <select id="project-status" v-model="projectForm.status" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option v-for="status in PROJECT_STATUSES" :key="status" :value="status">{{ status }}</option>
-              </select>
-            </div>
+            <FormControl
+              id="project-start"
+              type="date"
+              size="md"
+              label="Start date"
+              :model-value="projectForm.start_date"
+              @update:model-value="projectForm.start_date = $event"
+            />
+            <FormControl
+              id="project-end"
+              type="date"
+              size="md"
+              label="End date"
+              :model-value="projectForm.end_date"
+              @update:model-value="projectForm.end_date = $event"
+            />
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="project-start" class="text-sm font-medium text-ink-gray-7">Start date</label>
-              <input id="project-start" v-model="projectForm.start_date" type="date" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="project-end" class="text-sm font-medium text-ink-gray-7">End date</label>
-              <input id="project-end" v-model="projectForm.end_date" type="date" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
+            <FormControl
+              id="project-currency"
+              type="text"
+              size="md"
+              label="Default currency"
+              spellcheck="false"
+              placeholder="e.g. INR"
+              :model-value="projectForm.default_currency"
+              @update:model-value="projectForm.default_currency = $event"
+            />
+            <FormControl
+              id="project-budget"
+              type="number"
+              size="md"
+              label="Budget"
+              min="0"
+              step="0.01"
+              placeholder="Optional"
+              :model-value="projectForm.budget"
+              @update:model-value="projectForm.budget = $event"
+            />
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="project-currency" class="text-sm font-medium text-ink-gray-7">Default currency</label>
-              <input id="project-currency" v-model="projectForm.default_currency" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. INR" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm uppercase text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="project-budget" class="text-sm font-medium text-ink-gray-7">Budget</label>
-              <input id="project-budget" v-model.number="projectForm.budget" type="number" min="0" step="0.01" placeholder="Optional" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm tabular-nums text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
-          </div>
+          <FormControl
+            id="project-note"
+            type="textarea"
+            size="md"
+            label="Note"
+            :rows="2"
+            placeholder="Add a note (optional)"
+            :model-value="projectForm.note"
+            @update:model-value="projectForm.note = $event"
+          />
 
-          <div class="flex flex-col gap-1.5">
-            <label for="project-note" class="text-sm font-medium text-ink-gray-7">Note</label>
-            <textarea id="project-note" v-model="projectForm.note" rows="2" placeholder="Add a note (optional)" class="w-full resize-y rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-8 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-          </div>
-
-          <p v-if="projectError" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ projectError }}</p>
+          <ErrorMessage :message="projectError" />
           <div class="flex items-center gap-2">
             <Button variant="solid" type="submit" label="Save trip" />
             <Button variant="ghost" label="Cancel" @click="projectForm = null" />
@@ -543,9 +718,18 @@
 
           <div v-if="summary.currencies && summary.currencies.length > 1" class="mt-4">
             <h4 class="text-xs font-semibold uppercase tracking-wide text-ink-gray-5">By currency</h4>
-            <ul class="mt-2 flex flex-wrap gap-2">
-              <li v-for="line in summary.currencies" :key="line.currency" class="rounded-md bg-surface-gray-2 px-2 py-1 text-xs tabular-nums text-ink-gray-7">{{ formatMoney(line.total, line.currency) }}</li>
-            </ul>
+            <div class="mt-2 flex flex-wrap gap-2" role="list">
+              <Badge
+                v-for="line in summary.currencies"
+                :key="line.currency"
+                role="listitem"
+                theme="gray"
+                variant="subtle"
+                size="sm"
+                class="tabular-nums"
+                :label="formatMoney(line.total, line.currency)"
+              />
+            </div>
           </div>
 
           <div v-if="summary.category_breakdown && summary.category_breakdown.length" class="mt-4">
@@ -598,13 +782,20 @@
           <ul class="mt-3 flex flex-col gap-1.5">
             <li v-for="cat in expenses.categories.value" :key="cat.name" class="rounded-xl border border-outline-gray-2 px-3 py-2" :class="{ 'opacity-70': cat.is_archived }">
               <div v-if="editingCategory === cat.name" class="flex flex-wrap items-center gap-2">
-                <input v-model="editCategoryBuffer" type="text" :aria-label="`Rename ${cat.category_name}`" class="h-9 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @keydown.enter.prevent="onRenameCategory(cat)" />
+                <TextInput
+                  size="sm"
+                  class="min-w-0 flex-1"
+                  :aria-label="`Rename ${cat.category_name}`"
+                  :model-value="editCategoryBuffer"
+                  @update:model-value="editCategoryBuffer = $event"
+                  @keydown.enter.prevent="onRenameCategory(cat)"
+                />
                 <Button variant="solid" label="Save" @click="onRenameCategory(cat)" />
                 <Button variant="ghost" label="Cancel" @click="editingCategory = null" />
               </div>
               <div v-else class="flex flex-wrap items-center gap-2">
                 <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">{{ cat.category_name }}</span>
-                <span v-if="cat.is_archived" class="shrink-0 rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-6">Archived</span>
+                <Badge v-if="cat.is_archived" class="shrink-0" theme="gray" variant="subtle" size="sm" label="Archived" />
                 <Button variant="ghost" icon="lucide-pencil" aria-label="Rename category" @click="onStartRenameCategory(cat)" />
                 <Button variant="ghost" :icon="cat.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="cat.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveCategory(cat)" />
                 <template v-if="confirmingCategoryDelete === cat.name">
@@ -617,11 +808,17 @@
             </li>
           </ul>
           <form class="mt-3 flex gap-2" @submit.prevent="onAddCategory">
-            <label for="new-category" class="sr-only">Add a category</label>
-            <input id="new-category" v-model="newCategoryName" type="text" autocomplete="off" placeholder="Add a category" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+            <TextInput
+              size="md"
+              class="min-w-0 flex-1"
+              placeholder="Add a category"
+              aria-label="Add a category"
+              :model-value="newCategoryName"
+              @update:model-value="newCategoryName = $event"
+            />
             <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
           </form>
-          <p v-if="categoryError" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ categoryError }}</p>
+          <ErrorMessage class="mt-3" :message="categoryError" />
         </section>
 
         <!-- Payment methods -->
@@ -630,13 +827,20 @@
           <ul class="mt-3 flex flex-col gap-1.5">
             <li v-for="method in expenses.paymentMethods.value" :key="method.name" class="rounded-xl border border-outline-gray-2 px-3 py-2" :class="{ 'opacity-70': method.is_archived }">
               <div v-if="editingMethod === method.name" class="flex flex-wrap items-center gap-2">
-                <input v-model="editMethodBuffer" type="text" :aria-label="`Rename ${method.method_name}`" class="h-9 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @keydown.enter.prevent="onRenameMethod(method)" />
+                <TextInput
+                  size="sm"
+                  class="min-w-0 flex-1"
+                  :aria-label="`Rename ${method.method_name}`"
+                  :model-value="editMethodBuffer"
+                  @update:model-value="editMethodBuffer = $event"
+                  @keydown.enter.prevent="onRenameMethod(method)"
+                />
                 <Button variant="solid" label="Save" @click="onRenameMethod(method)" />
                 <Button variant="ghost" label="Cancel" @click="editingMethod = null" />
               </div>
               <div v-else class="flex flex-wrap items-center gap-2">
                 <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">{{ method.method_name }}</span>
-                <span v-if="method.is_archived" class="shrink-0 rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-6">Archived</span>
+                <Badge v-if="method.is_archived" class="shrink-0" theme="gray" variant="subtle" size="sm" label="Archived" />
                 <Button variant="ghost" icon="lucide-pencil" aria-label="Rename payment method" @click="onStartRenameMethod(method)" />
                 <Button variant="ghost" :icon="method.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="method.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveMethod(method)" />
                 <template v-if="confirmingMethodDelete === method.name">
@@ -649,11 +853,17 @@
             </li>
           </ul>
           <form class="mt-3 flex gap-2" @submit.prevent="onAddMethod">
-            <label for="new-method" class="sr-only">Add a payment method</label>
-            <input id="new-method" v-model="newMethodName" type="text" autocomplete="off" placeholder="Add a payment method" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+            <TextInput
+              size="md"
+              class="min-w-0 flex-1"
+              placeholder="Add a payment method"
+              aria-label="Add a payment method"
+              :model-value="newMethodName"
+              @update:model-value="newMethodName = $event"
+            />
             <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
           </form>
-          <p v-if="methodError" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ methodError }}</p>
+          <ErrorMessage class="mt-3" :message="methodError" />
         </section>
 
         <!-- Rules -->
@@ -664,41 +874,57 @@
           </div>
 
           <form v-if="ruleForm" class="mt-3 flex flex-col gap-3 rounded-xl border border-outline-gray-2 bg-surface-gray-1 p-3" aria-label="Rule details" @submit.prevent="onSaveRule">
-            <div class="flex flex-col gap-1.5">
-              <label for="rule-name" class="text-sm font-medium text-ink-gray-7">Rule name</label>
-              <input id="rule-name" v-model="ruleForm.rule_name" type="text" required placeholder="e.g. Uber rides" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
+            <FormControl
+              id="rule-name"
+              type="text"
+              size="md"
+              label="Rule name"
+              required
+              placeholder="e.g. Uber rides"
+              :model-value="ruleForm.rule_name"
+              @update:model-value="ruleForm.rule_name = $event"
+            />
             <div class="grid gap-3 sm:grid-cols-2">
-              <div class="flex flex-col gap-1.5">
-                <label for="rule-field" class="text-sm font-medium text-ink-gray-7">Match field</label>
-                <select id="rule-field" v-model="ruleForm.match_field" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                  <option value="merchant">Merchant</option>
-                  <option value="description">Description</option>
-                  <option value="combined">Merchant + description</option>
-                </select>
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <label for="rule-type" class="text-sm font-medium text-ink-gray-7">Match type</label>
-                <select id="rule-type" v-model="ruleForm.match_type" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                  <option value="exact">Exact</option>
-                  <option value="contains">Contains</option>
-                  <option value="starts_with">Starts with</option>
-                  <option value="regex">Regex</option>
-                </select>
-              </div>
+              <FormControl
+                id="rule-field"
+                type="select"
+                size="md"
+                label="Match field"
+                :model-value="ruleForm.match_field"
+                :options="matchFieldOptions"
+                @update:model-value="ruleForm.match_field = $event"
+              />
+              <FormControl
+                id="rule-type"
+                type="select"
+                size="md"
+                label="Match type"
+                :model-value="ruleForm.match_type"
+                :options="matchTypeOptions"
+                @update:model-value="ruleForm.match_type = $event"
+              />
             </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="rule-pattern" class="text-sm font-medium text-ink-gray-7">Pattern</label>
-              <input id="rule-pattern" v-model="ruleForm.pattern" type="text" required placeholder="Text to match" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="rule-category" class="text-sm font-medium text-ink-gray-7">Category</label>
-              <select id="rule-category" v-model="ruleForm.category" required class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none">
-                <option value="">Select a category</option>
-                <option v-for="cat in expenses.activeCategories.value" :key="cat.name" :value="cat.name">{{ cat.category_name }}</option>
-              </select>
-            </div>
-            <p v-if="ruleError" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ ruleError }}</p>
+            <FormControl
+              id="rule-pattern"
+              type="text"
+              size="md"
+              label="Pattern"
+              required
+              placeholder="Text to match"
+              :model-value="ruleForm.pattern"
+              @update:model-value="ruleForm.pattern = $event"
+            />
+            <FormControl
+              id="rule-category"
+              type="select"
+              size="md"
+              label="Category"
+              required
+              :model-value="ruleForm.category"
+              :options="formCategoryOptions"
+              @update:model-value="ruleForm.category = $event"
+            />
+            <ErrorMessage :message="ruleError" />
             <div class="flex items-center gap-2">
               <Button variant="solid" type="submit" label="Save rule" />
               <Button variant="ghost" label="Cancel" @click="ruleForm = null" />
@@ -731,7 +957,17 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Dropdown,
+  ErrorMessage,
+  FormControl,
+  Icon,
+  TabButtons,
+  TextInput,
+} from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TagInput from '@/components/inputs/TagInput.vue'
@@ -742,7 +978,6 @@ const TOOL_ID = 'expenses'
 const preferences = useToolboxPreferences()
 const expenses = useExpenses({ defaultCurrency: preferences.settings?.defaultCurrency || 'INR' })
 
-const showExportMenu = ref(false)
 const confirmingExpenseDelete = ref(null)
 let rulesLoaded = false
 
@@ -800,6 +1035,45 @@ const sortOptions = [
 ]
 
 const CURRENCY_OPTIONS = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'JPY', 'AUD', 'CAD']
+
+const matchFieldOptions = [
+  { label: 'Merchant', value: 'merchant' },
+  { label: 'Description', value: 'description' },
+  { label: 'Merchant + description', value: 'combined' },
+]
+const matchTypeOptions = [
+  { label: 'Exact', value: 'exact' },
+  { label: 'Contains', value: 'contains' },
+  { label: 'Starts with', value: 'starts_with' },
+  { label: 'Regex', value: 'regex' },
+]
+
+const exportOptions = [
+  { label: 'JSON', onClick: () => onExport('json') },
+  { label: 'CSV', onClick: () => onExport('csv') },
+]
+
+// Select option lists. A base list per record type, plus the leading option
+// ('Overall', 'All …', 'None', 'Set …') that each picker prepends.
+const categoryOptions = computed(() =>
+  expenses.activeCategories.value.map((cat) => ({ label: cat.category_name, value: cat.name })),
+)
+const methodOptions = computed(() =>
+  expenses.paymentMethods.value.map((method) => ({ label: method.method_name, value: method.name })),
+)
+const tripOptions = computed(() =>
+  expenses.projects.value.map((project) => ({ label: project.project_name, value: project.name })),
+)
+
+const budgetCategoryOptions = computed(() => [{ label: 'Overall', value: '' }, ...categoryOptions.value])
+const filterCategoryOptions = computed(() => [{ label: 'All categories', value: '' }, ...categoryOptions.value])
+const filterMethodOptions = computed(() => [{ label: 'All methods', value: '' }, ...methodOptions.value])
+const filterTripOptions = computed(() => [{ label: 'All trips', value: '' }, ...tripOptions.value])
+const formCategoryOptions = computed(() => [{ label: 'Select a category', value: '' }, ...categoryOptions.value])
+const formMethodOptions = computed(() => [{ label: 'None', value: '' }, ...methodOptions.value])
+const formTripOptions = computed(() => [{ label: 'None', value: '' }, ...tripOptions.value])
+const bulkCategoryOptions = computed(() => [{ label: 'Set category…', value: '' }, ...categoryOptions.value])
+const bulkTripOptions = computed(() => [{ label: 'Set trip…', value: '' }, ...tripOptions.value])
 
 // A convenience view over the open form so the template stays readable. Fields v-model directly
 // onto this reactive object; the form is explicit-save, so nothing persists until Save.
@@ -881,8 +1155,13 @@ function barPct(amount, max) {
   return max > 0 ? Math.round(((amount || 0) / max) * 100) : 0
 }
 
+// Structured filters apply immediately on change; the search box debounces on its own.
+function setFilter(key, value) {
+  expenses.filters[key] = value
+  expenses.applyFilters()
+}
+
 function onSetView(next) {
-  showExportMenu.value = false
   confirmingExpenseDelete.value = null
   confirmingBulkDelete.value = false
   confirmingProjectDelete.value = null
@@ -904,7 +1183,6 @@ function onSetView(next) {
 }
 
 function onNewExpense() {
-  showExportMenu.value = false
   confirmingExpenseDelete.value = null
   expenses.view.value = 'list'
   expenses.newExpense()
@@ -922,7 +1200,6 @@ async function onDeleteExpense(name) {
 }
 
 function onExport(format) {
-  showExportMenu.value = false
   if (format === 'json') void expenses.exportJson()
   else void expenses.exportCsv()
 }

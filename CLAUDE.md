@@ -259,3 +259,19 @@ Focused browser workflows passed for World Clock, Home saved items, GSTIN, PIN, 
 Run the full Playwright suite after the latest additions. Do not treat focused browser results as a full browser release check.
 
 The last tracker count was 183 complete items and 98 open items, or 65.1 percent complete.
+
+## Skill usage (always)
+
+Invoke the matching skill automatically. Do not wait to be asked.
+
+- Any Frappe work (DocType, controller, hook, whitelisted API, bench, scheduler
+  job, permissions, tests): use `frappe-app-dev` before writing code.
+- Any code edit: follow `code-style`. For Frappe code, `frappe-app-dev` takes
+  precedence.
+- UI, layout, or visual work: use `ui-design`.
+- Before finalizing any diff or PR: run `quality-code-review`.
+- Docs, commits, and PR text: write in the style of `technical-writing`. This
+  matches the Simplified Technical English already used in this guide.
+
+The global routing rules in `~/.claude/CLAUDE.md` also apply. This section repeats
+them inside the repository so any agent that works here sees the same rules.

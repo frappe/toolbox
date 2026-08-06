@@ -276,6 +276,39 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  const Alert = defineComponent({
+    name: 'Alert',
+    inheritAttrs: false,
+    props: {
+      title: { type: String, default: '' },
+      theme: { type: String, default: '' },
+      description: { type: String, default: '' },
+      dismissible: { type: Boolean, default: true },
+      modelValue: { type: Boolean, default: true },
+    },
+    setup(props, { attrs, slots }) {
+      return () =>
+        h('div', { ...attrs, role: 'alert', 'data-theme': props.theme || undefined }, [
+          props.title,
+          slots.description?.() ?? props.description,
+          slots.footer?.(),
+          slots.default?.(),
+        ])
+    },
+  })
+
+  // Renders the wrapped trigger (default slot); the tooltip text is exposed as an attr.
+  const Tooltip = defineComponent({
+    name: 'Tooltip',
+    inheritAttrs: false,
+    props: {
+      text: { type: String, default: '' },
+    },
+    setup(props, { attrs, slots }) {
+      return () => h('div', { ...attrs, 'data-tooltip': props.text }, slots.default?.())
+    },
+  })
+
   // Mirrors the observable surface of frappe-ui TabButtons (a reka radiogroup):
   // each option is a `[data-slot="tab-button"]` radio carrying `data-state` /
   // `aria-checked`, and a click emits that option's value.
@@ -315,6 +348,7 @@ vi.mock('frappe-ui', async () => {
   })
 
   return {
+    Alert,
     Badge,
     BottomSheet,
     Button,
@@ -327,6 +361,7 @@ vi.mock('frappe-ui', async () => {
     LoadingIndicator,
     TabButtons,
     TextInput,
+    Tooltip,
     frappeRequest: vi.fn(),
   }
 })

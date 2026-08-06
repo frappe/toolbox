@@ -28,16 +28,9 @@
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Start a packing list, a shopping run, or anything you want to check off. It saves as you go.</p>
       <div class="mt-5 flex flex-col items-center gap-2">
         <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
-        <div class="relative">
-          <Button variant="ghost" icon="lucide-copy-plus" label="Start from a template" aria-haspopup="menu" :aria-expanded="showTemplateMenu" @click="onOpenTemplates" />
-          <div v-if="showTemplateMenu" class="absolute left-1/2 z-10 mt-1 max-h-72 w-64 -translate-x-1/2 overflow-auto rounded-lg border border-outline-gray-2 bg-surface-base p-1 text-left shadow-lg" role="menu">
-            <button v-for="tpl in checklist.templates.value" :key="tpl.name" type="button" role="menuitem" class="flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onPickTemplate(tpl)">
-              <span class="min-w-0 truncate">{{ tpl.template_name }}</span>
-              <span class="shrink-0 text-xs text-ink-gray-5">{{ tpl.is_system ? 'System' : 'Personal' }}</span>
-            </button>
-            <p v-if="!checklist.templates.value.length" class="px-3 py-2 text-sm text-ink-gray-5">No templates available.</p>
-          </div>
-        </div>
+        <Dropdown :options="templateOptions" @update:open="onTemplateMenuToggle">
+          <Button variant="ghost" icon="lucide-copy-plus" label="Start from a template" />
+        </Dropdown>
       </div>
     </section>
 
@@ -46,27 +39,30 @@
       <aside class="min-w-0 flex-col gap-4" :class="checklist.activeChecklist.value ? 'hidden lg:flex' : 'flex'" aria-label="Your checklists">
         <div class="flex flex-col gap-2">
           <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
-          <div class="relative">
-            <Button class="w-full" variant="outline" icon="lucide-copy-plus" label="New from template" aria-haspopup="menu" :aria-expanded="showTemplateMenu" @click="onOpenTemplates" />
-            <div v-if="showTemplateMenu" class="absolute z-10 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-              <button v-for="tpl in checklist.templates.value" :key="tpl.name" type="button" role="menuitem" class="flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onPickTemplate(tpl)">
-                <span class="min-w-0 truncate">{{ tpl.template_name }}</span>
-                <span class="shrink-0 text-xs text-ink-gray-5">{{ tpl.is_system ? 'System' : 'Personal' }} · {{ tpl.item_count }}</span>
-              </button>
-              <p v-if="!checklist.templates.value.length" class="px-3 py-2 text-sm text-ink-gray-5">No templates available.</p>
-            </div>
-          </div>
+          <Dropdown class="w-full" :options="templateOptions" @update:open="onTemplateMenuToggle">
+            <Button class="w-full" variant="outline" icon="lucide-copy-plus" label="New from template" />
+          </Dropdown>
         </div>
 
-        <div class="relative">
-          <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
-          <input v-model="checklist.searchQuery.value" type="search" autocomplete="off" spellcheck="false" placeholder="Search checklists" aria-label="Search checklists" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base pl-9 pr-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-        </div>
+        <TextInput
+          type="search"
+          size="md"
+          placeholder="Search checklists"
+          aria-label="Search checklists"
+          spellcheck="false"
+          :model-value="checklist.searchQuery.value"
+          @update:model-value="checklist.searchQuery.value = $event"
+        >
+          <template #prefix>
+            <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
+          </template>
+        </TextInput>
 
-        <label class="flex items-center gap-2 text-sm text-ink-gray-7">
-          <input v-model="checklist.showArchived.value" type="checkbox" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-          Show archived
-        </label>
+        <Checkbox
+          label="Show archived"
+          :model-value="checklist.showArchived.value"
+          @update:model-value="checklist.showArchived.value = $event"
+        />
 
         <ul v-if="checklist.filteredChecklists.value.length" class="flex flex-col gap-1.5" aria-label="Checklist list">
           <li v-for="row in checklist.filteredChecklists.value" :key="row.name">
@@ -97,19 +93,40 @@
             <span class="flex-1 text-xs text-ink-gray-5" role="status" aria-live="polite">{{ saveStatus }}</span>
           </div>
 
-          <label for="checklist-title" class="sr-only">Checklist title</label>
-          <input id="checklist-title" :value="active.title" type="text" placeholder="Untitled checklist" class="mt-2 w-full rounded-lg border border-transparent bg-transparent px-1 text-xl font-semibold text-ink-gray-9 outline-none transition hover:border-outline-gray-2 focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="checklist.setTitle($event.target.value)" />
+          <TextInput
+            id="checklist-title"
+            size="lg"
+            variant="subtle"
+            class="mt-2"
+            placeholder="Untitled checklist"
+            aria-label="Checklist title"
+            :model-value="active.title"
+            @update:model-value="checklist.setTitle"
+          />
 
-          <label for="checklist-description" class="sr-only">Description</label>
-          <textarea id="checklist-description" :value="active.description" rows="2" placeholder="Add a description (optional)" class="mt-2 w-full resize-y rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-8 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="checklist.setDescription($event.target.value)" />
+          <FormControl
+            id="checklist-description"
+            type="textarea"
+            size="md"
+            class="mt-2"
+            :rows="2"
+            placeholder="Add a description (optional)"
+            aria-label="Description"
+            :model-value="active.description"
+            @update:model-value="checklist.setDescription"
+          />
 
           <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div class="flex flex-col gap-1.5">
-              <label for="checklist-due" class="text-sm font-medium text-ink-gray-7">Due date</label>
-              <input id="checklist-due" :value="active.due_date || ''" type="date" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="checklist.setDueDate($event.target.value)" />
-            </div>
+            <FormControl
+              id="checklist-due"
+              type="date"
+              size="md"
+              label="Due date"
+              :model-value="active.due_date || ''"
+              @update:model-value="checklist.setDueDate"
+            />
             <div class="min-w-0 flex-1">
-              <TagInput :model-value="active.tags" label="Tags" placeholder="Add a tag…" @update:model-value="checklist.setTags($event)" />
+              <TagInput variant="subtle" :model-value="active.tags" label="Tags" placeholder="Add a tag…" @update:model-value="checklist.setTags($event)" />
             </div>
           </div>
 
@@ -128,35 +145,51 @@
           <!-- Items -->
           <ul class="mt-4 flex flex-col gap-1.5">
             <li v-for="(item, index) in displayItems" :key="itemKey(item, index)" class="flex items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-base px-2 py-1.5">
-              <input type="checkbox" :checked="item.is_completed" :aria-label="`Mark ${item.item_text || 'item'} complete`" class="size-4 shrink-0 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="checklist.toggleItem(index)" />
-              <input :value="item.item_text" type="text" :aria-label="`Item ${index + 1}`" class="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none transition motion-reduce:transition-none" :class="item.is_completed ? 'text-ink-gray-5 line-through decoration-ink-gray-5' : 'text-ink-gray-9'" @input="checklist.updateItemText(index, $event.target.value)" />
+              <Checkbox
+                class="shrink-0"
+                :aria-label="`Mark ${item.item_text || 'item'} complete`"
+                :model-value="item.is_completed"
+                @update:model-value="() => checklist.toggleItem(index)"
+              />
+              <TextInput
+                variant="subtle"
+                size="sm"
+                class="min-w-0 flex-1"
+                :class="item.is_completed ? '[&_input]:text-ink-gray-5 [&_input]:line-through' : ''"
+                :aria-label="`Item ${index + 1}`"
+                :model-value="item.item_text"
+                @update:model-value="(value) => checklist.updateItemText(index, value)"
+              />
               <div class="flex shrink-0 items-center">
-                <button type="button" class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-3 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" aria-label="Move up" :disabled="index === 0" @click="checklist.moveItem(index, -1)">
-                  <Icon name="lucide-chevron-up" class="size-4" />
-                </button>
-                <button type="button" class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-3 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" aria-label="Move down" :disabled="index === displayItems.length - 1" @click="checklist.moveItem(index, 1)">
-                  <Icon name="lucide-chevron-down" class="size-4" />
-                </button>
-                <button type="button" class="flex size-8 items-center justify-center rounded text-ink-red-4 transition hover:bg-surface-red-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :aria-label="`Remove ${item.item_text || 'item'}`" @click="checklist.removeItem(index)">
-                  <Icon name="lucide-trash-2" class="size-4" />
-                </button>
+                <Button variant="ghost" icon="lucide-chevron-up" aria-label="Move up" :disabled="index === 0" @click="checklist.moveItem(index, -1)" />
+                <Button variant="ghost" icon="lucide-chevron-down" aria-label="Move down" :disabled="index === displayItems.length - 1" @click="checklist.moveItem(index, 1)" />
+                <Button variant="ghost" theme="red" icon="lucide-trash-2" :aria-label="`Remove ${item.item_text || 'item'}`" @click="checklist.removeItem(index)" />
               </div>
             </li>
           </ul>
 
           <!-- Add item -->
           <form class="mt-2 flex gap-2" @submit.prevent="onAddItem">
-            <label for="checklist-new-item" class="sr-only">Add an item</label>
-            <input id="checklist-new-item" ref="newItemInput" v-model="newItemText" type="text" autocomplete="off" placeholder="Add an item and press Enter" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+            <TextInput
+              id="checklist-new-item"
+              ref="newItemInput"
+              size="md"
+              class="min-w-0 flex-1"
+              placeholder="Add an item and press Enter"
+              aria-label="Add an item"
+              :model-value="newItemText"
+              @update:model-value="newItemText = $event"
+            />
             <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
           </form>
 
           <!-- Settings -->
           <div class="mt-5 border-t border-outline-gray-2 pt-4">
-            <label class="flex items-center gap-2 text-sm text-ink-gray-7">
-              <input type="checkbox" :checked="active.move_completed_to_bottom" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="checklist.setMoveCompletedToBottom($event.target.checked)" />
-              Move completed items to the bottom
-            </label>
+            <Checkbox
+              label="Move completed items to the bottom"
+              :model-value="active.move_completed_to_bottom"
+              @update:model-value="checklist.setMoveCompletedToBottom"
+            />
           </div>
 
           <!-- Actions -->
@@ -166,13 +199,9 @@
             <Button variant="outline" icon="lucide-copy" label="Duplicate" @click="checklist.duplicateActive" />
             <Button variant="outline" :icon="savedAsTemplate ? 'lucide-check' : 'lucide-bookmark'" :label="savedAsTemplate ? 'Saved as template' : 'Save as template'" @click="onSaveAsTemplate" />
 
-            <div class="relative">
-              <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
-              <div v-if="showExportMenu" class="absolute z-10 mt-1 w-40 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-                <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('markdown')">Markdown</button>
-                <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('json')">JSON</button>
-              </div>
-            </div>
+            <Dropdown :options="exportOptions">
+              <Button variant="outline" icon="lucide-download" label="Export" />
+            </Dropdown>
 
             <Button variant="ghost" icon="lucide-eraser" label="Clear completed" @click="checklist.clearCompleted" />
             <Button variant="ghost" icon="lucide-rotate-ccw" label="Reset all" @click="checklist.resetAll" />
@@ -187,7 +216,7 @@
             </div>
           </div>
 
-          <p v-if="checklist.saveError.value" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ checklist.saveError.value }}</p>
+          <ErrorMessage class="mt-4" :message="checklist.saveError.value" />
         </div>
       </section>
     </div>
@@ -196,7 +225,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button, Checkbox, Dropdown, ErrorMessage, FormControl, Icon, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TagInput from '@/components/inputs/TagInput.vue'
@@ -209,10 +238,26 @@ const checklist = useChecklists()
 
 const newItemText = ref('')
 const newItemInput = ref(null)
-const showExportMenu = ref(false)
 const confirmingDelete = ref(false)
-const showTemplateMenu = ref(false)
 const savedAsTemplate = ref(false)
+
+const exportOptions = [
+  { label: 'Markdown', onClick: () => onExport('markdown') },
+  { label: 'JSON', onClick: () => onExport('json') },
+]
+
+// The template picker (both call sites) reads the shared, lazily-loaded template list.
+const templateOptions = computed(() =>
+  checklist.templates.value.map((tpl) => ({
+    label: tpl.template_name,
+    onClick: () => onPickTemplate(tpl),
+  })),
+)
+
+// Load templates the first time either template menu opens, matching the old lazy fetch.
+function onTemplateMenuToggle(isOpen) {
+  if (isOpen && !checklist.templates.value.length) void checklist.loadTemplates()
+}
 
 // Convenience views over the active checklist so the template stays readable.
 const active = computed(() => checklist.activeChecklist.value)
@@ -240,19 +285,10 @@ function rowClass(row) {
 
 async function onCreate() {
   confirmingDelete.value = false
-  showTemplateMenu.value = false
   await checklist.createChecklist()
 }
 
-async function onOpenTemplates() {
-  showTemplateMenu.value = !showTemplateMenu.value
-  if (showTemplateMenu.value && !checklist.templates.value.length) {
-    await checklist.loadTemplates()
-  }
-}
-
 async function onPickTemplate(template) {
-  showTemplateMenu.value = false
   confirmingDelete.value = false
   await checklist.createFromTemplate(template.name)
 }
@@ -271,12 +307,11 @@ function onAddItem() {
   if (!value) return
   checklist.addItem(value)
   newItemText.value = ''
-  // Keep focus on the field so a run of items can be typed quickly.
-  void nextTick(() => newItemInput.value?.focus())
+  // Keep focus on the field so a run of items can be typed quickly (TextInput exposes `el`).
+  void nextTick(() => newItemInput.value?.el?.focus())
 }
 
 function onExport(format) {
-  showExportMenu.value = false
   if (format === 'markdown') checklist.exportMarkdown()
   else checklist.exportJson()
 }

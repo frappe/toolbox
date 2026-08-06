@@ -34,15 +34,25 @@
       <aside class="min-w-0 flex-col gap-4" :class="notes.activeNote.value ? 'hidden lg:flex' : 'flex'" aria-label="Your notes">
         <Button variant="solid" icon="lucide-plus" label="New note" @click="onCreate" />
 
-        <div class="relative">
-          <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
-          <input v-model="notes.searchQuery.value" type="search" autocomplete="off" spellcheck="false" placeholder="Search notes" aria-label="Search notes" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base pl-9 pr-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
-        </div>
+        <TextInput
+          type="search"
+          size="md"
+          placeholder="Search notes"
+          aria-label="Search notes"
+          spellcheck="false"
+          :model-value="notes.searchQuery.value"
+          @update:model-value="notes.searchQuery.value = $event"
+        >
+          <template #prefix>
+            <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
+          </template>
+        </TextInput>
 
-        <label class="flex items-center gap-2 text-sm text-ink-gray-7">
-          <input v-model="notes.showArchived.value" type="checkbox" class="size-4 rounded border-outline-gray-3 text-ink-gray-9 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-          Show archived
-        </label>
+        <Checkbox
+          label="Show archived"
+          :model-value="notes.showArchived.value"
+          @update:model-value="notes.showArchived.value = $event"
+        />
 
         <ul v-if="notes.filteredNotes.value.length" class="flex flex-col gap-1.5" aria-label="Note list">
           <li v-for="row in notes.filteredNotes.value" :key="row.name">
@@ -73,14 +83,20 @@
             <span class="flex-1 text-xs text-ink-gray-5" role="status" aria-live="polite">{{ saveStatus }}</span>
           </div>
 
-          <label for="note-title" class="sr-only">Note title</label>
-          <input id="note-title" :value="active.title" type="text" placeholder="Untitled note" class="mt-2 w-full rounded-lg border border-transparent bg-transparent px-1 text-xl font-semibold text-ink-gray-9 outline-none transition hover:border-outline-gray-2 focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" @input="notes.setTitle($event.target.value)" />
+          <TextInput
+            id="note-title"
+            size="lg"
+            variant="subtle"
+            class="mt-2"
+            placeholder="Untitled note"
+            aria-label="Note title"
+            :model-value="active.title"
+            @update:model-value="notes.setTitle"
+          />
 
           <!-- Editor -->
           <div class="mt-3">
-            <p id="note-editor-label" class="sr-only">Note content</p>
             <TextEditor
-              v-if="hasRichEditor"
               :key="active.name"
               :content="active.content_html"
               :fixed-menu="true"
@@ -90,20 +106,10 @@
               class="min-h-48 rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 focus-within:border-outline-gray-3 focus-within:ring-2 focus-within:ring-outline-gray-3"
               @change="notes.setContentHtml($event)"
             />
-            <div
-              v-else
-              ref="fallbackEditor"
-              contenteditable="true"
-              role="textbox"
-              aria-multiline="true"
-              aria-labelledby="note-editor-label"
-              class="prose prose-sm min-h-48 max-w-none rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-              @input="notes.setContentHtml($event.target.innerHTML)"
-            />
           </div>
 
           <div class="mt-3">
-            <TagInput :model-value="active.tags" label="Tags" placeholder="Add a tag…" @update:model-value="notes.setTags($event)" />
+            <TagInput variant="subtle" :model-value="active.tags" label="Tags" placeholder="Add a tag…" @update:model-value="notes.setTags($event)" />
           </div>
 
           <!-- Actions -->
@@ -112,13 +118,9 @@
             <Button variant="outline" :icon="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="notes.toggleArchive" />
             <Button variant="outline" icon="lucide-copy" label="Duplicate" @click="notes.duplicateActive" />
 
-            <div class="relative">
-              <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
-              <div v-if="showExportMenu" class="absolute z-10 mt-1 w-40 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-                <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('markdown')">Markdown</button>
-                <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @click="onExport('html')">HTML</button>
-              </div>
-            </div>
+            <Dropdown :options="exportOptions">
+              <Button variant="outline" icon="lucide-download" label="Export" />
+            </Dropdown>
 
             <div class="ml-auto">
               <Button v-if="!confirmingDelete" variant="ghost" icon="lucide-trash-2" label="Delete" @click="confirmingDelete = true" />
@@ -130,7 +132,7 @@
             </div>
           </div>
 
-          <p v-if="notes.saveError.value" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-4" role="alert">{{ notes.saveError.value }}</p>
+          <ErrorMessage class="mt-4" :message="notes.saveError.value" />
         </div>
       </section>
     </div>
@@ -138,9 +140,8 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import * as frappeUi from 'frappe-ui'
-import { Button, Icon } from 'frappe-ui'
+import { computed, onMounted, ref } from 'vue'
+import { Button, Checkbox, Dropdown, ErrorMessage, Icon, TextEditor, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TagInput from '@/components/inputs/TagInput.vue'
@@ -148,27 +149,15 @@ import { useNotes } from '@/tools/notes/useNotes'
 
 const TOOL_ID = 'notes'
 
-// Use frappe-ui's TipTap-based editor when the installed build exports it; otherwise fall back
-// to a plain contenteditable region bound to the sanitized HTML. The lookup is guarded so a
-// build (or a test mock) that omits the export falls back instead of throwing. The server
-// sanitizes every save, so either path stores safe content.
-const TextEditor = resolveTextEditor()
-const hasRichEditor = Boolean(TextEditor)
-
-function resolveTextEditor() {
-  try {
-    return frappeUi.TextEditor || null
-  } catch {
-    return null
-  }
-}
-
 const preferences = useToolboxPreferences()
 const notes = useNotes()
 
-const fallbackEditor = ref(null)
-const showExportMenu = ref(false)
 const confirmingDelete = ref(false)
+
+const exportOptions = [
+  { label: 'Markdown', onClick: () => onExport('markdown') },
+  { label: 'HTML', onClick: () => onExport('html') },
+]
 
 // Convenience views over the active note so the template stays readable.
 const active = computed(() => notes.activeNote.value)
@@ -178,18 +167,6 @@ const saveStatus = computed(() => {
   if (notes.saveError.value) return ''
   return notes.isSaving.value ? 'Saving…' : 'Saved'
 })
-
-// Seed the fallback editor's HTML only when the open note changes, never on every keystroke,
-// so the caret does not jump while typing. The rich editor manages its own content.
-watch(
-  activeName,
-  async () => {
-    if (hasRichEditor) return
-    await nextTick()
-    if (fallbackEditor.value) fallbackEditor.value.innerHTML = active.value?.content_html || ''
-  },
-  { immediate: true },
-)
 
 onMounted(() => {
   preferences.recordRecent(TOOL_ID)
@@ -210,7 +187,6 @@ async function onCreate() {
 }
 
 function onExport(format) {
-  showExportMenu.value = false
   if (format === 'markdown') notes.exportMarkdown()
   else notes.exportHtml()
 }

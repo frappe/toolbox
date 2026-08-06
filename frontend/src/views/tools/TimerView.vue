@@ -7,7 +7,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Timer, Stopwatch &amp; Countdown</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Keep time across pauses and refreshes, with no network connection.</p>
       </div>
-      <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite('timer') ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite('timer')" />
     </header>
 
     <SegmentedTabs v-model="activeTab" :tabs="tabs" aria-label="Timekeeping tool" class="mt-8" />

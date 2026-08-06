@@ -31,15 +31,9 @@ describe('FinancialCalculatorsView', () => {
     vi.clearAllMocks()
   })
 
-  it('tracks recent use and exposes the Favourite action', async () => {
-    const wrapper = mountView()
+  it('tracks recent use', () => {
+    mountView()
     expect(preferences.recordRecent).toHaveBeenCalledWith('financial-calculators')
-
-    await wrapper
-      .findAll('button')
-      .find((button) => button.text() === 'Favourite')
-      .trigger('click')
-    expect(preferences.toggleFavourite).toHaveBeenCalledWith('financial-calculators')
   })
 
   it('records a committed result and reuses its inputs from history', async () => {

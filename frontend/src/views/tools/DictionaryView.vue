@@ -7,7 +7,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Dictionary</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Look up English definitions from the openly licensed WordNet dataset.</p>
       </div>
-      <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <form class="pt-8" role="search" @submit.prevent="dict.submit">

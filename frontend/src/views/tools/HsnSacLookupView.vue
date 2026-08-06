@@ -9,7 +9,6 @@
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">HSN &amp; SAC Lookup</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Search Indian HSN (goods) and SAC (services) codes and descriptions.</p>
       </div>
-      <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite(TOOL_ID) ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite(TOOL_ID)" />
     </header>
 
     <div v-if="!hsn.available.value" class="mt-8 rounded-xl bg-surface-gray-1 px-5 py-8">

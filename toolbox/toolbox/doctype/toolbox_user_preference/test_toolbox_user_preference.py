@@ -42,7 +42,7 @@ class TestToolboxUserPreference(IntegrationTestCase):
 	def test_save_creates_and_updates_one_user_record(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		first = self._sample_preferences()
-		first["favouriteToolIds"] = ["calculator", "unit-converter"]
+		first["hiddenToolIds"] = ["calculator", "unit-converter"]
 
 		self.assertEqual(save_preferences(first), first)
 		doc = frappe.get_doc(DOCTYPE, TEST_USER_A)
@@ -85,12 +85,12 @@ class TestToolboxUserPreference(IntegrationTestCase):
 	def test_invalid_payloads_do_not_replace_valid_preferences(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		valid = self._sample_preferences()
-		valid["favouriteToolIds"] = ["calculator"]
+		valid["hiddenToolIds"] = ["calculator"]
 		save_preferences(valid)
 
 		invalid_payloads = [
 			self._with_value(valid, "version", 2),
-			self._with_value(valid, "favouriteToolIds", ["unknown-tool"]),
+			self._with_value(valid, "hiddenToolIds", ["unknown-tool"]),
 			self._with_value(valid, "recentToolIds", ["calculator"] * (MAX_RECENT_TOOLS + 1)),
 			self._with_nested_value(valid, "settings", "decimalPrecision", 3),
 			self._with_value(valid, "savedWeatherLocations", [{"__proto__": {"admin": True}}]),
@@ -108,7 +108,7 @@ class TestToolboxUserPreference(IntegrationTestCase):
 	def test_duplicate_entries_are_stored_once(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		preferences = self._sample_preferences()
-		preferences["favouriteToolIds"] = ["calculator", "calculator"]
+		preferences["hiddenToolIds"] = ["calculator", "calculator"]
 		preferences["savedCurrencyPairs"] = [
 			{"baseCurrency": "INR", "quoteCurrency": "USD"},
 			{"quoteCurrency": "USD", "baseCurrency": "INR"},
@@ -116,7 +116,7 @@ class TestToolboxUserPreference(IntegrationTestCase):
 
 		stored = save_preferences(preferences)
 
-		self.assertEqual(stored["favouriteToolIds"], ["calculator"])
+		self.assertEqual(stored["hiddenToolIds"], ["calculator"])
 		self.assertEqual(
 			stored["savedCurrencyPairs"], [{"baseCurrency": "INR", "quoteCurrency": "USD"}]
 		)
@@ -124,18 +124,18 @@ class TestToolboxUserPreference(IntegrationTestCase):
 	def test_operation_batch_merges_with_latest_preferences(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		initial = self._sample_preferences()
-		initial["favouriteToolIds"] = ["timer"]
+		initial["hiddenToolIds"] = ["timer"]
 		initial["recentToolIds"] = ["world-clock"]
 		save_preferences(initial)
 
 		updated = update_preferences(
 			self._operations(
-				{"type": "setFavourite", "toolId": "calculator", "isFavourite": True},
+				{"type": "setHidden", "toolId": "calculator", "isHidden": True},
 				{"type": "prependRecent", "toolId": "calculator"},
 			)
 		)
 
-		self.assertEqual(updated["favouriteToolIds"], ["timer", "calculator"])
+		self.assertEqual(updated["hiddenToolIds"], ["timer", "calculator"])
 		self.assertEqual(updated["recentToolIds"], ["calculator", "world-clock"])
 
 	def test_set_hidden_operation_toggles_sidebar_visibility(self) -> None:
@@ -172,18 +172,18 @@ class TestToolboxUserPreference(IntegrationTestCase):
 
 		update_preferences(
 			self._operations(
-				{"type": "setFavourite", "toolId": "calculator", "isFavourite": True},
+				{"type": "setHidden", "toolId": "calculator", "isHidden": True},
 				{"type": "prependRecent", "toolId": "calculator"},
 			)
 		)
 		updated = update_preferences(
 			self._operations(
-				{"type": "setFavourite", "toolId": "timer", "isFavourite": True},
+				{"type": "setHidden", "toolId": "timer", "isHidden": True},
 				{"type": "prependRecent", "toolId": "timer"},
 			)
 		)
 
-		self.assertEqual(updated["favouriteToolIds"], ["calculator", "timer"])
+		self.assertEqual(updated["hiddenToolIds"], ["calculator", "timer"])
 		self.assertEqual(updated["recentToolIds"], ["timer", "calculator"])
 
 	def test_two_stale_full_snapshot_clients_cannot_call_legacy_save(self) -> None:
@@ -193,11 +193,11 @@ class TestToolboxUserPreference(IntegrationTestCase):
 		second_stale_snapshot = get_preferences()
 		update_preferences(
 			self._operations(
-				{"type": "setFavourite", "toolId": "calculator", "isFavourite": True}
+				{"type": "setHidden", "toolId": "calculator", "isHidden": True}
 			)
 		)
-		first_stale_snapshot["favouriteToolIds"] = ["timer"]
-		second_stale_snapshot["favouriteToolIds"] = ["world-clock"]
+		first_stale_snapshot["hiddenToolIds"] = ["timer"]
+		second_stale_snapshot["hiddenToolIds"] = ["world-clock"]
 
 		previous_form_dict = frappe.form_dict
 		try:
@@ -207,7 +207,7 @@ class TestToolboxUserPreference(IntegrationTestCase):
 		finally:
 			frappe.form_dict = previous_form_dict
 
-		self.assertEqual(get_preferences()["favouriteToolIds"], ["calculator"])
+		self.assertEqual(get_preferences()["hiddenToolIds"], ["calculator"])
 
 	def test_clear_recent_is_explicit_and_ordered(self) -> None:
 		frappe.set_user(TEST_USER_A)
@@ -227,13 +227,11 @@ class TestToolboxUserPreference(IntegrationTestCase):
 	def test_invalid_operation_batch_does_not_replace_preferences(self) -> None:
 		frappe.set_user(TEST_USER_A)
 		valid = self._sample_preferences()
-		valid["favouriteToolIds"] = ["calculator"]
+		valid["hiddenToolIds"] = ["calculator"]
 		save_preferences(valid)
 
 		invalid_batches = [
 			{"version": 2, "operations": []},
-			self._operations({"type": "setFavourite", "toolId": "missing", "isFavourite": True}),
-			self._operations({"type": "setFavourite", "toolId": "timer", "isFavourite": "yes"}),
 			self._operations({"type": "setHidden", "toolId": "missing", "isHidden": True}),
 			self._operations({"type": "setHidden", "toolId": "timer", "isHidden": "yes"}),
 			self._operations({"type": "unknown"}),

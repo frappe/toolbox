@@ -3,7 +3,6 @@
     <header class="flex items-start gap-4">
       <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon name="lucide-badge-dollar-sign" class="size-6 text-ink-gray-7" /></span>
       <div class="min-w-0 flex-1"><p class="text-sm font-medium text-ink-gray-5">Convert</p><h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Currency Converter</h1><p class="pt-2 text-base leading-7 text-ink-gray-6">Convert locally with dated European Central Bank reference rates.</p></div>
-      <Button class="h-11" variant="subtle" icon="lucide-star" :label="preferences.isFavourite('currency-converter') ? 'Favourited' : 'Favourite'" @click="preferences.toggleFavourite('currency-converter')" />
     </header>
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">

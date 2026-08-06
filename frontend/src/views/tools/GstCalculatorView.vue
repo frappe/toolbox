@@ -13,13 +13,6 @@
           Add or remove GST and see the intra-state or inter-state tax split.
         </p>
       </div>
-      <Button
-        class="h-11"
-        variant="subtle"
-        icon="lucide-star"
-        :label="preferences.isFavourite('gst-calculator') ? 'Favourited' : 'Favourite'"
-        @click="preferences.toggleFavourite('gst-calculator')"
-      />
     </header>
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">

@@ -33,7 +33,7 @@ describe('toolbox preference synchronization', () => {
     const request = vi.fn().mockResolvedValue(remote)
 
     await initializeToolboxPreferences({ store, request })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
 
     expect(store.mode.value).toBe('frappe')
     expect(storage.setItem).not.toHaveBeenCalled()
@@ -41,11 +41,11 @@ describe('toolbox preference synchronization', () => {
 
   it('loads signed-in preferences from Frappe without migrating local data', async () => {
     const local = createDefaultPreferences()
-    local.favouriteToolIds = ['calculator']
+    local.hiddenToolIds = ['calculator']
     const storage = new MemoryStorage(JSON.stringify(local))
     const store = new ToolboxPreferencesStore(storage)
     const remote = createDefaultPreferences()
-    remote.favouriteToolIds = ['timer']
+    remote.hiddenToolIds = ['timer']
     const request = vi.fn().mockResolvedValue(remote)
 
     await initializeToolboxPreferences({
@@ -55,7 +55,7 @@ describe('toolbox preference synchronization', () => {
     })
 
     expect(store.mode.value).toBe('frappe')
-    expect(store.favouriteIds.value).toEqual(['timer'])
+    expect(store.hiddenIds.value).toEqual(['timer'])
     expect(storage.setItem).not.toHaveBeenCalled()
     expect(request).toHaveBeenCalledWith({
       url: expect.stringMatching(/\.get_preferences$/),
@@ -78,7 +78,7 @@ describe('toolbox preference synchronization', () => {
       request,
       session: { is_logged_in: true, user: 'person@example.com' },
     })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
     await store.flushRemoteSave()
 
     expect(request).toHaveBeenLastCalledWith({
@@ -87,7 +87,7 @@ describe('toolbox preference synchronization', () => {
       params: {
         payload: {
           version: 1,
-          operations: [{ type: 'setFavourite', toolId: 'calculator', isFavourite: true }],
+          operations: [{ type: 'setHidden', toolId: 'calculator', isHidden: true }],
         },
       },
     })
@@ -108,7 +108,7 @@ describe('toolbox preference synchronization', () => {
     expect(store.isReady.value).toBe(true)
     expect(store.syncError.value).toContain('could not be loaded')
 
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
     await expect(store.flushRemoteSave()).resolves.toBeNull()
     expect(request).toHaveBeenCalledTimes(1)
     expect(store.syncError.value).toContain('could not be loaded')
@@ -134,7 +134,7 @@ describe('toolbox preference synchronization', () => {
   it('merges queued array operations with remote data after the initial load failed', async () => {
     const store = new ToolboxPreferencesStore(new MemoryStorage())
     const remote = createDefaultPreferences()
-    remote.favouriteToolIds = ['timer']
+    remote.hiddenToolIds = ['timer']
     remote.recentToolIds = ['world-clock']
     remote.settings.defaultCurrency = 'USD'
     const request = vi
@@ -150,14 +150,14 @@ describe('toolbox preference synchronization', () => {
       request,
       session: { is_logged_in: true, user: 'person@example.com' },
     })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
     store.recordRecent('calculator')
     store.updateSetting('temperatureUnit', 'fahrenheit')
 
     await retryToolboxPreferenceSync()
     await store.flushRemoteSave()
 
-    expect(store.favouriteIds.value).toEqual(['timer', 'calculator'])
+    expect(store.hiddenIds.value).toEqual(['timer', 'calculator'])
     expect(store.recentToolIds.value).toEqual(['calculator', 'world-clock'])
     expect(store.settings.defaultCurrency).toBe('USD')
     expect(store.settings.temperatureUnit).toBe('fahrenheit')
@@ -170,7 +170,7 @@ describe('toolbox preference synchronization', () => {
         payload: {
           version: 1,
           operations: expect.arrayContaining([
-            { type: 'setFavourite', toolId: 'calculator', isFavourite: true },
+            { type: 'setHidden', toolId: 'calculator', isHidden: true },
             { type: 'prependRecent', toolId: 'calculator' },
             { type: 'setSetting', key: 'temperatureUnit', value: 'fahrenheit' },
           ]),
@@ -192,7 +192,7 @@ describe('toolbox preference synchronization', () => {
       request,
       session: { is_logged_in: true, user: 'person@example.com' },
     })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
     await expect(store.flushRemoteSave()).resolves.toBeNull()
 
     expect(store.syncError.value).toContain('could not be saved')
@@ -214,7 +214,7 @@ describe('toolbox preference synchronization', () => {
       request,
       session: { is_logged_in: true, user: 'person@example.com' },
     })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
     await store.flushRemoteSave()
     expect(store.syncError.value).toContain('could not be saved')
 
@@ -241,20 +241,20 @@ describe('toolbox preference synchronization', () => {
       session: { is_logged_in: true, user: 'person@example.com' },
       saveTimeoutMs: 5,
     })
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
 
     await expect(store.flushRemoteSave()).resolves.toBeNull()
 
     expect(store.isSaving.value).toBe(false)
     expect(store.remoteSavePromise).toBeNull()
     expect(store.pendingRemoteOperations).toEqual([
-      { type: 'setFavourite', toolId: 'calculator', isFavourite: true },
+      { type: 'setHidden', toolId: 'calculator', isHidden: true },
     ])
     expect(store.syncError.value).toContain('could not be saved')
 
     await retryToolboxPreferenceSync()
 
-    expect(store.favouriteIds.value).toEqual(['calculator'])
+    expect(store.hiddenIds.value).toEqual(['calculator'])
     expect(store.pendingRemoteOperations).toEqual([])
     expect(store.syncError.value).toBe('')
     expect(request).toHaveBeenCalledTimes(3)
@@ -341,18 +341,18 @@ describe('toolbox preference synchronization', () => {
         session: { is_logged_in: true, user: 'person@example.com' },
       }),
     ])
-    firstStore.toggleFavourite('calculator')
-    secondStore.toggleFavourite('timer')
+    firstStore.toggleHidden('calculator')
+    secondStore.toggleHidden('timer')
 
     await firstStore.flushRemoteSave()
     await secondStore.flushRemoteSave()
 
-    expect(serverPreferences.favouriteToolIds).toEqual(['calculator', 'timer'])
+    expect(serverPreferences.hiddenToolIds).toEqual(['calculator', 'timer'])
   })
 
-  it('preserves favourite order when a tool is removed and re-added before saving', async () => {
+  it('preserves hidden order when a tool is removed and re-added before saving', async () => {
     const remote = createDefaultPreferences()
-    remote.favouriteToolIds = ['calculator', 'timer']
+    remote.hiddenToolIds = ['calculator', 'timer']
     const store = new ToolboxPreferencesStore(new MemoryStorage())
     const request = vi
       .fn()
@@ -366,12 +366,12 @@ describe('toolbox preference synchronization', () => {
       request,
       session: { is_logged_in: true, user: 'person@example.com' },
     })
-    store.toggleFavourite('calculator')
-    store.toggleFavourite('calculator')
+    store.toggleHidden('calculator')
+    store.toggleHidden('calculator')
 
     await store.flushRemoteSave()
 
-    expect(store.favouriteIds.value).toEqual(['timer', 'calculator'])
+    expect(store.hiddenIds.value).toEqual(['timer', 'calculator'])
     expect(request).toHaveBeenLastCalledWith({
       url: expect.stringMatching(/\.update_preferences$/),
       method: 'POST',
@@ -379,8 +379,8 @@ describe('toolbox preference synchronization', () => {
         payload: {
           version: 1,
           operations: [
-            { type: 'setFavourite', toolId: 'calculator', isFavourite: false },
-            { type: 'setFavourite', toolId: 'calculator', isFavourite: true },
+            { type: 'setHidden', toolId: 'calculator', isHidden: false },
+            { type: 'setHidden', toolId: 'calculator', isHidden: true },
           ],
         },
       },
@@ -400,10 +400,10 @@ describe('toolbox preference synchronization', () => {
 function applyTestOperations(preferences, payload) {
   const updated = structuredClone(preferences)
   for (const operation of payload.operations) {
-    if (operation.type === 'setFavourite') {
-      updated.favouriteToolIds = operation.isFavourite
-        ? [...new Set([...updated.favouriteToolIds, operation.toolId])]
-        : updated.favouriteToolIds.filter((toolId) => toolId !== operation.toolId)
+    if (operation.type === 'setHidden') {
+      updated.hiddenToolIds = operation.isHidden
+        ? [...new Set([...updated.hiddenToolIds, operation.toolId])]
+        : updated.hiddenToolIds.filter((toolId) => toolId !== operation.toolId)
     } else if (operation.type === 'prependRecent') {
       updated.recentToolIds = [
         operation.toolId,

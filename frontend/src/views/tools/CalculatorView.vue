@@ -13,12 +13,6 @@
           Type a complete expression or use the standard and scientific keys.
         </p>
       </div>
-      <Button
-        variant="subtle"
-        icon="lucide-star"
-        :label="preferences.isFavourite('calculator') ? 'Favourited' : 'Favourite'"
-        @click="preferences.toggleFavourite('calculator')"
-      />
     </header>
 
     <div class="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">

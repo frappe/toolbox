@@ -69,7 +69,6 @@ DEFAULT_SETTINGS: dict[str, object] = {
 _PREFERENCE_FIELDS = frozenset(
 	{
 		"version",
-		"favouriteToolIds",
 		"recentToolIds",
 		"savedCurrencyPairs",
 		"savedWeatherLocations",
@@ -98,7 +97,6 @@ _MAX_NUMBER_MAGNITUDE = 1e15
 def default_preferences() -> dict[str, object]:
 	return {
 		"version": PREFERENCE_SCHEMA_VERSION,
-		"favouriteToolIds": [],
 		"hiddenToolIds": [],
 		"recentToolIds": [],
 		"savedCurrencyPairs": [],
@@ -123,9 +121,7 @@ def apply_preference_operations(
 
 	for operation in operations:
 		operation_type = operation["type"]
-		if operation_type == "setFavourite":
-			_apply_favourite_operation(updated, operation)
-		elif operation_type == "setHidden":
+		if operation_type == "setHidden":
 			_apply_hidden_operation(updated, operation)
 		elif operation_type == "prependRecent":
 			_apply_recent_operation(updated, operation)
@@ -185,7 +181,6 @@ def _recover_preferences(payload: dict[str, object]) -> dict[str, object]:
 				recovered["settings"][key] = settings[key]
 
 	for field, limit in (
-		("favouriteToolIds", len(TOOL_IDS)),
 		("hiddenToolIds", len(TOOL_IDS)),
 		("recentToolIds", MAX_RECENT_TOOLS),
 	):
@@ -222,9 +217,6 @@ class PreferenceValidator:
 
 		normalized = {
 			"version": PREFERENCE_SCHEMA_VERSION,
-			"favouriteToolIds": self._normalize_tool_ids(
-				payload["favouriteToolIds"], "favouriteToolIds", len(TOOL_IDS)
-			),
 			"hiddenToolIds": self._normalize_tool_ids(
 				payload.get("hiddenToolIds", []), "hiddenToolIds", len(TOOL_IDS)
 			),
@@ -360,12 +352,7 @@ def _validate_preference_operation(operation: object) -> dict[str, object]:
 		_invalid("Each preference operation must be an object with a type.")
 
 	operation_type = operation["type"]
-	if operation_type == "setFavourite":
-		_validate_operation_fields(operation, {"type", "toolId", "isFavourite"})
-		_validate_tool_id(operation["toolId"])
-		if type(operation["isFavourite"]) is not bool:
-			_invalid("setFavourite.isFavourite must be a boolean.")
-	elif operation_type == "setHidden":
+	if operation_type == "setHidden":
 		_validate_operation_fields(operation, {"type", "toolId", "isHidden"})
 		_validate_tool_id(operation["toolId"])
 		if type(operation["isHidden"]) is not bool:
@@ -401,17 +388,6 @@ def _validate_operation_fields(operation: dict[str, object], fields: set[str]) -
 def _validate_tool_id(tool_id: object) -> None:
 	if not isinstance(tool_id, str) or tool_id not in TOOL_IDS:
 		_invalid("A preference operation contains an unknown tool.")
-
-
-def _apply_favourite_operation(
-	preferences: dict[str, object], operation: dict[str, object]
-) -> None:
-	tool_id = operation["toolId"]
-	favourites = preferences["favouriteToolIds"]
-	if operation["isFavourite"] and tool_id not in favourites:
-		favourites.append(tool_id)
-	elif not operation["isFavourite"]:
-		preferences["favouriteToolIds"] = [item for item in favourites if item != tool_id]
 
 
 def _apply_hidden_operation(preferences: dict[str, object], operation: dict[str, object]) -> None:

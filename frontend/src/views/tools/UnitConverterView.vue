@@ -13,12 +13,6 @@
           Convert common measurements instantly. Everything works locally and offline.
         </p>
       </div>
-      <Button
-        variant="subtle"
-        icon="lucide-star"
-        :label="preferences.isFavourite('unit-converter') ? 'Favourited' : 'Favourite'"
-        @click="preferences.toggleFavourite('unit-converter')"
-      />
     </header>
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">

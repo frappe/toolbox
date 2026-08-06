@@ -51,17 +51,6 @@
         />
       </SidebarSection>
 
-      <SidebarSection v-if="favourites.length" label="Favourites" :collapsed="collapsed">
-        <NavigationItem
-          v-for="tool in favourites"
-          :key="tool.id"
-          :to="tool.route"
-          :icon="tool.icon"
-          :label="tool.name"
-          :collapsed="collapsed"
-          @navigate="$emit('navigate')"
-        />
-      </SidebarSection>
     </nav>
 
     <div class="mt-2 border-t border-outline-gray-2 pt-2">
@@ -120,7 +109,7 @@ import { Icon } from 'frappe-ui'
 
 import { usePwaStatus } from '@/composables/usePwaStatus'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { getToolsByCategory, toolCategories, tools, toolsById } from '@/data/toolRegistry'
+import { getToolsByCategory, toolCategories, tools } from '@/data/toolRegistry'
 import AppBrandMenu from './AppBrandMenu.vue'
 import NavigationItem from './NavigationItem.vue'
 import SidebarSection from './SidebarSection.vue'
@@ -143,11 +132,4 @@ const categoryGroups = computed(() =>
     }))
     .filter((category) => category.tools.length),
 )
-const favourites = computed(() =>
-  resolveTools(preferences.favouriteIds.value).filter((tool) => !preferences.isHidden(tool.id)),
-)
-
-function resolveTools(ids) {
-  return ids.map((id) => toolsById.get(id)).filter(Boolean)
-}
 </script>

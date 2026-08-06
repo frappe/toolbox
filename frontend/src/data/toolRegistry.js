@@ -217,6 +217,16 @@ export const tools = [
     offlineCapability: 'none',
     searchKeywords: ['audio', 'editor', 'trim', 'cut', 'fade', 'wav', 'convert', 'sound'],
   }),
+  defineTool({
+    id: 'tone-generator',
+    name: 'Tone Generator',
+    description: 'Play a precise pure tone for tuning, testing speakers, or a reference pitch.',
+    icon: 'lucide-audio-waveform',
+    category: 'media',
+    route: '/tone-generator',
+    offlineCapability: 'none',
+    searchKeywords: ['tone', 'frequency', 'hertz', 'pitch', 'tuning', 'sine', 'oscillator', 'sound', 'test'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

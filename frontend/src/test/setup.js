@@ -147,7 +147,7 @@ vi.mock('frappe-ui', async () => {
             ...attrs,
             type: 'checkbox',
             checked: props.modelValue,
-            'aria-label': props.label,
+            'aria-label': attrs['aria-label'] || props.label,
             onChange: (event) => emit('update:modelValue', event.target.checked),
           }),
           props.label,
@@ -176,37 +176,103 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // Mirrors frappe-ui FormControl: dispatches to the right control by `type`
+  // (select / textarea / checkbox / date / text-like). The visible label is
+  // exposed as `aria-label` so label-driven queries resolve without rendering
+  // the full labeling chrome.
   const FormControl = defineComponent({
     name: 'FormControl',
     inheritAttrs: false,
     props: {
       modelValue: { type: [String, Number, Boolean], default: '' },
       options: { type: Array, default: () => [] },
+      label: { type: String, default: '' },
       size: { type: String, default: '' },
       type: { type: String, default: 'text' },
     },
     emits: ['update:modelValue'],
     setup(props, { attrs, emit }) {
-      return () => {
-        const options = props.options.map((option) =>
-          typeof option === 'object' ? option : { label: String(option), value: option },
-        )
+      const ariaLabel = () => attrs['aria-label'] || props.label || undefined
 
-        return h(
-          'select',
-          {
-            ...attrs,
-            value: props.modelValue,
-            onChange: (event) => {
-              const selected = options[event.target.selectedIndex]
-              emit('update:modelValue', selected?.value)
+      return () => {
+        if (props.type === 'select') {
+          const options = props.options.map((option) =>
+            typeof option === 'object' ? option : { label: String(option), value: option },
+          )
+
+          return h(
+            'select',
+            {
+              ...attrs,
+              'aria-label': ariaLabel(),
+              value: props.modelValue,
+              onChange: (event) => {
+                const selected = options[event.target.selectedIndex]
+                emit('update:modelValue', selected?.value)
+              },
             },
-          },
-          options.map((option) =>
-            h('option', { key: String(option.value), value: option.value }, option.label),
-          ),
-        )
+            options.map((option) =>
+              h('option', { key: String(option.value), value: option.value }, option.label),
+            ),
+          )
+        }
+
+        if (props.type === 'textarea') {
+          return h('textarea', {
+            ...attrs,
+            'aria-label': ariaLabel(),
+            value: props.modelValue,
+            onInput: (event) => emit('update:modelValue', event.target.value),
+          })
+        }
+
+        if (props.type === 'checkbox') {
+          return h('input', {
+            ...attrs,
+            type: 'checkbox',
+            'aria-label': ariaLabel(),
+            checked: Boolean(props.modelValue),
+            onChange: (event) => emit('update:modelValue', event.target.checked),
+          })
+        }
+
+        // text, number, search, date, email, url — a plain input carrying `type`.
+        return h('input', {
+          ...attrs,
+          type: props.type,
+          'aria-label': ariaLabel(),
+          value: props.modelValue,
+          onInput: (event) => emit('update:modelValue', event.target.value),
+        })
       }
+    },
+  })
+
+  const ErrorMessage = defineComponent({
+    name: 'ErrorMessage',
+    inheritAttrs: false,
+    props: {
+      message: { type: [String, Object], default: '' },
+    },
+    setup(props, { attrs }) {
+      return () => {
+        if (!props.message) return null
+        const text = typeof props.message === 'string' ? props.message : props.message?.message || ''
+        return h('div', { ...attrs, role: 'alert' }, text)
+      }
+    },
+  })
+
+  // Renders its trigger (default/trigger slot) so a wrapping Button still shows.
+  // The menu options open on demand in the real component; tests only need the trigger.
+  const Dropdown = defineComponent({
+    name: 'Dropdown',
+    inheritAttrs: false,
+    props: {
+      options: { type: Array, default: () => [] },
+    },
+    setup(_, { attrs, slots }) {
+      return () => h('div', { ...attrs, 'data-component': 'Dropdown' }, slots.default?.() || slots.trigger?.())
     },
   })
 
@@ -254,6 +320,8 @@ vi.mock('frappe-ui', async () => {
     Button,
     Checkbox,
     Dialog,
+    Dropdown,
+    ErrorMessage,
     FormControl,
     Icon,
     LoadingIndicator,

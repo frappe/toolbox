@@ -94,10 +94,12 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Button, Icon } from 'frappe-ui'
+import { useRoute } from 'vue-router'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { getRecording } from '@/tools/audio-recorder/api'
 import { formatSize, useAudioLibrary } from '@/tools/audio-recorder/useAudioLibrary'
 import { useAudioEditor } from '@/tools/audio-editor/useAudioEditor'
 
@@ -106,6 +108,29 @@ const TOOL_ID = 'audio-editor'
 const preferences = useToolboxPreferences()
 const editor = useAudioEditor()
 const library = useAudioLibrary()
+const route = useRoute()
+
+// Opened from a saved recording via ?asset=<name>: fetch the private file and load it.
+onMounted(() => {
+  const assetName = route.query.asset
+  if (assetName) {
+    preferences.recordRecent(TOOL_ID)
+    void loadAsset(String(assetName))
+  }
+})
+
+async function loadAsset(name) {
+  try {
+    const asset = await getRecording(name)
+    const response = await fetch(asset.file)
+    if (!response.ok) throw new Error(`Fetch failed (${response.status})`)
+    const blob = await response.blob()
+    const extension = (asset.container_format || 'audio').replace('mp4', 'm4a')
+    await editor.load(new File([blob], `${asset.title || 'recording'}.${extension}`, { type: asset.mime || blob.type }))
+  } catch {
+    // Leave the editor in its empty state so the user can pick a file manually.
+  }
+}
 
 const waveformCanvas = ref(null)
 const previewUrl = ref('')

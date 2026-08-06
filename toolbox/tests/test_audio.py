@@ -11,6 +11,7 @@ from toolbox.audio import (
 	ASSET,
 	delete_recording,
 	detect_audio_format,
+	get_recording,
 	list_recordings,
 	save_recording,
 	update_recording,
@@ -81,6 +82,12 @@ class TestAudioLibrary(IntegrationTestCase):
 		with patch("toolbox.audio.MAX_AUDIO_BYTES", 8):
 			with self.assertRaises(frappe.ValidationError):
 				self._save()
+
+	def test_get_recording_returns_the_owned_asset(self):
+		saved = self._save(title="Fetch me")
+		fetched = get_recording(saved["name"])
+		self.assertEqual(fetched["title"], "Fetch me")
+		self.assertEqual(fetched["file"], saved["file"])
 
 	def test_saves_edited_output_from_the_editor(self):
 		saved = self._save(source_type="Edited", created_from_tool="editor")

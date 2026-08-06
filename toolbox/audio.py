@@ -119,6 +119,13 @@ def list_recordings() -> list[dict]:
 	return rows
 
 
+@frappe.whitelist()
+@frappe.read_only()
+def get_recording(name: str) -> dict:
+	"""Return a single owned recording (used to open it in the Audio Editor)."""
+	return _serialize(_owned(name))
+
+
 @frappe.whitelist(methods=["POST"])
 def update_recording(payload: str) -> dict:
 	"""Rename / re-categorise / re-tag a recording. The audio file itself is immutable here.

@@ -15,6 +15,11 @@ export function listRecordings(request = frappeRequest) {
   return request({ url: `${API_ROOT}.list_recordings`, method: 'GET' })
 }
 
+// Fetch one owned recording (used to open it in the Audio Editor).
+export function getRecording(name, request = frappeRequest) {
+  return request({ url: `${API_ROOT}.get_recording`, method: 'GET', params: { name } })
+}
+
 export function updateRecording(data, request = frappeRequest) {
   return request({
     url: `${API_ROOT}.update_recording`,

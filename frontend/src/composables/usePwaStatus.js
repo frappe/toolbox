@@ -19,7 +19,6 @@ export function usePwaStatus() {
     registrationFailed: readonly(registrationFailed),
     initialize,
     applyUpdate,
-    dismissUpdate,
   }
 }
 
@@ -49,10 +48,6 @@ async function initialize() {
 function applyUpdate() {
   if (!manager?.applyWaitingUpdate()) return
   updateApplying.value = true
-}
-
-function dismissUpdate() {
-  updateReady.value = false
 }
 
 function handleOnline() {

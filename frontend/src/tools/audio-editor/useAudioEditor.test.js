@@ -48,4 +48,13 @@ describe('useAudioEditor', () => {
     expect(blob.size).toBe(44 + 500 * 2) // header + 500 frames, mono, 16-bit
     expect(editor.outputDuration.value).toBeCloseTo(0.5)
   })
+
+  it('renders planar channels for non-WAV encoders', async () => {
+    const editor = useAudioEditor({ decode: vi.fn(async () => decoded) })
+    await editor.load(fakeFile())
+    editor.update({ trimStart: 0, trimEnd: 0.5 })
+    const planar = editor.renderPlanar()
+    expect(planar.sampleRate).toBe(1000)
+    expect(planar.channels[0].length).toBe(500)
+  })
 })

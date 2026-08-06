@@ -72,9 +72,26 @@
       <section class="mt-4 rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-6" aria-label="Preview and export">
         <div class="flex flex-wrap items-center gap-3">
           <Button variant="outline" icon-left="lucide-play" label="Preview edit" @click="buildPreview" />
-          <p class="text-sm text-ink-gray-6">Output: <span class="font-medium text-ink-gray-8 tabular-nums">{{ formatTime(editor.outputDuration.value) }}</span> · <span class="tabular-nums">{{ formatSize(estimatedSize) }}</span> WAV</p>
+          <p class="text-sm text-ink-gray-6">Output: <span class="font-medium text-ink-gray-8 tabular-nums">{{ formatTime(editor.outputDuration.value) }}</span> · <span class="tabular-nums">≈{{ formatSize(estimatedSize) }}</span> {{ formatLabel }}</p>
         </div>
         <audio v-if="previewUrl" :src="previewUrl" controls class="mt-3 w-full" />
+
+        <div v-if="opusAvailable" class="mt-4 grid gap-2 text-sm font-medium text-ink-gray-7">
+          <span>Export format</span>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Export format">
+            <button
+              v-for="option in FORMATS"
+              :key="option.id"
+              type="button"
+              class="h-9 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+              :class="exportFormat === option.id ? 'border-outline-gray-4 bg-surface-gray-3 text-ink-gray-9' : 'border-outline-gray-2 bg-surface-base text-ink-gray-7 hover:border-outline-gray-3'"
+              :aria-pressed="exportFormat === option.id"
+              @click="exportFormat = option.id"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
 
         <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
           <label class="grid flex-1 gap-1.5 text-sm font-medium text-ink-gray-7">
@@ -82,10 +99,11 @@
             <input v-model="saveTitle" type="text" placeholder="Name this clip" aria-label="Saved clip title" class="h-10 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
           </label>
           <div class="flex gap-2">
-            <Button variant="solid" icon-left="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" :disabled="editor.outputDuration.value <= 0" @click="onSave" />
-            <Button variant="subtle" icon-left="lucide-download" label="Download WAV" :disabled="editor.outputDuration.value <= 0" @click="onDownload" />
+            <Button variant="solid" icon-left="lucide-save" :label="library.isSaving.value || encoding ? 'Saving…' : 'Save'" :loading="library.isSaving.value || encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onSave" />
+            <Button variant="subtle" icon-left="lucide-download" :label="downloadLabel" :loading="encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onDownload" />
           </div>
         </div>
+        <p v-if="encoding" class="mt-3 text-sm text-ink-gray-6">Encoding to Opus… this runs in real time, so it takes about the length of the clip.</p>
         <p v-if="savedTitle" class="mt-3 flex items-center gap-2 rounded-lg bg-surface-green-1 px-3 py-2 text-sm text-ink-green-7" role="status"><Icon name="lucide-check" class="size-4" /> Saved “{{ savedTitle }}” to your Audio Recorder library.</p>
         <p v-if="library.saveError.value" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.saveError.value }}</p>
       </section>
@@ -102,8 +120,13 @@ import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { getRecording } from '@/tools/audio-recorder/api'
 import { formatSize, useAudioLibrary } from '@/tools/audio-recorder/useAudioLibrary'
 import { useAudioEditor } from '@/tools/audio-editor/useAudioEditor'
+import { canEncodeOpus, encodeOpus, OPUS_BITS_PER_SECOND } from '@/tools/audio-editor/webmEncode'
 
 const TOOL_ID = 'audio-editor'
+const FORMATS = [
+  { id: 'wav', label: 'WAV (lossless)' },
+  { id: 'webm', label: 'Compressed (Opus)' },
+]
 
 const preferences = useToolboxPreferences()
 const editor = useAudioEditor()
@@ -136,18 +159,33 @@ const waveformCanvas = ref(null)
 const previewUrl = ref('')
 const saveTitle = ref('')
 const savedTitle = ref('')
+const exportFormat = ref('wav')
+const encoding = ref(false)
+const opusAvailable = canEncodeOpus()
 
 const maxFade = computed(() => Math.max(0, editor.outputDuration.value))
 const gainLabel = computed(() => {
   const db = editor.project.value?.gainDb ?? 0
   return `${db > 0 ? '+' : ''}${db} dB`
 })
+const formatLabel = computed(() => (exportFormat.value === 'webm' ? 'WebM · Opus' : 'WAV'))
+const downloadLabel = computed(() => (encoding.value ? 'Encoding…' : exportFormat.value === 'webm' ? 'Download Opus' : 'Download WAV'))
 const estimatedSize = computed(() => {
   const source = editor.source.value
   if (!source) return 0
+  if (exportFormat.value === 'webm') return Math.round((editor.outputDuration.value * OPUS_BITS_PER_SECOND) / 8)
   const frames = Math.round(editor.outputDuration.value * source.sampleRate)
   return 44 + frames * source.channels.length * 2
 })
+
+// Render the current edit to the chosen format. WAV is instant; Opus encodes in real time.
+async function exportBlob() {
+  if (exportFormat.value === 'webm') {
+    const planar = editor.renderPlanar()
+    return planar ? encodeOpus(planar) : null
+  }
+  return editor.renderBlob()
+}
 
 // Redraw the waveform (and the highlighted region) whenever the audio or the trim changes.
 watch(
@@ -210,22 +248,36 @@ function buildPreview() {
   previewUrl.value = blob ? URL.createObjectURL(blob) : ''
 }
 
-function onDownload() {
-  const blob = editor.renderBlob()
-  if (!blob) return
-  const base = (saveTitle.value.trim() || editor.source.value.name || 'audio').replace(/\.[^.]+$/, '')
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${base}-edited.wav`
-  link.click()
-  URL.revokeObjectURL(url)
+async function onDownload() {
+  if (encoding.value) return
+  encoding.value = exportFormat.value === 'webm'
+  try {
+    const blob = await exportBlob()
+    if (!blob) return
+    const base = (saveTitle.value.trim() || editor.source.value.name || 'audio').replace(/\.[^.]+$/, '')
+    const extension = exportFormat.value === 'webm' ? 'webm' : 'wav'
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${base}-edited.${extension}`
+    link.click()
+    URL.revokeObjectURL(url)
+  } finally {
+    encoding.value = false
+  }
 }
 
 async function onSave() {
-  const blob = editor.renderBlob()
-  if (!blob) return
+  if (encoding.value) return
   savedTitle.value = ''
+  encoding.value = exportFormat.value === 'webm'
+  let blob
+  try {
+    blob = await exportBlob()
+  } finally {
+    encoding.value = false
+  }
+  if (!blob) return
   const saved = await library.saveBlob(blob, {
     title: saveTitle.value.trim() || (editor.source.value.name || 'Edited audio').replace(/\.[^.]+$/, ''),
     durationSeconds: editor.outputDuration.value,

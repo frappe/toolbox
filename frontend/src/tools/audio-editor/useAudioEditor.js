@@ -75,6 +75,12 @@ export function useAudioEditor({ decode = decodeArrayBuffer } = {}) {
     return new Blob([encodeWav(rendered)], { type: 'audio/wav' })
   }
 
+  // Render the current edit to planar channels (for encoders other than WAV, e.g. Opus).
+  function renderPlanar() {
+    if (!source.value || !project.value) return null
+    return renderEdit(source.value, project.value)
+  }
+
   function reset() {
     source.value = null
     project.value = null
@@ -105,6 +111,7 @@ export function useAudioEditor({ decode = decodeArrayBuffer } = {}) {
     undo,
     redo,
     renderBlob,
+    renderPlanar,
     reset,
   }
 }

@@ -227,6 +227,16 @@ export const tools = [
     offlineCapability: 'none',
     searchKeywords: ['tone', 'frequency', 'hertz', 'pitch', 'tuning', 'sine', 'oscillator', 'sound', 'test'],
   }),
+  defineTool({
+    id: 'metronome',
+    name: 'Metronome',
+    description: 'Keep time with an accurate click, with tap tempo and accented downbeats.',
+    icon: 'lucide-drum',
+    category: 'media',
+    route: '/metronome',
+    offlineCapability: 'none',
+    searchKeywords: ['metronome', 'tempo', 'bpm', 'beat', 'click', 'rhythm', 'practice', 'music'],
+  }),
 ]
 
 export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))

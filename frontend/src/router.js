@@ -24,6 +24,7 @@ const implementedToolViews = {
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),
   'audio-editor': () => import('@/views/tools/AudioEditorView.vue'),
   'tone-generator': () => import('@/views/tools/ToneGeneratorView.vue'),
+  metronome: () => import('@/views/tools/MetronomeView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

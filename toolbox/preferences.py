@@ -31,6 +31,7 @@ TOOL_IDS = frozenset(
 		"hsn-sac-lookup",
 		"india-business-lookup",
 		"library",
+		"metronome",
 		"notes",
 		"reminders",
 		"script-conversion",

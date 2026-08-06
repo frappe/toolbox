@@ -97,7 +97,7 @@ test('keeps Financial Calculators functional while offline', async ({ context, p
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.getByRole('tab', { name: 'CAGR' }).click()
+    await page.getByRole('radio', { name: 'CAGR' }).click()
     await page.getByRole('spinbutton', { name: 'Starting value' }).fill('100')
     await page.getByRole('spinbutton', { name: 'Ending value' }).fill('121')
     await page.getByRole('spinbutton', { name: 'Duration' }).fill('2')

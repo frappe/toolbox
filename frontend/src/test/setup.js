@@ -210,6 +210,44 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // Mirrors the observable surface of frappe-ui TabButtons (a reka radiogroup):
+  // each option is a `[data-slot="tab-button"]` radio carrying `data-state` /
+  // `aria-checked`, and a click emits that option's value.
+  const TabButtons = defineComponent({
+    name: 'TabButtons',
+    inheritAttrs: false,
+    props: {
+      options: { type: Array, default: () => [] },
+      modelValue: { type: [String, Number, Boolean], default: undefined },
+      size: { type: String, default: 'sm' },
+      type: { type: String, default: 'subtle' },
+    },
+    emits: ['update:modelValue'],
+    setup(props, { attrs, emit }) {
+      return () =>
+        h(
+          'div',
+          { ...attrs, role: 'radiogroup' },
+          props.options.map((option) => {
+            const checked = Object.is(option.value, props.modelValue)
+            return h(
+              'button',
+              {
+                key: String(option.value),
+                type: 'button',
+                role: 'radio',
+                'data-slot': 'tab-button',
+                'data-state': checked ? 'checked' : 'unchecked',
+                'aria-checked': checked ? 'true' : 'false',
+                onClick: () => emit('update:modelValue', option.value),
+              },
+              option.label,
+            )
+          }),
+        )
+    },
+  })
+
   return {
     Badge,
     BottomSheet,
@@ -219,6 +257,7 @@ vi.mock('frappe-ui', async () => {
     FormControl,
     Icon,
     LoadingIndicator,
+    TabButtons,
     TextInput,
     frappeRequest: vi.fn(),
   }

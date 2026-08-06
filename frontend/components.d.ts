@@ -19,7 +19,6 @@ declare module 'vue' {
     PwaStatus: typeof import('./src/components/pwa/PwaStatus.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SegmentedTabs: typeof import('./src/components/navigation/SegmentedTabs.vue')['default']
     SettingRow: typeof import('./src/components/settings/SettingRow.vue')['default']
     SidebarSection: typeof import('./src/components/navigation/SidebarSection.vue')['default']
     TagInput: typeof import('./src/components/inputs/TagInput.vue')['default']

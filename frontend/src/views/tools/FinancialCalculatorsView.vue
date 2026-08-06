@@ -15,20 +15,17 @@
       </div>
     </header>
 
-    <SegmentedTabs
-      :model-value="calculator.activeId.value"
-      :tabs="calculatorTabs"
-      aria-label="Financial calculator"
-      class="mt-8 flex max-w-full"
-      @update:model-value="calculator.selectCalculator"
-    />
+    <div class="mt-8 overflow-x-auto">
+      <TabButtons
+        :model-value="calculator.activeId.value"
+        :options="calculatorTabs"
+        size="md"
+        aria-label="Financial calculator"
+        @update:model-value="calculator.selectCalculator"
+      />
+    </div>
 
-    <div
-      :id="`${calculator.activeId.value}-panel`"
-      class="grid gap-8 pt-5 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start"
-      role="tabpanel"
-      :aria-labelledby="`${calculator.activeId.value}-tab`"
-    >
+    <div class="grid gap-8 pt-5 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section
         class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6"
         :aria-labelledby="`${calculator.activeId.value}-inputs-heading`"
@@ -111,10 +108,9 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import SegmentedTabs from '@/components/navigation/SegmentedTabs.vue'
 import ToolHistory from '@/components/history/ToolHistory.vue'
 import FinancialInput from '@/tools/financial-calculators/FinancialInput.vue'
 import FinancialResults from '@/tools/financial-calculators/FinancialResults.vue'
@@ -124,7 +120,7 @@ import { useFinancialCalculators } from '@/tools/financial-calculators/useFinanc
 const preferences = useToolboxPreferences()
 const calculator = useFinancialCalculators()
 const formatValue = computed(() => createFinancialFormatter(preferences.settings))
-const calculatorTabs = calculator.calculators.map((item) => ({ id: item.id, label: item.shortName }))
+const calculatorTabs = calculator.calculators.map((item) => ({ value: item.id, label: item.shortName }))
 const copiedHistoryId = ref('')
 
 onMounted(() => preferences.recordRecent('financial-calculators'))

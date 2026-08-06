@@ -22,8 +22,29 @@ function mountView() {
   return mount(FinancialCalculatorsView, { attachTo: document.body })
 }
 
+// TabButtons renders each tab as a `[data-slot="tab-button"]` pill labelled by
+// the calculator short name, so pick the tab by its visible label.
+const tabLabels = {
+  emi: 'EMI',
+  'compound-interest': 'Compound',
+  sip: 'SIP',
+  cagr: 'CAGR',
+  'projected-value': 'Projected',
+  'break-even': 'Break-even',
+}
+
 async function selectCalculator(wrapper, id) {
-  await wrapper.get(`[data-tab-id="${id}"]`).trigger('click')
+  const tab = wrapper
+    .findAll('[data-slot="tab-button"]')
+    .find((button) => button.text() === tabLabels[id])
+  await tab.trigger('click')
+}
+
+function activeTabLabel(wrapper) {
+  return wrapper
+    .findAll('[data-slot="tab-button"]')
+    .find((button) => button.attributes('data-state') === 'checked')
+    ?.text()
 }
 
 describe('FinancialCalculatorsView', () => {
@@ -48,11 +69,11 @@ describe('FinancialCalculatorsView', () => {
 
     // Move to a different calculator, then reuse the EMI row.
     await selectCalculator(wrapper, 'sip')
-    expect(wrapper.get('[data-tab-id="sip"]').attributes('aria-selected')).toBe('true')
+    expect(activeTabLabel(wrapper)).toBe('SIP')
     await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.get('[data-tab-id="emi"]').attributes('aria-selected')).toBe('true')
+    expect(activeTabLabel(wrapper)).toBe('EMI')
     expect(wrapper.get('#emi-principal').element.value).toBe('500000')
   })
 

@@ -11,9 +11,11 @@
       </div>
     </header>
 
-    <SegmentedTabs v-model="activeTab" :tabs="tabs" aria-label="Business lookup type" class="mt-8" />
+    <div class="mt-8 overflow-x-auto">
+      <TabButtons v-model="activeTab" :options="tabs" size="md" aria-label="Business lookup type" />
+    </div>
 
-    <section :id="`${activeTab}-panel`" class="pt-8" role="tabpanel" :aria-labelledby="`${activeTab}-tab`">
+    <section class="pt-8">
       <BusinessDatasetPanel :key="activeTab" :dataset-type="activeTab" :label="activeDataset.label" :metadata="datasetStatus?.[activeTab]" />
     </section>
   </div>
@@ -21,19 +23,18 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import SegmentedTabs from '@/components/navigation/SegmentedTabs.vue'
 import BusinessDatasetPanel from '@/tools/india-business-lookup/BusinessDatasetPanel.vue'
 import { fetchDatasetStatus } from '@/tools/india-business-lookup/api'
 
 const TOOL_ID = 'india-business-lookup'
-const tabs = [{ id: 'pin', label: 'PIN code' }, { id: 'ifsc', label: 'IFSC' }]
+const tabs = [{ value: 'pin', label: 'PIN code' }, { value: 'ifsc', label: 'IFSC' }]
 const preferences = useToolboxPreferences()
 const activeTab = ref('pin')
 const datasetStatus = ref(null)
-const activeDataset = computed(() => tabs.find((tab) => tab.id === activeTab.value))
+const activeDataset = computed(() => tabs.find((tab) => tab.value === activeTab.value))
 
 onMounted(async () => {
   preferences.recordRecent(TOOL_ID)

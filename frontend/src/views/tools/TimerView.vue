@@ -9,9 +9,11 @@
       </div>
     </header>
 
-    <SegmentedTabs v-model="activeTab" :tabs="tabs" aria-label="Timekeeping tool" class="mt-8" />
+    <div class="mt-8 overflow-x-auto">
+      <TabButtons v-model="activeTab" :options="tabs" size="md" aria-label="Timekeeping tool" />
+    </div>
 
-    <div :id="`${activeTab}-panel`" class="pt-5" role="tabpanel" :aria-labelledby="`${activeTab}-tab`">
+    <div class="pt-5">
       <section v-if="activeTab === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
@@ -55,14 +57,13 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button, Icon, TabButtons } from 'frappe-ui'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import SegmentedTabs from '@/components/navigation/SegmentedTabs.vue'
 import TimeDisplay from '@/tools/timer/TimeDisplay.vue'
 import { useTimerWorkspace } from '@/tools/timer/useTimerWorkspace'
 import { formatDuration } from '@/tools/timer/formatTime'
 
-const tabs = [{ id: 'timer', label: 'Timer' }, { id: 'stopwatch', label: 'Stopwatch' }, { id: 'countdown', label: 'Countdown' }]
+const tabs = [{ value: 'timer', label: 'Timer' }, { value: 'stopwatch', label: 'Stopwatch' }, { value: 'countdown', label: 'Countdown' }]
 const activeTab = ref('timer'), timerMinutes = ref('5'), timerLabel = ref(''), countdownMode = ref('duration'), countdownMinutes = ref('60'), countdownDate = ref(''), countdownError = ref('')
 const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
 const stopwatchElapsed = workspace.stopwatchElapsed

@@ -36,24 +36,31 @@ test('@smoke opens on the PIN tab and switches to IFSC', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'India Business Lookup', level: 1 })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: 'PIN code, office, district, or state' })).toBeVisible()
 
-  await page.getByRole('tab', { name: 'IFSC' }).click()
+  await page.getByRole('radio', { name: 'IFSC' }).click()
   await expect(page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' })).toBeVisible()
 })
 
 test('supports keyboard navigation across the PIN and IFSC tabs', async ({ page }) => {
   await mockStatus(page)
   await page.goto(route)
-  const pinTab = page.getByRole('tab', { name: 'PIN code' })
-  const ifscTab = page.getByRole('tab', { name: 'IFSC' })
+  const pinTab = page.getByRole('radio', { name: 'PIN code' })
+  const ifscTab = page.getByRole('radio', { name: 'IFSC' })
 
+  // TabButtons is a radiogroup: arrow keys move the roving focus, and Space
+  // activates the focused tab.
   await pinTab.focus()
   await pinTab.press('ArrowRight')
   await expect(ifscTab).toBeFocused()
-  await expect(ifscTab).toHaveAttribute('aria-selected', 'true')
+  await ifscTab.press(' ')
+  await expect(ifscTab).toHaveAttribute('aria-checked', 'true')
+  await expect(
+    page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' }),
+  ).toBeVisible()
 
-  await ifscTab.press('Home')
+  await ifscTab.press('ArrowLeft')
   await expect(pinTab).toBeFocused()
-  await expect(pinTab).toHaveAttribute('aria-selected', 'true')
+  await pinTab.press(' ')
+  await expect(pinTab).toHaveAttribute('aria-checked', 'true')
 })
 
 test('plots located PIN results on the offline India map', async ({ page }) => {
@@ -97,7 +104,7 @@ test('searches the IFSC release', async ({ page }) => {
   )
   await page.goto(route)
 
-  await page.getByRole('tab', { name: 'IFSC' }).click()
+  await page.getByRole('radio', { name: 'IFSC' }).click()
   await page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' }).fill('HDFC0000001')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
   await expect(page.getByRole('list', { name: 'Search results' })).toContainText('HDFC Bank — Fort')

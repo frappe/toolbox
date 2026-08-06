@@ -15,43 +15,90 @@
     <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5" aria-label="Save a link">
       <form class="flex flex-col gap-3" @submit.prevent="onSave()">
         <div class="flex flex-col gap-2 sm:flex-row">
-          <input v-model="library.form.value.url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a link (https://…)" aria-label="Link URL" class="h-10 min-w-0 flex-1 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none transition focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" />
+          <TextInput
+            type="url"
+            inputmode="url"
+            size="md"
+            class="min-w-0 flex-1"
+            placeholder="Paste a link (https://…)"
+            aria-label="Link URL"
+            spellcheck="false"
+            :model-value="library.form.value.url"
+            @update:model-value="library.form.value.url = $event"
+          />
           <div class="flex gap-2">
-            <Button variant="outline" icon="lucide-sparkles" label="Fetch" title="Fetch the page title and description" :loading="library.isFetchingMeta.value" @click="library.fetchMetadata()" />
+            <Tooltip text="Fetch the page title and description">
+              <Button variant="outline" icon="lucide-sparkles" label="Fetch" :loading="library.isFetchingMeta.value" @click="library.fetchMetadata()" />
+            </Tooltip>
             <Button variant="subtle" :label="showDetails ? 'Fewer details' : 'More details'" @click="showDetails = !showDetails" />
             <Button variant="solid" :label="library.editingName.value ? 'Update' : 'Save link'" :loading="library.isSaving.value" type="submit" />
           </div>
         </div>
 
         <div v-if="showDetails || library.editingName.value" class="grid gap-3 sm:grid-cols-2">
-          <input v-model="library.form.value.title" type="text" placeholder="Title (optional)" aria-label="Title" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-          <select v-model="library.form.value.status" aria-label="Status" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
-            <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
-          </select>
-          <input v-model="library.form.value.description" type="text" placeholder="Description (optional)" aria-label="Description" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-          <input v-model="library.form.value.collection" list="library-collections" type="text" placeholder="Collection (optional)" aria-label="Collection" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
+          <TextInput
+            size="md"
+            placeholder="Title (optional)"
+            aria-label="Title"
+            :model-value="library.form.value.title"
+            @update:model-value="library.form.value.title = $event"
+          />
+          <FormControl
+            type="select"
+            size="md"
+            aria-label="Status"
+            :options="statuses"
+            :model-value="library.form.value.status"
+            @update:model-value="library.form.value.status = $event"
+          />
+          <TextInput
+            size="md"
+            placeholder="Description (optional)"
+            aria-label="Description"
+            :model-value="library.form.value.description"
+            @update:model-value="library.form.value.description = $event"
+          />
+          <TextInput
+            size="md"
+            list="library-collections"
+            placeholder="Collection (optional)"
+            aria-label="Collection"
+            :model-value="library.form.value.collection"
+            @update:model-value="library.form.value.collection = $event"
+          />
           <datalist id="library-collections">
             <option v-for="c in library.collections.value" :key="c.name" :value="c.collection_name" />
           </datalist>
-          <textarea v-model="library.form.value.personal_note" rows="2" placeholder="Personal note (optional)" aria-label="Personal note" class="resize-y rounded-lg border border-outline-gray-2 bg-surface-base px-3 py-2 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3 sm:col-span-2" />
+          <FormControl
+            type="textarea"
+            size="md"
+            class="sm:col-span-2"
+            :rows="2"
+            placeholder="Personal note (optional)"
+            aria-label="Personal note"
+            :model-value="library.form.value.personal_note"
+            @update:model-value="library.form.value.personal_note = $event"
+          />
           <div class="sm:col-span-2">
-            <TagInput :model-value="library.form.value.tags" label="Tags" @update:model-value="library.form.value.tags = $event" />
+            <TagInput variant="subtle" :model-value="library.form.value.tags" label="Tags" @update:model-value="library.form.value.tags = $event" />
           </div>
           <div v-if="library.editingName.value" class="sm:col-span-2">
             <Button variant="ghost" label="Cancel edit" @click="library.closeForm" />
           </div>
         </div>
 
-        <p v-if="library.formError.value" class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.formError.value }}</p>
+        <ErrorMessage :message="library.formError.value" />
 
-        <p v-if="library.metaNotice.value" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm text-ink-gray-7" role="status" aria-live="polite">{{ library.metaNotice.value }}</p>
+        <Alert v-if="library.metaNotice.value" :dismissible="false" :title="library.metaNotice.value" />
 
-        <div v-if="library.duplicateHint.value" class="flex flex-wrap items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-amber-1 px-3 py-2 text-sm text-ink-gray-8" role="status">
-          <Icon name="lucide-copy" class="size-4 shrink-0 text-ink-gray-6" />
-          <span class="min-w-0 flex-1">You already saved this link.</span>
-          <Button variant="subtle" label="Open existing" @click="library.openExistingDuplicate" />
-          <Button variant="ghost" label="Save anyway" @click="onSave({ allowDuplicate: true })" />
-        </div>
+        <Alert v-if="library.duplicateHint.value" theme="yellow" :dismissible="false" title="You already saved this link.">
+          <template #footer>
+            <div class="col-span-full flex flex-wrap gap-2 pt-1">
+              <Button variant="subtle" label="Open existing" @click="library.openExistingDuplicate" />
+              <Button variant="ghost" label="Save anyway" @click="onSave({ allowDuplicate: true })" />
+            </div>
+          </template>
+        </Alert>
       </form>
     </section>
 
@@ -69,32 +116,45 @@
 
     <template v-else>
       <!-- Filters -->
-      <div class="mt-8 flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter by status">
-        <button v-for="tab in statusTabs" :key="tab" type="button" role="tab" :aria-selected="library.activeStatus.value === tab" class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition motion-reduce:transition-none" :class="tabClass(tab)" @click="library.activeStatus.value = tab">
-          {{ tab }}
-          <span class="tabular-nums text-xs text-ink-gray-5">{{ library.statusCounts.value[tab] ?? 0 }}</span>
-        </button>
+      <div class="mt-8 overflow-x-auto">
+        <TabButtons
+          :options="statusTabOptions"
+          :model-value="library.activeStatus.value"
+          size="md"
+          aria-label="Filter by status"
+          @update:model-value="library.activeStatus.value = $event"
+        />
       </div>
 
       <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div class="relative min-w-0 flex-1">
-          <Icon name="lucide-search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-gray-5" />
-          <input v-model="library.searchQuery.value" type="search" autocomplete="off" placeholder="Search links" aria-label="Search links" class="h-10 w-full rounded-lg border border-outline-gray-2 bg-surface-base pl-9 pr-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-        </div>
-        <select v-model="library.sortBy.value" aria-label="Sort links" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
-          <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-        </select>
+        <TextInput
+          type="search"
+          size="md"
+          class="min-w-0 flex-1"
+          placeholder="Search links"
+          aria-label="Search links"
+          :model-value="library.searchQuery.value"
+          @update:model-value="library.searchQuery.value = $event"
+        >
+          <template #prefix>
+            <Icon name="lucide-search" class="size-4 text-ink-gray-5" />
+          </template>
+        </TextInput>
+        <FormControl
+          type="select"
+          size="md"
+          aria-label="Sort links"
+          :options="sortOptions"
+          :model-value="library.sortBy.value"
+          @update:model-value="library.sortBy.value = $event"
+        />
         <div class="flex gap-2">
           <label class="sr-only" for="library-import">Import bookmarks</label>
           <input id="library-import" ref="importInput" type="file" accept=".json,.html,.htm" class="hidden" @change="onImportFile" />
           <Button variant="outline" icon="lucide-upload" label="Import" @click="importInput?.click()" />
-          <div class="relative">
-            <Button variant="outline" icon="lucide-download" label="Export" aria-haspopup="menu" :aria-expanded="showExportMenu" @click="showExportMenu = !showExportMenu" />
-            <div v-if="showExportMenu" class="absolute right-0 z-10 mt-1 w-32 rounded-lg border border-outline-gray-2 bg-surface-base p-1 shadow-lg" role="menu">
-              <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2" @click="onExport('json')">JSON</button>
-              <button type="button" role="menuitem" class="w-full rounded px-3 py-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2" @click="onExport('csv')">CSV</button>
-            </div>
-          </div>
+          <Dropdown :options="exportOptions">
+            <Button variant="outline" icon="lucide-download" label="Export" />
+          </Dropdown>
         </div>
       </div>
 
@@ -106,36 +166,42 @@
           <Button variant="ghost" label="Cancel" @click="library.cancelImport" />
         </div>
       </div>
-      <p v-if="library.importError.value" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.importError.value }}</p>
-      <p v-if="library.importResult.value" class="mt-3 rounded-lg bg-surface-green-1 px-3 py-2 text-sm text-ink-green-7" role="status">Imported {{ library.importResult.value.imported }} · skipped {{ library.importResult.value.skipped }}<span v-if="library.importResult.value.failed"> · failed {{ library.importResult.value.failed }}</span>.</p>
+      <ErrorMessage class="mt-3" :message="library.importError.value" />
+      <Alert v-if="library.importResult.value" class="mt-3" theme="green" :dismissible="false" :title="importResultText" />
 
       <!-- List -->
       <section v-if="library.filteredLinks.value.length" class="mt-4 flex flex-col gap-2" aria-label="Saved links">
         <article v-for="link in library.filteredLinks.value" :key="link.name" class="flex items-start gap-3 rounded-xl border border-outline-gray-2 bg-surface-base p-3">
-          <button type="button" class="mt-0.5 shrink-0 rounded p-1 transition hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :aria-label="link.is_favourite ? `Unfavourite ${labelOf(link)}` : `Favourite ${labelOf(link)}`" @click="library.toggleFavourite(link.name)">
-            <Icon :name="link.is_favourite ? 'lucide-star' : 'lucide-star'" class="size-4" :class="link.is_favourite ? 'fill-ink-amber-3 text-ink-amber-4' : 'text-ink-gray-4'" />
-          </button>
+          <Button
+            variant="ghost"
+            class="mt-0.5 shrink-0"
+            :aria-label="link.is_favourite ? `Unfavourite ${labelOf(link)}` : `Favourite ${labelOf(link)}`"
+            @click="library.toggleFavourite(link.name)"
+          >
+            <Icon name="lucide-star" class="size-4" :class="link.is_favourite ? 'fill-ink-amber-3 text-ink-amber-4' : 'text-ink-gray-4'" />
+          </Button>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <component :is="safeHref(link.url) ? 'a' : 'span'" v-bind="linkAttrs(link)" class="truncate text-sm font-medium text-ink-gray-9 hover:underline">{{ labelOf(link) }}</component>
-              <span class="shrink-0 rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs text-ink-gray-6">{{ link.status }}</span>
+              <Badge class="shrink-0" theme="gray" variant="subtle" size="sm" :label="link.status" />
             </div>
             <p class="truncate text-xs text-ink-gray-5">{{ link.domain || link.url }}</p>
             <div v-if="link.tags?.length || link.collection" class="mt-1 flex flex-wrap items-center gap-1">
-              <span v-if="link.collection" class="rounded bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-6">{{ link.collection }}</span>
-              <span v-for="tag in link.tags" :key="tag" class="rounded bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-6">#{{ tag }}</span>
+              <Badge v-if="link.collection" theme="gray" variant="subtle" size="sm" :label="link.collection" />
+              <Badge v-for="tag in link.tags" :key="tag" theme="gray" variant="subtle" size="sm" :label="`#${tag}`" />
             </div>
           </div>
-          <div class="flex shrink-0 items-center">
-            <select :value="link.status" :aria-label="`Status for ${labelOf(link)}`" class="h-8 rounded-lg border border-outline-gray-2 bg-surface-base px-2 text-xs text-ink-gray-8 outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="library.changeStatus(link.name, $event.target.value)">
-              <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
-            </select>
-            <button type="button" class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :aria-label="`Edit ${labelOf(link)}`" @click="onEdit(link)">
-              <Icon name="lucide-pencil" class="size-4" />
-            </button>
-            <button type="button" class="flex size-8 items-center justify-center rounded text-ink-red-4 transition hover:bg-surface-red-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 motion-reduce:transition-none" :aria-label="`Delete ${labelOf(link)}`" @click="library.removeLink(link.name)">
-              <Icon name="lucide-trash-2" class="size-4" />
-            </button>
+          <div class="flex shrink-0 items-center gap-0.5">
+            <FormControl
+              type="select"
+              size="sm"
+              :aria-label="`Status for ${labelOf(link)}`"
+              :options="statuses"
+              :model-value="link.status"
+              @update:model-value="library.changeStatus(link.name, $event)"
+            />
+            <Button variant="ghost" icon="lucide-pencil" :aria-label="`Edit ${labelOf(link)}`" @click="onEdit(link)" />
+            <Button variant="ghost" theme="red" icon="lucide-trash-2" :aria-label="`Delete ${labelOf(link)}`" @click="library.removeLink(link.name)" />
           </div>
         </article>
       </section>
@@ -150,8 +216,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { computed, onMounted, ref } from 'vue'
+import { Alert, Badge, Button, Dropdown, ErrorMessage, FormControl, Icon, TabButtons, TextInput, Tooltip } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TagInput from '@/components/inputs/TagInput.vue'
@@ -162,12 +228,27 @@ const TOOL_ID = 'library'
 const preferences = useToolboxPreferences()
 const library = useLibrary()
 
-const statusTabs = STATUS_TABS
 const statuses = STATUSES
 const sortOptions = SORT_OPTIONS
 
+// Tab labels carry their live count as a suffix (TabButtons has no per-tab count slot).
+const statusTabOptions = computed(() =>
+  STATUS_TABS.map((tab) => ({ label: `${tab} ${library.statusCounts.value[tab] ?? 0}`, value: tab })),
+)
+
+const exportOptions = [
+  { label: 'JSON', onClick: () => onExport('json') },
+  { label: 'CSV', onClick: () => onExport('csv') },
+]
+
+const importResultText = computed(() => {
+  const result = library.importResult.value
+  if (!result) return ''
+  const failed = result.failed ? ` · failed ${result.failed}` : ''
+  return `Imported ${result.imported} · skipped ${result.skipped}${failed}.`
+})
+
 const showDetails = ref(false)
-const showExportMenu = ref(false)
 const importInput = ref(null)
 
 onMounted(() => {
@@ -194,14 +275,7 @@ function onEdit(link) {
   showDetails.value = true
 }
 
-function tabClass(tab) {
-  return library.activeStatus.value === tab
-    ? 'border-outline-gray-3 bg-surface-gray-2 text-ink-gray-9'
-    : 'border-outline-gray-2 bg-surface-base text-ink-gray-7 hover:bg-surface-gray-1'
-}
-
 function onExport(format) {
-  showExportMenu.value = false
   if (format === 'json') void library.exportJson()
   else void library.exportCsv()
 }

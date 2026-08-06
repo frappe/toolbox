@@ -121,6 +121,7 @@
           </div>
           <div class="flex shrink-0 items-center gap-1.5">
             <Button variant="ghost" icon="lucide-pencil" aria-label="Edit recording" @click="startEdit(rec)" />
+            <Button variant="ghost" icon="lucide-audio-lines" :aria-label="`Open ${rec.title} in the Audio Editor`" @click="openInEditor(rec)" />
             <a :href="rec.file" download class="flex size-8 items-center justify-center rounded text-ink-gray-6 transition hover:bg-surface-gray-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3" :aria-label="`Download ${rec.title}`"><Icon name="lucide-download" class="size-4" /></a>
             <template v-if="confirmingDelete === rec.name">
               <span class="text-xs text-ink-gray-7">Delete?</span>
@@ -139,6 +140,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Button, Icon } from 'frappe-ui'
+import { useRouter } from 'vue-router'
 
 import TagInput from '@/components/inputs/TagInput.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
@@ -151,6 +153,11 @@ const TOOL_ID = 'audio-recorder'
 const preferences = useToolboxPreferences()
 const recorder = useAudioRecorder()
 const library = useAudioLibrary()
+const router = useRouter()
+
+function openInEditor(rec) {
+  router.push({ path: '/audio-editor', query: { asset: rec.name } })
+}
 
 const selectedDeviceId = ref('')
 const selectedPresetId = ref(DEFAULT_PRESET_ID)

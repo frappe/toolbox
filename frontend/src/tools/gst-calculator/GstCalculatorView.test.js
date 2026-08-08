@@ -22,6 +22,11 @@ function buttonByText(wrapper, label) {
   return wrapper.findAll('button').find((button) => button.text() === label)
 }
 
+// Mode, place of supply and GST rate are all frappe-ui TabButtons (a radiogroup).
+function tab(wrapper, label) {
+  return wrapper.findAll('[role="radio"]').find((option) => option.text() === label)
+}
+
 describe('GstCalculatorView', () => {
   beforeEach(() => {
     globalThis.history.replaceState({}, '', '/toolbox/gst-calculator')
@@ -46,8 +51,8 @@ describe('GstCalculatorView', () => {
 
   it('switches to remove-mode inter-state results', async () => {
     const wrapper = mountView()
-    await wrapper.get('[data-mode="remove"]').trigger('click')
-    await wrapper.get('[data-supply-type="inter-state"]').trigger('click')
+    await tab(wrapper, 'Remove GST').trigger('click')
+    await tab(wrapper, 'Inter-state · IGST').trigger('click')
     await wrapper.get('#gst-amount').setValue('1180')
 
     expect(wrapper.get('label[for="gst-amount"]').text()).toBe('GST-inclusive amount')
@@ -58,10 +63,10 @@ describe('GstCalculatorView', () => {
   it('uses standard and custom rate controls', async () => {
     const wrapper = mountView()
     await wrapper.get('#gst-amount').setValue('2000')
-    await wrapper.get('[data-rate-id="five"]').trigger('click')
+    await tab(wrapper, '5%').trigger('click')
     expect(wrapper.text()).toContain('₹100.00')
 
-    await wrapper.get('[data-rate-id="custom"]').trigger('click')
+    await tab(wrapper, 'Custom').trigger('click')
     expect(wrapper.get('#custom-gst-rate').attributes('aria-describedby')).toBe('gst-feedback')
     await wrapper.get('#custom-gst-rate').setValue('7.5')
     expect(wrapper.text()).toContain('₹150.00')
@@ -75,7 +80,7 @@ describe('GstCalculatorView', () => {
 
     const invalidWrapper = mountView('?rate=18%25%20extra')
     expect(invalidWrapper.text()).not.toContain('Rate supplied by HSN lookup.')
-    expect(invalidWrapper.get('[data-rate-id="eighteen"]').attributes('aria-pressed')).toBe('true')
+    expect(tab(invalidWrapper, '18%').attributes('aria-checked')).toBe('true')
   })
 
   it('clears stale results and exposes validation errors', async () => {
@@ -110,16 +115,20 @@ describe('GstCalculatorView', () => {
     expect(wrapper.get('[data-testid="gst-copy-status"]').text()).toBe('GST summary copied.')
   })
 
-  it('clears the amount while keeping the mode and rate, and keeps controls touch-sized', async () => {
+  it('clears the amount while keeping the mode and rate', async () => {
     const wrapper = mountView()
-    await wrapper.get('[data-mode="remove"]').trigger('click')
-    await wrapper.get('[data-rate-id="five"]').trigger('click')
+    await tab(wrapper, 'Remove GST').trigger('click')
+    await tab(wrapper, '5%').trigger('click')
     await wrapper.get('#gst-amount').setValue('105')
     await buttonByText(wrapper, 'Clear').trigger('click')
     expect(wrapper.get('#gst-amount').element.value).toBe('')
     // A single Clear empties the amount but keeps the mode and rate selections.
-    expect(wrapper.get('[data-mode="remove"]').attributes('aria-pressed')).toBe('true')
-    expect(wrapper.get('[data-rate-id="five"]').attributes('aria-pressed')).toBe('true')
-    expect(wrapper.findAll('button.h-11').length).toBeGreaterThan(10)
+    expect(tab(wrapper, 'Remove GST').attributes('aria-checked')).toBe('true')
+    expect(tab(wrapper, '5%').attributes('aria-checked')).toBe('true')
+    // Mode, place of supply and rate are TabButtons, so their height comes from
+    // the design system's pill size rather than a local h-11 (same trade-off as
+    // the tab strips migrated in #103). The action buttons keep theirs.
+    expect(wrapper.findAll('[role="radio"]').length).toBe(12)
+    expect(wrapper.findAll('button.h-11').length).toBeGreaterThan(0)
   })
 })

@@ -117,7 +117,7 @@ test('keeps Health Calculators functional while offline', async ({ context, page
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.getByRole('button', { name: 'Pace' }).click()
+    await page.getByRole('radio', { name: 'Pace' }).click()
     await page.locator('#pace-duration').fill('25:00')
     await expect(page.getByRole('status', { name: 'Primary health result' })).toHaveText('05:00 per km')
   } finally {

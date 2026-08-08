@@ -24,68 +24,48 @@
 
         <fieldset>
           <legend class="text-sm font-medium text-ink-gray-7">Calculation</legend>
-          <div class="grid grid-cols-2 gap-2 pt-2">
-            <Button
-              class="h-11"
-              label="Add GST"
-              :variant="calculator.mode.value === GST_MODES.ADD ? 'solid' : 'outline'"
-              :aria-pressed="calculator.mode.value === GST_MODES.ADD"
-              data-mode="add"
-              @click="calculator.setMode(GST_MODES.ADD)"
-            />
-            <Button
-              class="h-11"
-              label="Remove GST"
-              :variant="calculator.mode.value === GST_MODES.REMOVE ? 'solid' : 'outline'"
-              :aria-pressed="calculator.mode.value === GST_MODES.REMOVE"
-              data-mode="remove"
-              @click="calculator.setMode(GST_MODES.REMOVE)"
+          <div class="overflow-x-auto pt-2">
+            <TabButtons
+              :model-value="calculator.mode.value"
+              :options="modeTabs"
+              size="md"
+              aria-label="Calculation"
+              @update:model-value="calculator.setMode"
             />
           </div>
         </fieldset>
 
         <div class="pt-6">
-          <label for="gst-amount" class="block text-sm font-medium text-ink-gray-7">
-            {{ calculator.amountLabel.value }}
-          </label>
-          <div class="relative mt-2">
-            <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base text-ink-gray-5">
-              ₹
-            </span>
-            <input
-              id="gst-amount"
-              :value="calculator.amountInput.value"
-              type="text"
-              inputmode="decimal"
-              autocomplete="off"
-              class="h-12 w-full rounded-xl border border-outline-gray-2 bg-surface-base pl-9 pr-4 text-xl font-medium tabular-nums text-ink-gray-9 outline-none placeholder:text-ink-gray-3 focus:ring-2 focus:ring-outline-gray-3"
-              placeholder="0.00"
-              aria-describedby="gst-feedback"
-              :aria-invalid="Boolean(calculator.errorMessage.value) || undefined"
-              @input="calculator.updateAmount($event.target.value)"
-              @change="calculator.recordHistory()"
-            />
-          </div>
+          <FormControl
+            id="gst-amount"
+            type="text"
+            size="lg"
+            variant="outline"
+            class="[&_input]:h-12 [&_input]:font-medium [&_input]:tabular-nums"
+            :label="calculator.amountLabel.value"
+            :model-value="calculator.amountInput.value"
+            inputmode="decimal"
+            placeholder="0.00"
+            aria-describedby="gst-feedback"
+            :aria-invalid="Boolean(calculator.errorMessage.value) || undefined"
+            @update:model-value="calculator.updateAmount"
+            @change="calculator.recordHistory()"
+          >
+            <template #prefix>
+              <span class="text-base text-ink-gray-5">₹</span>
+            </template>
+          </FormControl>
         </div>
 
         <fieldset class="pt-5">
           <legend class="text-sm font-medium text-ink-gray-7">Place of supply</legend>
-          <div class="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
-            <Button
-              class="h-11"
-              label="Intra-state · CGST + SGST"
-              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE ? 'solid' : 'outline'"
-              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTRA_STATE"
-              data-supply-type="intra-state"
-              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTRA_STATE)"
-            />
-            <Button
-              class="h-11"
-              label="Inter-state · IGST"
-              :variant="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE ? 'solid' : 'outline'"
-              :aria-pressed="calculator.supplyType.value === GST_SUPPLY_TYPES.INTER_STATE"
-              data-supply-type="inter-state"
-              @click="calculator.setSupplyType(GST_SUPPLY_TYPES.INTER_STATE)"
+          <div class="overflow-x-auto pt-2">
+            <TabButtons
+              :model-value="calculator.supplyType.value"
+              :options="supplyTabs"
+              size="md"
+              aria-label="Place of supply"
+              @update:model-value="calculator.setSupplyType"
             />
           </div>
         </fieldset>
@@ -97,20 +77,17 @@
             @select="calculator.selectRate"
             @update:custom-rate-input="calculator.updateCustomRate"
           />
-          <p v-if="calculator.handoffApplied.value" class="flex items-center gap-2 pt-3 text-sm text-ink-gray-5">
-            <Icon name="lucide-import" class="size-4 shrink-0" />
-            Rate supplied by HSN lookup.
-          </p>
+          <Alert
+            v-if="calculator.handoffApplied.value"
+            class="mt-3"
+            theme="blue"
+            :dismissible="false"
+            title="Rate supplied by HSN lookup."
+          />
         </div>
 
         <div id="gst-feedback" class="pt-4">
-          <p
-            v-if="calculator.errorMessage.value"
-            class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-3"
-            role="alert"
-          >
-            {{ calculator.errorMessage.value }}
-          </p>
+          <ErrorMessage v-if="calculator.errorMessage.value" :message="calculator.errorMessage.value" />
           <p v-else-if="calculator.inputHint.value" class="text-sm leading-6 text-ink-gray-5">
             {{ calculator.inputHint.value }}
           </p>
@@ -155,7 +132,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
@@ -168,6 +145,14 @@ const preferences = useToolboxPreferences()
 const initialRate = new URLSearchParams(globalThis.location?.search ?? '').get('rate')
 const calculator = useGstCalculator({ initialRate })
 const copiedHistoryId = ref('')
+const modeTabs = [
+  { label: 'Add GST', value: GST_MODES.ADD },
+  { label: 'Remove GST', value: GST_MODES.REMOVE },
+]
+const supplyTabs = [
+  { label: 'Intra-state · CGST + SGST', value: GST_SUPPLY_TYPES.INTRA_STATE },
+  { label: 'Inter-state · IGST', value: GST_SUPPLY_TYPES.INTER_STATE },
+]
 
 onMounted(() => preferences.recordRecent('gst-calculator'))
 

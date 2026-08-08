@@ -40,10 +40,13 @@ test('supports calculation and keypad use with keyboard navigation only', async 
   test.skip(browserName !== 'chromium', 'Tab-order navigation differs by engine; covered on Chromium')
   await page.goto('/toolbox/calculator')
 
-  const radians = page.locator('[data-angle-mode="radians"]')
-  await tabTo(page, radians)
-  await page.keyboard.press('Enter')
-  await expect(radians).toHaveAttribute('aria-pressed', 'true')
+  // The angle strip is a TabButtons radiogroup: Tab reaches the checked option,
+  // ArrowRight moves the roving focus, and Space activates.
+  const radians = page.getByRole('radio', { name: 'RAD' })
+  await tabTo(page, page.getByRole('radio', { name: 'DEG' }))
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('Space')
+  await expect(radians).toHaveAttribute('aria-checked', 'true')
 
   const expression = page.getByRole('textbox', { name: 'Expression' })
   await tabTo(page, expression)

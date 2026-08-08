@@ -264,6 +264,9 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // Mirrors the parts of frappe-ui TextInput that views depend on: the `el`
+  // handle for caret work, the `label`/`for` association, and the `error`
+  // region (a `role="alert"` sibling plus `aria-invalid` on the control).
   const TextInput = defineComponent({
     name: 'TextInput',
     inheritAttrs: false,
@@ -272,16 +275,36 @@ vi.mock('frappe-ui', async () => {
       placeholder: { type: String, default: '' },
       size: { type: String, default: '' },
       variant: { type: String, default: '' },
+      label: { type: String, default: '' },
+      error: { type: String, default: '' },
+      id: { type: String, default: '' },
     },
     emits: ['update:modelValue'],
-    setup(props, { attrs, emit }) {
-      return () =>
-        h('input', {
+    setup(props, { attrs, emit, expose }) {
+      const inputRef = ref(null)
+      expose({ el: inputRef })
+
+      return () => {
+        const inputId = props.id || attrs.id || undefined
+        const input = h('input', {
           ...attrs,
+          ref: inputRef,
+          id: inputId,
           value: props.modelValue,
           placeholder: props.placeholder,
+          'aria-label': attrs['aria-label'] || props.label || undefined,
+          'aria-invalid': props.error ? 'true' : attrs['aria-invalid'],
           onInput: (event) => emit('update:modelValue', event.target.value),
         })
+
+        if (!props.label && !props.error) return input
+
+        return [
+          props.label ? h('label', { for: inputId }, props.label) : null,
+          input,
+          props.error ? h('div', { role: 'alert' }, props.error) : null,
+        ]
+      }
     },
   })
 
@@ -302,6 +325,8 @@ vi.mock('frappe-ui', async () => {
     emits: ['update:modelValue'],
     setup(props, { attrs, emit }) {
       const ariaLabel = () => attrs['aria-label'] || props.label || undefined
+      const withLabel = (control) =>
+        props.label ? [h('label', { for: attrs.id }, props.label), control] : control
 
       return () => {
         if (props.type === 'select') {
@@ -309,30 +334,34 @@ vi.mock('frappe-ui', async () => {
             typeof option === 'object' ? option : { label: String(option), value: option },
           )
 
-          return h(
-            'select',
-            {
-              ...attrs,
-              'aria-label': ariaLabel(),
-              value: props.modelValue,
-              onChange: (event) => {
-                const selected = options[event.target.selectedIndex]
-                emit('update:modelValue', selected?.value)
+          return withLabel(
+            h(
+              'select',
+              {
+                ...attrs,
+                'aria-label': ariaLabel(),
+                value: props.modelValue,
+                onChange: (event) => {
+                  const selected = options[event.target.selectedIndex]
+                  emit('update:modelValue', selected?.value)
+                },
               },
-            },
-            options.map((option) =>
-              h('option', { key: String(option.value), value: option.value }, option.label),
+              options.map((option) =>
+                h('option', { key: String(option.value), value: option.value }, option.label),
+              ),
             ),
           )
         }
 
         if (props.type === 'textarea') {
-          return h('textarea', {
-            ...attrs,
-            'aria-label': ariaLabel(),
-            value: props.modelValue,
-            onInput: (event) => emit('update:modelValue', event.target.value),
-          })
+          return withLabel(
+            h('textarea', {
+              ...attrs,
+              'aria-label': ariaLabel(),
+              value: props.modelValue,
+              onInput: (event) => emit('update:modelValue', event.target.value),
+            }),
+          )
         }
 
         if (props.type === 'checkbox') {
@@ -346,13 +375,15 @@ vi.mock('frappe-ui', async () => {
         }
 
         // text, number, search, date, email, url — a plain input carrying `type`.
-        return h('input', {
-          ...attrs,
-          type: props.type,
-          'aria-label': ariaLabel(),
-          value: props.modelValue,
-          onInput: (event) => emit('update:modelValue', event.target.value),
-        })
+        return withLabel(
+          h('input', {
+            ...attrs,
+            type: props.type,
+            'aria-label': ariaLabel(),
+            value: props.modelValue,
+            onInput: (event) => emit('update:modelValue', event.target.value),
+          }),
+        )
       }
     },
   })

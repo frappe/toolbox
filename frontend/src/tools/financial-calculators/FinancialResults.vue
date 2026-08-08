@@ -42,7 +42,7 @@
           class="h-11"
           label="Copy result"
           variant="solid"
-          icon="lucide-copy"
+          icon-left="lucide-copy"
           :disabled="!canCopy"
           @click="emit('copy')"
         />

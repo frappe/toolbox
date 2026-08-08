@@ -39,10 +39,10 @@ describe('CalculatorView calculations', () => {
 
   it('switches between degree and radian calculations', async () => {
     const wrapper = mount(CalculatorView)
-    const radians = wrapper.get('[data-angle-mode="radians"]')
+    const radians = angleTab(wrapper, 'RAD')
 
     await radians.trigger('click')
-    expect(radians.attributes('aria-pressed')).toBe('true')
+    expect(angleTab(wrapper, 'RAD').attributes('aria-checked')).toBe('true')
 
     await calculateExpression(wrapper, 'sin(pi / 2)')
     expect(resultOutput(wrapper).text()).toBe('1')
@@ -74,7 +74,7 @@ describe('CalculatorView editing and keyboard behavior', () => {
     await input.trigger('keydown', { key: 'Backspace' })
     expect(input.element.value).toBe('12')
 
-    await wrapper.get('[data-angle-mode="radians"]').trigger('keydown', { key: 'Escape' })
+    await angleTab(wrapper, 'RAD').trigger('keydown', { key: 'Escape' })
     expect(input.element.value).toBe('12')
 
     await input.trigger('keydown', { key: 'Enter' })
@@ -229,4 +229,8 @@ function buttonByLabel(wrapper, label) {
 
 function findButtonByLabel(wrapper, label) {
   return wrapper.findAll('button').find((button) => button.attributes('aria-label') === label)
+}
+
+function angleTab(wrapper, label) {
+  return wrapper.findAll('[role="radio"]').find((tab) => tab.text() === label)
 }

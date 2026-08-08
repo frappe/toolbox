@@ -1,45 +1,20 @@
 <template>
-  <div>
-    <label :for="inputId" class="block text-sm font-medium text-ink-gray-7">
-      {{ input.label }}
-    </label>
-    <div v-if="input.type === 'number'" class="relative mt-2">
-      <input
-        :id="inputId"
-        :value="modelValue"
-        type="number"
-        inputmode="decimal"
-        step="any"
-        autocomplete="off"
-        class="h-11 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 pr-24 text-base tabular-nums text-ink-gray-9 outline-none focus:ring-2 focus:ring-outline-gray-3"
-        :aria-describedby="describedBy"
-        @input="$emit('update:modelValue', $event.target.value)"
-        @change="$emit('commit')"
-      />
-      <span
-        class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-gray-5"
-        aria-hidden="true"
-      >
-        {{ input.suffix === 'currency' ? currency : input.suffix }}
-      </span>
-    </div>
-    <select
-      v-else
-      :id="inputId"
-      :value="modelValue"
-      class="mt-2 h-11 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-8 outline-none focus:ring-2 focus:ring-outline-gray-3"
-      :aria-describedby="describedBy"
-      @change="onSelectChange($event)"
-    >
-      <option v-for="option in input.options" :key="option.value" :value="option.value">
-        {{ option.label }}
-      </option>
-    </select>
-  </div>
+  <FormControl
+    v-bind="controlProps"
+    @update:model-value="onUpdate"
+    @change="onNumberCommit"
+  >
+    <template v-if="input.type === 'number'" #suffix>
+      <span class="text-sm text-ink-gray-5" aria-hidden="true">{{ suffixLabel }}</span>
+    </template>
+  </FormControl>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { FormControl } from 'frappe-ui'
+
+const props = defineProps({
   input: { type: Object, required: true },
   inputId: { type: String, required: true },
   modelValue: { type: String, required: true },
@@ -49,9 +24,37 @@ defineProps({
 
 const emit = defineEmits(['update:modelValue', 'commit'])
 
-// A select commits its value immediately; emit both the value and the commit signal.
-function onSelectChange(event) {
-  emit('update:modelValue', event.target.value)
-  emit('commit')
+const suffixLabel = computed(() =>
+  props.input.suffix === 'currency' ? props.currency : props.input.suffix,
+)
+
+// Only bind what each control understands — a stray `options` on a number input
+// would land on the <input> element as an attribute.
+const controlProps = computed(() => {
+  const shared = {
+    id: props.inputId,
+    type: props.input.type,
+    size: 'md',
+    variant: 'outline',
+    label: props.input.label,
+    modelValue: props.modelValue,
+    'aria-describedby': props.describedBy,
+  }
+
+  return props.input.type === 'number'
+    ? { ...shared, inputmode: 'decimal', step: 'any', class: '[&_input]:tabular-nums' }
+    : { ...shared, options: props.input.options }
+})
+
+function onUpdate(value) {
+  emit('update:modelValue', value)
+  // A select commits immediately; a number field commits on its own change event.
+  if (props.input.type !== 'number') emit('commit')
+}
+
+// Select dispatches no native change event through FormControl, so this only
+// fires for the number branch.
+function onNumberCommit() {
+  if (props.input.type === 'number') emit('commit')
 }
 </script>

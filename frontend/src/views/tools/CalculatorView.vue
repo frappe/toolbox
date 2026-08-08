@@ -18,25 +18,27 @@
     <div class="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
       <section class="min-w-0" aria-label="Calculator workspace">
         <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6">
-          <label for="calculator-expression" class="text-sm font-medium text-ink-gray-7">
-            Expression
-          </label>
-
-          <input
+          <!--
+            TextInput rather than FormControl: the view drives the caret directly
+            (select, setSelectionRange, selectionStart) and needs the component's
+            exposed `el`, which FormControl does not forward.
+          -->
+          <TextInput
             id="calculator-expression"
-            ref="expressionInput"
+            ref="expressionField"
             type="text"
-            class="mt-3 h-14 w-full rounded-xl border bg-surface-base px-4 font-mono text-xl text-ink-gray-9 outline-none transition focus:border-outline-gray-4 focus:ring-2 focus:ring-outline-gray-2"
-            :class="errorMessage ? 'border-outline-red-3' : 'border-outline-gray-2'"
-            :value="expression"
+            size="lg"
+            variant="outline"
+            label="Expression"
+            class="[&_input]:h-14 [&_input]:rounded-xl [&_input]:px-4 [&_input]:font-mono [&_input]:text-xl"
+            :model-value="expression"
+            :error="errorMessage"
             placeholder="Example: sqrt(81) + sin(30)"
             inputmode="decimal"
-            autocomplete="off"
             autocapitalize="off"
             spellcheck="false"
-            :aria-invalid="Boolean(errorMessage)"
-            :aria-describedby="errorMessage ? 'calculator-error' : 'calculator-keyboard-hint'"
-            @input="calculator.updateExpression($event.target.value)"
+            aria-describedby="calculator-keyboard-hint"
+            @update:model-value="calculator.updateExpression"
             @keydown="handleInputKeydown"
           />
 
@@ -61,36 +63,16 @@
             />
           </div>
 
-          <p
-            v-if="errorMessage"
-            id="calculator-error"
-            class="mb-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-3"
-            role="alert"
-          >
-            {{ errorMessage }}
-          </p>
-
           <CalculatorKeypad @insert="insertKey" @action="handleKeypadAction" />
 
-          <div class="flex items-center gap-2 pt-5" role="group" aria-label="Angle mode">
+          <div class="flex items-center gap-2 pt-5">
             <span class="text-sm font-medium text-ink-gray-7">Angle</span>
-            <Button
-              class="h-10 min-w-12"
-              label="DEG"
-              :variant="angleMode === ANGLE_MODES.DEGREES ? 'solid' : 'outline'"
-              :aria-pressed="angleMode === ANGLE_MODES.DEGREES"
-              aria-label="Use degrees"
-              data-angle-mode="degrees"
-              @click="calculator.setAngleMode(ANGLE_MODES.DEGREES)"
-            />
-            <Button
-              class="h-10 min-w-12"
-              label="RAD"
-              :variant="angleMode === ANGLE_MODES.RADIANS ? 'solid' : 'outline'"
-              :aria-pressed="angleMode === ANGLE_MODES.RADIANS"
-              aria-label="Use radians"
-              data-angle-mode="radians"
-              @click="calculator.setAngleMode(ANGLE_MODES.RADIANS)"
+            <TabButtons
+              :model-value="angleMode"
+              :options="angleTabs"
+              size="md"
+              aria-label="Angle mode"
+              @update:model-value="calculator.setAngleMode"
             />
           </div>
 
@@ -124,7 +106,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button, Icon, TabButtons, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
@@ -133,7 +115,11 @@ import { ANGLE_MODES } from '@/tools/calculator'
 import { useCalculator } from '@/tools/calculator/useCalculator'
 import { useCalculatorHistory } from '@/tools/calculator/useCalculatorHistory'
 
-const expressionInput = ref(null)
+const angleTabs = [
+  { label: 'DEG', value: ANGLE_MODES.DEGREES },
+  { label: 'RAD', value: ANGLE_MODES.RADIANS },
+]
+const expressionField = ref(null)
 const copiedEntryId = ref('')
 const copiedCurrentResultValue = ref(null)
 const copyStatus = ref('')
@@ -157,8 +143,13 @@ watch([expression, result, angleMode], () => {
   copiedCurrentResultValue.value = null
 })
 
+// TextInput exposes its underlying <input> as `el`.
+function expressionElement() {
+  return expressionField.value?.el ?? null
+}
+
 async function insertKey(key) {
-  const input = expressionInput.value
+  const input = expressionElement()
   const caret = calculator.insertText(
     key.value,
     input?.selectionStart,
@@ -174,7 +165,7 @@ async function handleKeypadAction(action) {
     return
   }
 
-  const input = expressionInput.value
+  const input = expressionElement()
   const actions = {
     'clear-all': () => calculator.clearExpression(),
     'clear-entry': () => calculator.clearCurrentInput(input?.selectionStart, input?.selectionEnd),
@@ -209,8 +200,8 @@ async function handleInputKeydown(event) {
 async function runCalculation() {
   const succeeded = calculator.calculate()
   await nextTick()
-  if (succeeded) expressionInput.value?.select()
-  else expressionInput.value?.focus()
+  if (succeeded) expressionElement()?.select()
+  else expressionElement()?.focus()
 }
 
 async function reuseHistoryEntry(entry) {
@@ -255,7 +246,8 @@ function clearHistory() {
 
 async function focusExpression(caret = expression.value.length) {
   await nextTick()
-  expressionInput.value?.focus()
-  expressionInput.value?.setSelectionRange(caret, caret)
+  const input = expressionElement()
+  input?.focus()
+  input?.setSelectionRange(caret, caret)
 }
 </script>

@@ -57,13 +57,10 @@
         </div>
 
         <div :id="`${calculator.activeId.value}-feedback`" class="pt-4">
-          <p
+          <ErrorMessage
             v-if="calculator.errorMessage.value"
-            class="rounded-lg bg-surface-red-1 px-3 py-2 text-sm leading-6 text-ink-red-3"
-            role="alert"
-          >
-            {{ calculator.errorMessage.value }}
-          </p>
+            :message="calculator.errorMessage.value"
+          />
           <p v-else class="text-sm leading-6 text-ink-gray-5">
             Rates use annual percentages. Inputs stay in this browser and are not saved.
           </p>
@@ -108,7 +105,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon, TabButtons } from 'frappe-ui'
+import { Button, ErrorMessage, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'

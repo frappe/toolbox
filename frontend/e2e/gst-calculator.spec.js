@@ -9,10 +9,10 @@ test('@smoke adds, removes, and splits GST', async ({ page }) => {
   await expect(results.locator('dl > div').filter({ hasText: 'CGST' })).toContainText('₹90.00')
   await expect(results.locator('dl > div').filter({ hasText: 'SGST' })).toContainText('₹90.00')
 
-  await page.getByRole('button', { name: 'Inter-state · IGST' }).click()
+  await page.getByRole('radio', { name: 'Inter-state · IGST' }).click()
   await expect(results.locator('dl > div').filter({ hasText: 'IGST' })).toContainText('₹180.00')
 
-  await page.getByRole('button', { name: 'Remove GST' }).click()
+  await page.getByRole('radio', { name: 'Remove GST' }).click()
   await page.getByRole('textbox', { name: 'GST-inclusive amount' }).fill('1180')
   await expect(results.locator('dl > div').filter({ hasText: 'Taxable value' })).toContainText(
     '₹1,000.00',

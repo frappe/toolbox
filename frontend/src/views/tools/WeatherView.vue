@@ -10,23 +10,31 @@
     </header>
 
     <div class="pt-8">
+      <!--
+        Combobox does not fit here. It owns the query lifecycle, while
+        useWeather clears its own query and results the moment a place is
+        chosen — so the option unmounts before the model update resolves and
+        the selection is lost. Same call as World Clock (#114) and Dictionary
+        (#117): frappe-ui TextInput, composable-driven results list.
+      -->
       <label for="weather-search" class="block text-sm font-medium text-ink-gray-7">Search a city or place</label>
       <div class="relative mt-2 max-w-xl">
-        <input id="weather-search" v-model="weather.query.value" class="h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" autocomplete="off" placeholder="Bengaluru, London, New York" role="combobox" aria-controls="weather-results" :aria-expanded="weather.results.value.length > 0" />
+        <TextInput id="weather-search" class="[&_input]:h-12" type="search" size="lg" variant="outline" placeholder="Bengaluru, London, New York" role="combobox" aria-controls="weather-results" :aria-expanded="weather.results.value.length > 0" :model-value="weather.query.value" @update:model-value="weather.query.value = $event" />
         <ul v-if="weather.results.value.length" id="weather-results" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Location search results">
           <li v-for="place in weather.results.value" :key="placeKey(place)">
+            <!-- Left-aligned two-line list row: Button centres its label. -->
             <button type="button" class="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-surface-gray-2" @click="weather.selectPlace(place)"><span class="min-w-0"><span class="block truncate font-medium text-ink-gray-8">{{ place.name }}</span><span class="block truncate text-sm text-ink-gray-5">{{ placeRegion(place) }}</span></span><span class="shrink-0 text-xs font-medium text-ink-gray-5">{{ place.countryCode }}</span></button>
           </li>
         </ul>
       </div>
-      <p v-if="weather.searchError.value" class="mt-2 max-w-xl rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ weather.searchError.value }}</p>
-      <p v-else-if="weather.searching.value" class="mt-2 text-sm text-ink-gray-5">Searching…</p>
+      <p v-if="weather.searching.value && !weather.searchError.value" class="mt-2 text-sm text-ink-gray-5">Searching…</p>
+      <Alert v-if="weather.searchError.value" class="mt-2 max-w-xl" theme="red" :dismissible="false" :title="weather.searchError.value" />
     </div>
 
     <div v-if="weather.savedPlaces.value.length" class="pt-5">
       <h2 class="text-sm font-medium text-ink-gray-8">Saved places</h2>
       <div class="flex flex-wrap gap-2 pt-2">
-        <button v-for="saved in weather.savedPlaces.value" :key="placeKey(saved)" type="button" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-3" @click="weather.selectPlace(saved)">{{ saved.name }}</button>
+        <Button v-for="saved in weather.savedPlaces.value" :key="placeKey(saved)" variant="subtle" :label="saved.name" @click="weather.selectPlace(saved)" />
       </div>
     </div>
 
@@ -38,8 +46,8 @@
             <p class="pt-1 text-sm text-ink-gray-6">{{ placeRegion(weather.selectedPlace.value) }}</p>
           </div>
           <div class="flex shrink-0 gap-2">
-            <Button :label="isPlaceSaved ? 'Saved' : 'Save place'" variant="subtle" :icon="isPlaceSaved ? 'lucide-bookmark-check' : 'lucide-bookmark'" @click="toggleSavedPlace" />
-            <Button label="Refresh" variant="ghost" icon="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(weather.loadState.value)" @click="weather.refresh" />
+            <Button :label="isPlaceSaved ? 'Saved' : 'Save place'" variant="subtle" :icon-left="isPlaceSaved ? 'lucide-bookmark-check' : 'lucide-bookmark'" @click="toggleSavedPlace" />
+            <Button label="Refresh" variant="ghost" icon-left="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(weather.loadState.value)" @click="weather.refresh" />
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-5 pt-5">
@@ -97,7 +105,8 @@
     </div>
 
     <div v-else class="mt-8 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-8 text-center">
-      <Icon :name="weather.loadState.value === 'loading' ? 'lucide-loader' : 'lucide-cloud-sun'" class="size-7 text-ink-gray-5" />
+      <LoadingIndicator v-if="weather.loadState.value === 'loading'" class="size-7 text-ink-gray-5" />
+      <Icon v-else name="lucide-cloud-sun" class="size-7 text-ink-gray-5" />
       <p class="pt-4 text-sm font-medium text-ink-gray-8">{{ emptyHeading }}</p>
       <p class="max-w-sm pt-1 text-sm leading-6 text-ink-gray-6">{{ emptyBody }}</p>
       <Button v-if="weather.loadState.value === 'error' && weather.selectedPlace.value" class="mt-4" label="Try again" @click="weather.refresh" />
@@ -109,7 +118,7 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, Icon, LoadingIndicator, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useWeather } from '@/tools/weather/useWeather'

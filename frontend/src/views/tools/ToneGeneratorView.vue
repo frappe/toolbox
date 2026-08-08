@@ -11,10 +11,7 @@
       </div>
     </header>
 
-    <p v-if="!tone.isSupported.value" class="mt-8 flex items-center gap-2 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 text-sm text-ink-gray-6">
-      <Icon name="lucide-volume-x" class="size-5 shrink-0 text-ink-gray-5" />
-      Tone generation needs a browser with the Web Audio API.
-    </p>
+    <Alert v-if="!tone.isSupported.value" class="mt-8" :dismissible="false" title="Tone generation needs a browser with the Web Audio API." />
 
     <section v-else class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6" aria-label="Tone controls">
       <div class="flex flex-col items-center gap-3 py-2">
@@ -30,48 +27,79 @@
         />
       </div>
 
-      <label class="mt-8 grid gap-2 text-sm font-medium text-ink-gray-7">
-        <span>Frequency</span>
-        <input type="range" min="20" max="2000" step="1" :value="Math.min(frequency, 2000)" aria-label="Frequency" @input="updateFrequency($event.target.value)" />
+      <div class="mt-8 grid gap-2">
+        <Slider
+          label="Frequency"
+          :min="20"
+          :max="2000"
+          :step="1"
+          aria-label="Frequency"
+          :model-value="Math.min(frequency, 2000)"
+          @update:model-value="updateFrequency"
+        />
         <div class="flex items-center gap-2">
-          <input type="number" min="20" max="20000" step="1" :value="Math.round(frequency)" aria-label="Frequency in hertz" class="h-10 w-32 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="updateFrequency($event.target.value)" />
+          <FormControl
+            type="number"
+            size="md"
+            class="w-32"
+            min="20"
+            max="20000"
+            step="1"
+            aria-label="Frequency in hertz"
+            :model-value="Math.round(frequency)"
+            @update:model-value="updateFrequency"
+          />
           <span class="text-sm text-ink-gray-5">Hz (20–20,000)</span>
         </div>
-      </label>
+      </div>
 
       <div class="mt-6 grid gap-2 text-sm font-medium text-ink-gray-7">
         <span>Tune to a note</span>
         <div class="flex gap-2">
-          <select v-model="pickNote" aria-label="Note" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="snapToNote">
-            <option v-for="note in NOTE_NAMES" :key="note" :value="note">{{ note }}</option>
-          </select>
-          <select v-model.number="pickOctave" aria-label="Octave" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="snapToNote">
-            <option v-for="octave in OCTAVES" :key="octave" :value="octave">Octave {{ octave }}</option>
-          </select>
+          <FormControl
+            type="select"
+            size="md"
+            aria-label="Note"
+            :options="NOTE_NAMES"
+            :model-value="pickNote"
+            @update:model-value="(value) => { pickNote = value; snapToNote() }"
+          />
+          <FormControl
+            type="select"
+            size="md"
+            aria-label="Octave"
+            :options="octaveOptions"
+            :model-value="pickOctave"
+            @update:model-value="(value) => { pickOctave = value; snapToNote() }"
+          />
         </div>
       </div>
 
       <div class="mt-6 grid gap-2 text-sm font-medium text-ink-gray-7">
         <span>Waveform</span>
-        <div class="flex flex-wrap gap-2" role="group" aria-label="Waveform">
-          <button
-            v-for="shape in WAVEFORMS"
-            :key="shape"
-            type="button"
-            class="h-9 rounded-lg border px-3 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-            :class="waveform === shape ? 'border-outline-gray-4 bg-surface-gray-3 text-ink-gray-9' : 'border-outline-gray-2 bg-surface-base text-ink-gray-7 hover:border-outline-gray-3'"
-            :aria-pressed="waveform === shape"
-            @click="updateWaveform(shape)"
-          >
-            {{ shape }}
-          </button>
+        <div class="overflow-x-auto">
+          <TabButtons
+            :options="waveformOptions"
+            :model-value="waveform"
+            size="md"
+            aria-label="Waveform"
+            @update:model-value="updateWaveform"
+          />
         </div>
       </div>
 
-      <label class="mt-6 grid gap-2 text-sm font-medium text-ink-gray-7">
-        <span class="flex justify-between"><span>Volume</span><span class="tabular-nums text-ink-gray-5">{{ Math.round(volume * 100) }}%</span></span>
-        <input type="range" min="0" max="1" step="0.01" :value="volume" aria-label="Volume" @input="updateVolume($event.target.value)" />
-      </label>
+      <div class="mt-6">
+        <Slider
+          label="Volume"
+          :description="`${Math.round(volume * 100)}%`"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          aria-label="Volume"
+          :model-value="volume"
+          @update:model-value="updateVolume"
+        />
+      </div>
 
       <div class="mt-6 flex flex-wrap gap-2">
         <Button variant="subtle" label="A4 · 440 Hz" @click="preset(440)" />
@@ -85,7 +113,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, FormControl, Icon, Slider, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useToneGenerator } from '@/tools/tone-generator/useToneGenerator'
@@ -93,6 +121,8 @@ import { clampFrequency, frequencyToNote, NOTE_NAMES, noteToFrequency, WAVEFORMS
 
 const TOOL_ID = 'tone-generator'
 const OCTAVES = [1, 2, 3, 4, 5, 6, 7, 8]
+const octaveOptions = OCTAVES.map((octave) => ({ label: `Octave ${octave}`, value: octave }))
+const waveformOptions = WAVEFORMS.map((shape) => ({ label: shape.charAt(0).toUpperCase() + shape.slice(1), value: shape }))
 
 const preferences = useToolboxPreferences()
 const tone = useToneGenerator()

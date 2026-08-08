@@ -11,10 +11,7 @@
       </div>
     </header>
 
-    <p v-if="!metro.isSupported.value" class="mt-8 flex items-center gap-2 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 text-sm text-ink-gray-6">
-      <Icon name="lucide-volume-x" class="size-5 shrink-0 text-ink-gray-5" />
-      The metronome needs a browser with the Web Audio API.
-    </p>
+    <Alert v-if="!metro.isSupported.value" class="mt-8" :dismissible="false" title="The metronome needs a browser with the Web Audio API." />
 
     <section v-else class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6" aria-label="Metronome">
       <!-- Beat indicator -->
@@ -35,7 +32,15 @@
 
       <div class="mt-5 flex items-center justify-center gap-3">
         <Button variant="outline" icon="lucide-minus" aria-label="Decrease tempo" @click="nudge(-1)" />
-        <input type="range" :min="MIN_BPM" :max="MAX_BPM" step="1" :value="bpm" aria-label="Tempo in BPM" class="w-48 sm:w-64" @input="updateBpm($event.target.value)" />
+        <Slider
+          class="w-48 sm:w-64"
+          :min="MIN_BPM"
+          :max="MAX_BPM"
+          :step="1"
+          aria-label="Tempo in BPM"
+          :model-value="bpm"
+          @update:model-value="updateBpm"
+        />
         <Button variant="outline" icon="lucide-plus" aria-label="Increase tempo" @click="nudge(1)" />
       </div>
 
@@ -51,16 +56,24 @@
       </div>
 
       <div class="mt-8 grid gap-5 sm:grid-cols-2">
-        <label class="grid gap-2 text-sm font-medium text-ink-gray-7">
-          Beats per measure
-          <select v-model.number="beatsPerMeasure" aria-label="Beats per measure" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="metro.setBeatsPerMeasure(beatsPerMeasure)">
-            <option v-for="option in BEATS_PER_MEASURE_OPTIONS" :key="option" :value="option">{{ option }}</option>
-          </select>
-        </label>
-        <label class="grid gap-2 text-sm font-medium text-ink-gray-7">
-          <span class="flex justify-between"><span>Volume</span><span class="tabular-nums text-ink-gray-5">{{ Math.round(volume * 100) }}%</span></span>
-          <input type="range" min="0" max="1" step="0.01" :value="volume" aria-label="Volume" @input="updateVolume($event.target.value)" />
-        </label>
+        <FormControl
+          type="select"
+          size="md"
+          label="Beats per measure"
+          :options="beatsOptions"
+          :model-value="beatsPerMeasure"
+          @update:model-value="(value) => { beatsPerMeasure = value; metro.setBeatsPerMeasure(value) }"
+        />
+        <Slider
+          label="Volume"
+          :description="`${Math.round(volume * 100)}%`"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          aria-label="Volume"
+          :model-value="volume"
+          @update:model-value="updateVolume"
+        />
       </div>
 
       <p class="mt-6 text-xs leading-5 text-ink-gray-5">The click is scheduled on the audio clock for steady timing. Everything runs locally — nothing is recorded or sent.</p>
@@ -70,13 +83,14 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, FormControl, Icon, Slider } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useMetronome } from '@/tools/metronome/useMetronome'
 import { BEATS_PER_MEASURE_OPTIONS, clampBpm, MAX_BPM, MIN_BPM, tapTempoBpm, tempoTerm } from '@/tools/metronome/metronome'
 
 const TOOL_ID = 'metronome'
+const beatsOptions = BEATS_PER_MEASURE_OPTIONS.map((option) => ({ label: String(option), value: option }))
 
 const preferences = useToolboxPreferences()
 const metro = useMetronome()

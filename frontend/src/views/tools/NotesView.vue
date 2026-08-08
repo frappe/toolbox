@@ -26,13 +26,13 @@
       <Icon name="lucide-file-pen-line" class="mx-auto size-8 text-ink-gray-5" />
       <h2 class="pt-3 text-lg font-semibold text-ink-gray-9">No notes yet</h2>
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Jot down an idea, a meeting summary, or anything you want to keep. It saves as you write.</p>
-      <Button class="mt-5" variant="solid" icon="lucide-plus" label="New note" @click="onCreate" />
+      <Button class="mt-5" variant="solid" icon-left="lucide-plus" label="New note" @click="onCreate" />
     </section>
 
     <div v-else class="mt-8 grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
       <!-- List pane -->
       <aside class="min-w-0 flex-col gap-4" :class="notes.activeNote.value ? 'hidden lg:flex' : 'flex'" aria-label="Your notes">
-        <Button variant="solid" icon="lucide-plus" label="New note" @click="onCreate" />
+        <Button variant="solid" icon-left="lucide-plus" label="New note" @click="onCreate" />
 
         <TextInput
           type="search"
@@ -114,20 +114,20 @@
 
           <!-- Actions -->
           <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-outline-gray-2 pt-4">
-            <Button variant="outline" :icon="active.is_pinned ? 'lucide-pin-off' : 'lucide-pin'" :label="active.is_pinned ? 'Unpin' : 'Pin'" @click="notes.togglePin" />
-            <Button variant="outline" :icon="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="notes.toggleArchive" />
-            <Button variant="outline" icon="lucide-copy" label="Duplicate" @click="notes.duplicateActive" />
+            <Button variant="outline" :icon-left="active.is_pinned ? 'lucide-pin-off' : 'lucide-pin'" :label="active.is_pinned ? 'Unpin' : 'Pin'" @click="notes.togglePin" />
+            <Button variant="outline" :icon-left="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="notes.toggleArchive" />
+            <Button variant="outline" icon-left="lucide-copy" label="Duplicate" @click="notes.duplicateActive" />
 
             <Dropdown :options="exportOptions">
-              <Button variant="outline" icon="lucide-download" label="Export" />
+              <Button variant="outline" icon-left="lucide-download" label="Export" />
             </Dropdown>
 
             <div class="ml-auto">
-              <Button v-if="!confirmingDelete" variant="ghost" icon="lucide-trash-2" label="Delete" @click="confirmingDelete = true" />
+              <Button v-if="!confirmingDelete" variant="ghost" icon-left="lucide-trash-2" label="Delete" @click="confirmingDelete = true" />
               <div v-else class="flex items-center gap-2">
                 <span class="text-sm text-ink-gray-7">Delete this note?</span>
                 <Button variant="ghost" label="Cancel" @click="confirmingDelete = false" />
-                <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDelete" />
+                <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDelete" />
               </div>
             </div>
           </div>

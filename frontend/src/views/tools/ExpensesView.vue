@@ -29,7 +29,7 @@
       <Icon name="lucide-receipt" class="mx-auto size-8 text-ink-gray-5" />
       <h2 class="pt-3 text-lg font-semibold text-ink-gray-9">No expenses yet</h2>
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Add your first expense and Toolbox starts tracking your monthly spend, categories, and top merchants.</p>
-      <Button class="mt-5" variant="solid" icon="lucide-plus" label="Add expense" @click="onNewExpense" />
+      <Button class="mt-5" variant="solid" icon-left="lucide-plus" label="Add expense" @click="onNewExpense" />
     </section>
 
     <!-- Main -->
@@ -108,7 +108,7 @@
           <section class="rounded-2xl border border-outline-gray-2 bg-surface-base p-4" aria-labelledby="dash-budget">
             <div class="flex items-center justify-between gap-3">
               <h2 id="dash-budget" class="text-sm font-semibold text-ink-gray-8">Budget</h2>
-              <Button variant="subtle" :icon="showBudgetForm ? 'lucide-x' : 'lucide-plus'" :label="showBudgetForm ? 'Close' : 'Set budget'" @click="onToggleBudgetForm" />
+              <Button variant="subtle" :icon-left="showBudgetForm ? 'lucide-x' : 'lucide-plus'" :label="showBudgetForm ? 'Close' : 'Set budget'" @click="onToggleBudgetForm" />
             </div>
 
             <form v-if="showBudgetForm" class="mt-3 flex flex-col gap-3 rounded-xl border border-outline-gray-2 bg-surface-gray-1 p-3" aria-label="Set budget" @submit.prevent="onSetBudget">
@@ -216,9 +216,9 @@
               </template>
             </TextInput>
             <div class="flex items-center gap-2">
-              <Button variant="solid" icon="lucide-plus" label="Add expense" @click="onNewExpense" />
+              <Button variant="solid" icon-left="lucide-plus" label="Add expense" @click="onNewExpense" />
               <Dropdown :options="exportOptions">
-                <Button variant="outline" icon="lucide-download" label="Export" />
+                <Button variant="outline" icon-left="lucide-download" label="Export" />
               </Dropdown>
             </div>
           </div>
@@ -290,7 +290,7 @@
           </div>
 
           <div v-if="hasActiveFilters" class="flex justify-end">
-            <Button variant="ghost" icon="lucide-x" label="Reset filters" @click="expenses.resetFilters()" />
+            <Button variant="ghost" icon-left="lucide-x" label="Reset filters" @click="expenses.resetFilters()" />
           </div>
         </div>
 
@@ -450,7 +450,7 @@
                   />
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" icon="lucide-refresh-cw" label="Fetch rate" @click="expenses.fetchRate()" />
+                  <Button variant="outline" icon-left="lucide-refresh-cw" label="Fetch rate" @click="expenses.fetchRate()" />
                   <p v-if="expenses.fxNotice.value" class="text-xs text-ink-gray-5">{{ expenses.fxNotice.value }}</p>
                 </div>
 
@@ -461,7 +461,7 @@
                     <a :href="form.receipt" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm text-ink-gray-8 underline decoration-outline-gray-3 underline-offset-2 hover:text-ink-gray-9">
                       <Icon name="lucide-paperclip" class="size-4" /> View receipt
                     </a>
-                    <Button variant="ghost" icon="lucide-x" label="Remove" @click="expenses.removeReceipt(form.name)" />
+                    <Button variant="ghost" icon-left="lucide-x" label="Remove" @click="expenses.removeReceipt(form.name)" />
                   </div>
                   <input v-else type="file" accept="image/*,application/pdf" aria-label="Attach receipt" class="text-sm text-ink-gray-7 file:mr-3 file:rounded-lg file:border file:border-outline-gray-2 file:bg-surface-base file:px-3 file:py-1.5 file:text-sm file:text-ink-gray-8" @change="onReceiptSelected" />
                 </div>
@@ -476,7 +476,7 @@
 
           <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-outline-gray-2 pt-4">
             <Button variant="solid" type="submit" :loading="expenses.saving.value" :label="expenses.saving.value ? 'Saving…' : 'Save expense'" />
-            <Button v-if="expenses.canLearnRule.value" variant="outline" icon="lucide-wand-2" :loading="expenses.saving.value" label="Save & remember merchant" @click="onSaveAndLearn" />
+            <Button v-if="expenses.canLearnRule.value" variant="outline" icon-left="lucide-wand-2" :loading="expenses.saving.value" label="Save & remember merchant" @click="onSaveAndLearn" />
             <Button variant="ghost" label="Cancel" @click="expenses.closeForm()" />
             <span v-if="expenses.canLearnRule.value" class="text-xs text-ink-gray-5">Remembering auto-categorises this merchant next time.</span>
           </div>
@@ -520,9 +520,9 @@
               <template v-if="confirmingBulkDelete">
                 <span class="text-xs text-ink-gray-7">Delete selected?</span>
                 <Button variant="ghost" label="Cancel" @click="confirmingBulkDelete = false" />
-                <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onBulkRemove" />
+                <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onBulkRemove" />
               </template>
-              <Button v-else variant="ghost" icon="lucide-trash-2" label="Delete selected" @click="confirmingBulkDelete = true" />
+              <Button v-else variant="ghost" icon-left="lucide-trash-2" label="Delete selected" @click="confirmingBulkDelete = true" />
               <Button variant="ghost" label="Clear" @click="expenses.clearSelection()" />
             </div>
           </div>
@@ -567,7 +567,7 @@
                     <template v-if="confirmingExpenseDelete === row.name">
                       <span class="text-xs text-ink-gray-7">Delete?</span>
                       <Button variant="ghost" label="Cancel" @click="confirmingExpenseDelete = null" />
-                      <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDeleteExpense(row.name)" />
+                      <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDeleteExpense(row.name)" />
                     </template>
                     <Button v-else variant="ghost" icon="lucide-trash-2" aria-label="Delete expense" @click="confirmingExpenseDelete = row.name" />
                   </div>
@@ -589,7 +589,7 @@
       <div v-else-if="expenses.view.value === 'trips'" class="mt-6 flex flex-col gap-6">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-sm font-semibold text-ink-gray-8">Trips and projects</h2>
-          <Button v-if="!projectForm" variant="subtle" icon="lucide-plus" label="Add trip" @click="onNewProject" />
+          <Button v-if="!projectForm" variant="subtle" icon-left="lucide-plus" label="Add trip" @click="onNewProject" />
         </div>
 
         <!-- Add / edit form -->
@@ -761,11 +761,11 @@
                 </div>
               </div>
               <Button variant="ghost" icon="lucide-pencil" aria-label="Edit trip" @click="onEditProject(project)" />
-              <Button variant="ghost" icon="lucide-eye" label="View" @click="onViewProject(project.name)" />
+              <Button variant="ghost" icon-left="lucide-eye" label="View" @click="onViewProject(project.name)" />
               <template v-if="confirmingProjectDelete === project.name">
                 <span class="text-xs text-ink-gray-7">Delete?</span>
                 <Button variant="ghost" label="Cancel" @click="confirmingProjectDelete = null" />
-                <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDeleteProject(project.name)" />
+                <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDeleteProject(project.name)" />
               </template>
               <Button v-else variant="ghost" icon="lucide-trash-2" aria-label="Delete trip" @click="confirmingProjectDelete = project.name" />
             </div>
@@ -797,7 +797,7 @@
                 <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">{{ cat.category_name }}</span>
                 <Badge v-if="cat.is_archived" class="shrink-0" theme="gray" variant="subtle" size="sm" label="Archived" />
                 <Button variant="ghost" icon="lucide-pencil" aria-label="Rename category" @click="onStartRenameCategory(cat)" />
-                <Button variant="ghost" :icon="cat.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="cat.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveCategory(cat)" />
+                <Button variant="ghost" :icon-left="cat.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="cat.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveCategory(cat)" />
                 <template v-if="confirmingCategoryDelete === cat.name">
                   <span class="text-xs text-ink-gray-7">Delete?</span>
                   <Button variant="ghost" label="Cancel" @click="confirmingCategoryDelete = null" />
@@ -816,7 +816,7 @@
               :model-value="newCategoryName"
               @update:model-value="newCategoryName = $event"
             />
-            <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
+            <Button variant="subtle" icon-left="lucide-plus" label="Add" type="submit" />
           </form>
           <ErrorMessage class="mt-3" :message="categoryError" />
         </section>
@@ -842,7 +842,7 @@
                 <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-8">{{ method.method_name }}</span>
                 <Badge v-if="method.is_archived" class="shrink-0" theme="gray" variant="subtle" size="sm" label="Archived" />
                 <Button variant="ghost" icon="lucide-pencil" aria-label="Rename payment method" @click="onStartRenameMethod(method)" />
-                <Button variant="ghost" :icon="method.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="method.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveMethod(method)" />
+                <Button variant="ghost" :icon-left="method.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="method.is_archived ? 'Restore' : 'Archive'" @click="onToggleArchiveMethod(method)" />
                 <template v-if="confirmingMethodDelete === method.name">
                   <span class="text-xs text-ink-gray-7">Delete?</span>
                   <Button variant="ghost" label="Cancel" @click="confirmingMethodDelete = null" />
@@ -861,7 +861,7 @@
               :model-value="newMethodName"
               @update:model-value="newMethodName = $event"
             />
-            <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
+            <Button variant="subtle" icon-left="lucide-plus" label="Add" type="submit" />
           </form>
           <ErrorMessage class="mt-3" :message="methodError" />
         </section>
@@ -870,7 +870,7 @@
         <section class="rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-5" aria-labelledby="settings-rules">
           <div class="flex items-center justify-between gap-3">
             <h2 id="settings-rules" class="text-sm font-semibold text-ink-gray-8">Auto-categorisation rules</h2>
-            <Button v-if="!ruleForm" variant="subtle" icon="lucide-plus" label="Add rule" @click="onNewRule" />
+            <Button v-if="!ruleForm" variant="subtle" icon-left="lucide-plus" label="Add rule" @click="onNewRule" />
           </div>
 
           <form v-if="ruleForm" class="mt-3 flex flex-col gap-3 rounded-xl border border-outline-gray-2 bg-surface-gray-1 p-3" aria-label="Rule details" @submit.prevent="onSaveRule">

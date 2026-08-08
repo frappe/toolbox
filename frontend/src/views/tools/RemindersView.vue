@@ -27,11 +27,11 @@
               <p v-if="item.note" class="mt-1 text-sm leading-6 text-ink-gray-7">{{ item.note }}</p>
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-1.5">
-              <Button variant="subtle" icon="lucide-check" label="Complete" @click="reminders.complete(item.reminder)" />
+              <Button variant="subtle" icon-left="lucide-check" label="Complete" @click="reminders.complete(item.reminder)" />
               <Dropdown :options="snoozeMenuFor(item)">
-                <Button variant="ghost" icon="lucide-clock" label="Snooze" />
+                <Button variant="ghost" icon-left="lucide-clock" label="Snooze" />
               </Dropdown>
-              <Button variant="ghost" icon="lucide-x" label="Dismiss" @click="reminders.acknowledgeDue(item.name)" />
+              <Button variant="ghost" icon-left="lucide-x" label="Dismiss" @click="reminders.acknowledgeDue(item.name)" />
             </div>
           </div>
         </li>
@@ -56,7 +56,7 @@
       <Icon name="lucide-bell-plus" class="mx-auto size-8 text-ink-gray-5" />
       <h2 class="pt-3 text-lg font-semibold text-ink-gray-9">No reminders yet</h2>
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Set a reminder for a one-off task or a recurring routine. Toolbox nudges you when it is due.</p>
-      <Button class="mt-5" variant="solid" icon="lucide-plus" label="New reminder" @click="onNew" />
+      <Button class="mt-5" variant="solid" icon-left="lucide-plus" label="New reminder" @click="onNew" />
     </section>
 
     <!-- Main -->
@@ -89,9 +89,9 @@
         </TextInput>
 
         <div class="flex items-center gap-2">
-          <Button variant="solid" icon="lucide-plus" label="New reminder" @click="onNew" />
+          <Button variant="solid" icon-left="lucide-plus" label="New reminder" @click="onNew" />
           <Dropdown :options="exportOptions">
-            <Button variant="outline" icon="lucide-download" label="Export" />
+            <Button variant="outline" icon-left="lucide-download" label="Export" />
           </Dropdown>
         </div>
       </div>
@@ -248,12 +248,12 @@
                     </div>
                   </div>
                   <div class="flex shrink-0 flex-wrap items-center gap-1.5">
-                    <Button variant="subtle" icon="lucide-pencil" label="Edit" @click="onEdit(row.name)" />
-                    <Button v-if="reminders.scope.value !== 'completed'" variant="ghost" icon="lucide-check" label="Complete" @click="reminders.complete(row.name)" />
+                    <Button variant="subtle" icon-left="lucide-pencil" label="Edit" @click="onEdit(row.name)" />
+                    <Button v-if="reminders.scope.value !== 'completed'" variant="ghost" icon-left="lucide-check" label="Complete" @click="reminders.complete(row.name)" />
                     <template v-if="confirmingDeleteName === row.name">
                       <span class="text-xs text-ink-gray-7">Delete?</span>
                       <Button variant="ghost" label="Cancel" @click="confirmingDeleteName = null" />
-                      <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDelete(row.name)" />
+                      <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDelete(row.name)" />
                     </template>
                     <Button v-else variant="ghost" icon="lucide-trash-2" aria-label="Delete reminder" @click="confirmingDeleteName = row.name" />
                   </div>

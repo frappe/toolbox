@@ -27,9 +27,9 @@
       <h2 class="pt-3 text-lg font-semibold text-ink-gray-9">No checklists yet</h2>
       <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Start a packing list, a shopping run, or anything you want to check off. It saves as you go.</p>
       <div class="mt-5 flex flex-col items-center gap-2">
-        <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+        <Button variant="solid" icon-left="lucide-plus" label="New checklist" @click="onCreate" />
         <Dropdown :options="templateOptions" @update:open="onTemplateMenuToggle">
-          <Button variant="ghost" icon="lucide-copy-plus" label="Start from a template" />
+          <Button variant="ghost" icon-left="lucide-copy-plus" label="Start from a template" />
         </Dropdown>
       </div>
     </section>
@@ -38,9 +38,9 @@
       <!-- List pane -->
       <aside class="min-w-0 flex-col gap-4" :class="checklist.activeChecklist.value ? 'hidden lg:flex' : 'flex'" aria-label="Your checklists">
         <div class="flex flex-col gap-2">
-          <Button variant="solid" icon="lucide-plus" label="New checklist" @click="onCreate" />
+          <Button variant="solid" icon-left="lucide-plus" label="New checklist" @click="onCreate" />
           <Dropdown class="w-full" :options="templateOptions" @update:open="onTemplateMenuToggle">
-            <Button class="w-full" variant="outline" icon="lucide-copy-plus" label="New from template" />
+            <Button class="w-full" variant="outline" icon-left="lucide-copy-plus" label="New from template" />
           </Dropdown>
         </div>
 
@@ -180,7 +180,7 @@
               :model-value="newItemText"
               @update:model-value="newItemText = $event"
             />
-            <Button variant="subtle" icon="lucide-plus" label="Add" type="submit" />
+            <Button variant="subtle" icon-left="lucide-plus" label="Add" type="submit" />
           </form>
 
           <!-- Settings -->
@@ -194,24 +194,24 @@
 
           <!-- Actions -->
           <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-outline-gray-2 pt-4">
-            <Button variant="outline" :icon="active.is_pinned ? 'lucide-pin-off' : 'lucide-pin'" :label="active.is_pinned ? 'Unpin' : 'Pin'" @click="checklist.togglePin" />
-            <Button variant="outline" :icon="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="checklist.toggleArchive" />
-            <Button variant="outline" icon="lucide-copy" label="Duplicate" @click="checklist.duplicateActive" />
-            <Button variant="outline" :icon="savedAsTemplate ? 'lucide-check' : 'lucide-bookmark'" :label="savedAsTemplate ? 'Saved as template' : 'Save as template'" @click="onSaveAsTemplate" />
+            <Button variant="outline" :icon-left="active.is_pinned ? 'lucide-pin-off' : 'lucide-pin'" :label="active.is_pinned ? 'Unpin' : 'Pin'" @click="checklist.togglePin" />
+            <Button variant="outline" :icon-left="active.is_archived ? 'lucide-archive-restore' : 'lucide-archive'" :label="active.is_archived ? 'Unarchive' : 'Archive'" @click="checklist.toggleArchive" />
+            <Button variant="outline" icon-left="lucide-copy" label="Duplicate" @click="checklist.duplicateActive" />
+            <Button variant="outline" :icon-left="savedAsTemplate ? 'lucide-check' : 'lucide-bookmark'" :label="savedAsTemplate ? 'Saved as template' : 'Save as template'" @click="onSaveAsTemplate" />
 
             <Dropdown :options="exportOptions">
-              <Button variant="outline" icon="lucide-download" label="Export" />
+              <Button variant="outline" icon-left="lucide-download" label="Export" />
             </Dropdown>
 
-            <Button variant="ghost" icon="lucide-eraser" label="Clear completed" @click="checklist.clearCompleted" />
-            <Button variant="ghost" icon="lucide-rotate-ccw" label="Reset all" @click="checklist.resetAll" />
+            <Button variant="ghost" icon-left="lucide-eraser" label="Clear completed" @click="checklist.clearCompleted" />
+            <Button variant="ghost" icon-left="lucide-rotate-ccw" label="Reset all" @click="checklist.resetAll" />
 
             <div class="ml-auto">
-              <Button v-if="!confirmingDelete" variant="ghost" icon="lucide-trash-2" label="Delete" @click="confirmingDelete = true" />
+              <Button v-if="!confirmingDelete" variant="ghost" icon-left="lucide-trash-2" label="Delete" @click="confirmingDelete = true" />
               <div v-else class="flex items-center gap-2">
                 <span class="text-sm text-ink-gray-7">Delete this checklist?</span>
                 <Button variant="ghost" label="Cancel" @click="confirmingDelete = false" />
-                <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDelete" />
+                <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDelete" />
               </div>
             </div>
           </div>

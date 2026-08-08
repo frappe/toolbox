@@ -42,7 +42,7 @@
           </div>
           <p class="text-xs text-ink-gray-5">{{ activePreset.description }} The exact format is captured by your browser and shown after you stop.</p>
           <div class="flex flex-col items-center gap-3 py-1">
-            <Button variant="solid" size="lg" icon="lucide-mic" label="Record" @click="onStart" />
+            <Button variant="solid" size="lg" icon-left="lucide-mic" label="Record" @click="onStart" />
             <p class="text-xs text-ink-gray-5">Your browser will ask for microphone permission.</p>
           </div>
         </div>
@@ -62,10 +62,10 @@
             <div class="h-full rounded-full bg-ink-gray-7 transition-[width] duration-100 motion-reduce:transition-none" :style="{ width: `${Math.round(recorder.level.value * 100)}%` }" />
           </div>
           <div class="flex flex-wrap gap-2">
-            <Button v-if="recorder.state.value === 'recording'" variant="outline" icon="lucide-pause" label="Pause" @click="recorder.pause()" />
-            <Button v-else variant="outline" icon="lucide-play" label="Resume" @click="recorder.resume()" />
-            <Button variant="solid" icon="lucide-square" label="Stop" @click="recorder.stop()" />
-            <Button variant="ghost" icon="lucide-x" label="Discard" @click="recorder.reset()" />
+            <Button v-if="recorder.state.value === 'recording'" variant="outline" icon-left="lucide-pause" label="Pause" @click="recorder.pause()" />
+            <Button v-else variant="outline" icon-left="lucide-play" label="Resume" @click="recorder.resume()" />
+            <Button variant="solid" icon-left="lucide-square" label="Stop" @click="recorder.stop()" />
+            <Button variant="ghost" icon-left="lucide-x" label="Discard" @click="recorder.reset()" />
           </div>
         </div>
 
@@ -91,8 +91,8 @@
           />
           <TagInput variant="subtle" :model-value="tags" label="Tags" placeholder="Add a tag…" @update:model-value="tags = $event" />
           <div class="flex gap-2">
-            <Button variant="solid" icon="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" type="submit" />
-            <Button variant="ghost" icon="lucide-trash-2" label="Discard" @click="recorder.reset()" />
+            <Button variant="solid" icon-left="lucide-save" :label="library.isSaving.value ? 'Saving…' : 'Save'" :loading="library.isSaving.value" type="submit" />
+            <Button variant="ghost" icon-left="lucide-trash-2" label="Discard" @click="recorder.reset()" />
           </div>
         </form>
 
@@ -158,7 +158,7 @@
             <template v-if="confirmingDelete === rec.name">
               <span class="text-xs text-ink-gray-7">Delete?</span>
               <Button variant="ghost" label="Cancel" @click="confirmingDelete = null" />
-              <Button variant="solid" theme="red" icon="lucide-trash-2" label="Delete" @click="onDelete(rec.name)" />
+              <Button variant="solid" theme="red" icon-left="lucide-trash-2" label="Delete" @click="onDelete(rec.name)" />
             </template>
             <Button v-else variant="ghost" icon="lucide-trash-2" aria-label="Delete recording" @click="confirmingDelete = rec.name" />
           </div>

@@ -28,7 +28,7 @@
           />
           <div class="flex gap-2">
             <Tooltip text="Fetch the page title and description">
-              <Button variant="outline" icon="lucide-sparkles" label="Fetch" :loading="library.isFetchingMeta.value" @click="library.fetchMetadata()" />
+              <Button variant="outline" icon-left="lucide-sparkles" label="Fetch" :loading="library.isFetchingMeta.value" @click="library.fetchMetadata()" />
             </Tooltip>
             <Button variant="subtle" :label="showDetails ? 'Fewer details' : 'More details'" @click="showDetails = !showDetails" />
             <Button variant="solid" :label="library.editingName.value ? 'Update' : 'Save link'" :loading="library.isSaving.value" type="submit" />
@@ -151,9 +151,9 @@
         <div class="flex gap-2">
           <label class="sr-only" for="library-import">Import bookmarks</label>
           <input id="library-import" ref="importInput" type="file" accept=".json,.html,.htm" class="hidden" @change="onImportFile" />
-          <Button variant="outline" icon="lucide-upload" label="Import" @click="importInput?.click()" />
+          <Button variant="outline" icon-left="lucide-upload" label="Import" @click="importInput?.click()" />
           <Dropdown :options="exportOptions">
-            <Button variant="outline" icon="lucide-download" label="Export" />
+            <Button variant="outline" icon-left="lucide-download" label="Export" />
           </Dropdown>
         </div>
       </div>

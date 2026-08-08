@@ -14,12 +14,9 @@
     <section v-if="state === 'empty' || state === 'error'" class="mt-8 rounded-2xl border border-dashed border-outline-gray-3 bg-surface-gray-1 p-8 text-center" aria-label="Choose audio">
       <Icon name="lucide-file-audio" class="mx-auto size-8 text-ink-gray-5" />
       <p class="mx-auto max-w-md pt-3 text-sm leading-6 text-ink-gray-6">Choose an audio file to inspect. Common formats your browser can decode (WAV, MP3, OGG, M4A) are supported.</p>
-      <label class="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-surface-gray-7 px-4 py-2 text-sm font-medium text-white outline-none focus-within:ring-2 focus-within:ring-outline-gray-3 hover:bg-surface-gray-6">
-        <Icon name="lucide-upload" class="size-4" />
-        Choose audio file
-        <input type="file" accept="audio/*" class="sr-only" @change="onFile" />
-      </label>
-      <p v-if="error" class="mx-auto mt-4 max-w-md rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ error }}</p>
+      <input ref="fileInput" type="file" accept="audio/*" class="hidden" @change="onFile" />
+      <Button class="mt-4" variant="solid" icon-left="lucide-upload" label="Choose audio file" @click="fileInput?.click()" />
+      <Alert v-if="error" class="mx-auto mt-4 max-w-md text-left" theme="red" :dismissible="false" :title="error" />
     </section>
 
     <div v-else-if="state === 'decoding'" class="mt-8 h-40 animate-pulse rounded-2xl bg-surface-gray-2 motion-reduce:animate-none" aria-hidden="true" />
@@ -44,7 +41,7 @@
 
 <script setup>
 import { nextTick, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { computePeaks } from '@/tools/audio-editor/audioEdit'
@@ -60,6 +57,7 @@ const rows = ref([])
 const peaks = ref(new Float32Array(0))
 const hasHeader = ref(false)
 const waveformCanvas = ref(null)
+const fileInput = ref(null)
 
 async function onFile(event) {
   const file = event.target.files?.[0]

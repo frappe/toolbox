@@ -7,13 +7,11 @@
 
   <div v-else>
     <form class="flex flex-col gap-3 sm:flex-row" role="search" @submit.prevent="submit">
-      <label class="min-w-0 flex-1 text-sm font-medium text-ink-gray-7">{{ searchLabel }}
-        <input v-model="query" class="mt-2 h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" minlength="2" maxlength="80" required :placeholder="placeholder" />
-      </label>
+      <FormControl class="min-w-0 flex-1 [&_input]:h-12" type="search" size="lg" variant="outline" :label="searchLabel" minlength="2" maxlength="80" required :placeholder="placeholder" :model-value="query" @update:model-value="query = $event" />
       <Button class="h-12 self-end sm:w-28" variant="solid" label="Search" :loading="loading" type="submit" />
     </form>
 
-    <p v-if="errorMessage" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ errorMessage }}</p>
+    <Alert v-if="errorMessage" class="mt-4" theme="red" :dismissible="false" :title="errorMessage" />
     <div v-else-if="searched && !results.length" class="mt-6 rounded-xl bg-surface-gray-1 px-5 py-6 text-sm text-ink-gray-6">No matching {{ label }} records were found.</div>
     <ol v-else-if="results.length" class="divide-y divide-outline-gray-2 pt-6" aria-label="Search results">
       <li v-for="result in results" :key="resultKey(result)" class="py-5">
@@ -34,7 +32,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, FormControl, Icon } from 'frappe-ui'
 
 import PinMap from './PinMap.vue'
 import { searchBusinessDataset } from './api'

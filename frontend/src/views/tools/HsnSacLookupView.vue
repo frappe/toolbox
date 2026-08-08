@@ -19,19 +19,17 @@
 
     <div v-else class="pt-8">
       <form class="flex flex-col gap-3 sm:flex-row" role="search" @submit.prevent="hsn.submit">
-        <label class="min-w-0 flex-1 text-sm font-medium text-ink-gray-7">Code or description
-          <input v-model="hsn.query.value" class="mt-2 h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" minlength="2" maxlength="80" required placeholder="8517 or telephone" />
-        </label>
+        <FormControl class="min-w-0 flex-1 [&_input]:h-12" type="search" size="lg" variant="outline" label="Code or description" minlength="2" maxlength="80" required placeholder="8517 or telephone" :model-value="hsn.query.value" @update:model-value="hsn.query.value = $event" />
         <Button class="h-12 self-end sm:w-28" variant="solid" label="Search" :loading="hsn.loading.value" type="submit" />
       </form>
 
-      <p v-if="hsn.errorMessage.value" class="mt-4 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-3" role="alert">{{ hsn.errorMessage.value }}</p>
+      <Alert v-if="hsn.errorMessage.value" class="mt-4" theme="red" :dismissible="false" :title="hsn.errorMessage.value" />
       <div v-else-if="hsn.searched.value && !hsn.results.value.length" class="mt-6 rounded-xl bg-surface-gray-1 px-5 py-6 text-sm text-ink-gray-6">No matching HSN or SAC codes were found.</div>
       <ol v-else-if="hsn.results.value.length" class="divide-y divide-outline-gray-2 pt-6" aria-label="Search results">
         <li v-for="result in hsn.results.value" :key="result.code" class="py-4">
           <div class="flex items-center gap-3">
             <span class="font-mono text-sm font-semibold text-ink-gray-9">{{ result.code }}</span>
-            <span class="rounded-full bg-surface-gray-3 px-2 py-0.5 text-xs font-medium text-ink-gray-7">{{ result.code_type }}</span>
+            <Badge theme="gray" variant="subtle" size="sm" :label="result.code_type" />
           </div>
           <p class="pt-1.5 text-sm leading-6 text-ink-gray-7">{{ result.description }}</p>
         </li>
@@ -48,7 +46,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Badge, Button, FormControl, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useHsnLookup } from '@/tools/hsn-sac-lookup/useHsnLookup'

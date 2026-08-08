@@ -4,17 +4,24 @@
       <div class="min-w-0 flex-1">
         <h2 :id="headingId" class="text-sm font-medium text-ink-gray-6">{{ label }}</h2>
         <label :for="inputId" class="sr-only">{{ label }} value</label>
-        <input
+        <!--
+          The value is the hero of this tool, so it keeps its oversized display
+          type: TextInput tops out at `text-2xl`, and the `[&_input]:` overrides
+          below only restyle the type scale. Everything else — focus, disabled,
+          dark color-scheme, labeling — comes from the component.
+        -->
+        <TextInput
           :id="inputId"
-          :value="modelValue"
+          :model-value="modelValue"
           type="text"
+          size="xl"
+          variant="ghost"
           inputmode="decimal"
-          autocomplete="off"
           spellcheck="false"
-          class="mt-3 h-14 w-full min-w-0 bg-transparent text-3xl font-medium tracking-tight text-ink-gray-9 outline-none placeholder:text-ink-gray-3 sm:text-4xl"
+          class="mt-3 w-full min-w-0 [&_input]:h-14 [&_input]:bg-transparent [&_input]:px-0 [&_input]:text-3xl [&_input]:font-medium [&_input]:tracking-tight [&_input]:text-ink-gray-9 [&_input]:placeholder-ink-gray-3 sm:[&_input]:text-4xl"
           placeholder="0"
           :aria-invalid="invalid || undefined"
-          @input="$emit('update:modelValue', $event.target.value)"
+          @update:model-value="$emit('update:modelValue', $event)"
           @change="$emit('commit')"
         />
       </div>
@@ -31,6 +38,7 @@
 
 <script setup>
 import { useId } from 'vue'
+import { TextInput } from 'frappe-ui'
 
 import UnitPicker from './UnitPicker.vue'
 

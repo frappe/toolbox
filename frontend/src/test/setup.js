@@ -44,7 +44,7 @@ afterEach(() => {
 })
 
 vi.mock('frappe-ui', async () => {
-  const { defineComponent, h } = await import('vue')
+  const { defineComponent, h, ref } = await import('vue')
 
   const Dialog = defineComponent({
     name: 'Dialog',
@@ -118,6 +118,115 @@ vi.mock('frappe-ui', async () => {
     inheritAttrs: false,
     setup(_, { attrs }) {
       return () => h('span', { ...attrs, 'data-loading-indicator': '' })
+    },
+  })
+
+  const LoadingText = defineComponent({
+    name: 'LoadingText',
+    inheritAttrs: false,
+    props: {
+      text: { type: String, default: 'Loading...' },
+    },
+    setup(props, { attrs }) {
+      return () => h('div', { ...attrs, 'data-loading-indicator': '' }, props.text)
+    },
+  })
+
+  // Mirrors the observable surface of frappe-ui Combobox in button mode: a
+  // trigger (the `#trigger` slot, else a plain button), and — once open — a
+  // `role="combobox"` search field over a `role="listbox"` of `role="option"`
+  // rows. The real component portals the popover to `body`; the stub renders
+  // it inline so mounted wrappers can still query it.
+  const Combobox = defineComponent({
+    name: 'Combobox',
+    inheritAttrs: false,
+    props: {
+      modelValue: { type: [String, Number], default: null },
+      options: { type: Array, default: () => [] },
+      label: { type: String, default: '' },
+      placeholder: { type: String, default: '' },
+      emptyText: { type: String, default: 'No results' },
+      query: { type: String, default: '' },
+      size: { type: String, default: 'sm' },
+      variant: { type: String, default: 'subtle' },
+      trigger: { type: String, default: 'input' },
+      filterable: { type: Boolean, default: true },
+      disabled: { type: Boolean, default: false },
+    },
+    emits: ['update:modelValue', 'update:query', 'update:open'],
+    setup(props, { attrs, emit, slots }) {
+      const open = ref(false)
+
+      function setOpen(value) {
+        open.value = value
+        emit('update:open', value)
+      }
+
+      function selectedOption() {
+        return props.options.find((option) => option.value === props.modelValue) ?? null
+      }
+
+      function renderTrigger() {
+        const slotProps = { open: open.value, disabled: false, query: props.query, selectedOption: selectedOption(), setOpen }
+        if (slots.trigger) {
+          return h('div', { onClick: () => setOpen(!open.value) }, slots.trigger(slotProps))
+        }
+
+        return h(
+          'button',
+          {
+            type: 'button',
+            'aria-haspopup': 'listbox',
+            'aria-expanded': String(open.value),
+            onClick: () => setOpen(!open.value),
+          },
+          selectedOption()?.label ?? props.placeholder,
+        )
+      }
+
+      function renderOption(option) {
+        return h(
+          'button',
+          {
+            key: String(option.value),
+            type: 'button',
+            role: 'option',
+            'aria-selected': option.value === props.modelValue,
+            onClick: () => {
+              emit('update:modelValue', option.value)
+              setOpen(false)
+            },
+          },
+          [
+            slots['item-prefix']?.({ item: option }),
+            option.label,
+            slots['item-suffix']?.({ item: option }),
+          ],
+        )
+      }
+
+      return () =>
+        h('div', { 'data-component': 'Combobox' }, [
+          renderTrigger(),
+          open.value
+            ? h('div', {}, [
+                h('input', {
+                  ...attrs,
+                  role: 'combobox',
+                  value: props.query,
+                  placeholder: props.placeholder,
+                  onInput: (event) => emit('update:query', event.target.value),
+                }),
+                h(
+                  'div',
+                  { role: 'listbox' },
+                  props.options.length
+                    ? props.options.map(renderOption)
+                    : h('p', { role: 'status' }, props.emptyText),
+                ),
+              ])
+            : null,
+        ])
     },
   })
 
@@ -401,12 +510,14 @@ vi.mock('frappe-ui', async () => {
     BottomSheet,
     Button,
     Checkbox,
+    Combobox,
     Dialog,
     Dropdown,
     ErrorMessage,
     FormControl,
     Icon,
     LoadingIndicator,
+    LoadingText,
     Slider,
     TabButtons,
     TextEditor,

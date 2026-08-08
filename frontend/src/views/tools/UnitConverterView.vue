@@ -18,16 +18,13 @@
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
       <section class="min-w-0" aria-labelledby="converter-heading">
         <h2 id="converter-heading" class="sr-only">Convert units</h2>
-        <div role="group" aria-label="Measurement category" class="flex flex-wrap gap-2">
-          <Button
-            v-for="category in converter.categories"
-            :key="category.id"
-            class="h-9"
-            :label="category.name"
-            :variant="converter.categoryId.value === category.id ? 'solid' : 'outline'"
-            :aria-pressed="converter.categoryId.value === category.id"
-            :data-category-id="category.id"
-            @click="converter.setCategory(category.id)"
+        <div class="overflow-x-auto">
+          <TabButtons
+            :model-value="converter.categoryId.value"
+            :options="categoryTabs"
+            size="md"
+            aria-label="Measurement category"
+            @update:model-value="converter.setCategory"
           />
         </div>
 
@@ -74,17 +71,17 @@
             />
           </div>
 
-          <div
+          <Alert
             v-if="converter.errorMessage.value"
-            class="mt-2 flex flex-col gap-3 rounded-xl border border-outline-gray-2 bg-surface-base px-4 py-3 sm:flex-row sm:items-center"
-            role="alert"
+            class="mt-2"
+            theme="red"
+            :dismissible="false"
+            :title="converter.errorMessage.value"
           >
-            <div class="flex min-w-0 flex-1 items-center gap-2">
-              <Icon name="lucide-circle-alert" class="size-4 shrink-0 text-ink-gray-6" />
-              <p class="text-sm text-ink-gray-7">{{ converter.errorMessage.value }}</p>
-            </div>
-            <Button label="Clear values" variant="ghost" @click="converter.clearValues" />
-          </div>
+            <template #footer>
+              <Button label="Clear values" variant="ghost" @click="converter.clearValues" />
+            </template>
+          </Alert>
           <p v-else-if="converter.inputHint.value" class="px-3 pb-1 pt-3 text-sm text-ink-gray-5" aria-live="polite">
             {{ converter.inputHint.value }}
           </p>
@@ -94,7 +91,7 @@
               <Button
                 label="Copy result"
                 variant="solid"
-                icon="lucide-copy"
+                icon-left="lucide-copy"
                 :disabled="!converter.canCopy.value"
                 @click="converter.copyResult()"
               />
@@ -133,8 +130,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { computed, onMounted, ref } from 'vue'
+import { Alert, Button, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
@@ -144,6 +141,9 @@ import { useUnitConverter } from '@/tools/unit-converter/useUnitConverter'
 const converter = useUnitConverter()
 const preferences = useToolboxPreferences()
 const copiedHistoryId = ref('')
+const categoryTabs = computed(() =>
+  converter.categories.map((category) => ({ label: category.name, value: category.id })),
+)
 
 onMounted(() => preferences.recordRecent('unit-converter'))
 

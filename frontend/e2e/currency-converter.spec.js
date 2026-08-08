@@ -28,8 +28,9 @@ test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page
   await page.getByRole('button', { name: 'Save pair' }).click()
   await expect(page.getByRole('button', { name: 'USD → INR' })).toBeVisible()
 
+  // The picker is a frappe-ui Combobox: its search field is a `role=combobox`.
   await page.getByTestId('source-currency').click()
-  await page.getByRole('searchbox', { name: 'Search source currency' }).fill('pound')
+  await page.getByRole('combobox', { name: 'Search source currency' }).fill('pound')
   await page.getByRole('option', { name: 'GBP Pound sterling' }).click()
   await expect(page.getByTestId('source-currency')).toContainText('GBP')
   await expect(destination).toHaveValue(/^235294/) // 2000 GBP → INR, still converting locally

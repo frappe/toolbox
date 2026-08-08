@@ -15,21 +15,25 @@ function mountPicker(props = {}) {
   })
 }
 
+// The popover, keyboard navigation and focus handling now come from frappe-ui
+// Combobox. What stays this component's own is the trigger it renders and the
+// ranked, category-scoped option list it feeds in.
 describe('UnitPicker', () => {
-  it('opens with focus in an accessible search field', async () => {
+  it('names the trigger and its search field after the picker label', async () => {
     const wrapper = mountPicker()
-    await wrapper.get('button[aria-haspopup="listbox"]').trigger('click')
+    const trigger = wrapper.get('button[aria-haspopup="listbox"]')
+    expect(trigger.text()).toContain('Meter')
+    expect(trigger.text()).toContain('m')
 
-    const search = wrapper.get('input[type="search"]')
-    expect(search.attributes('aria-label')).toBe('Search from unit')
-    expect(document.activeElement).toBe(search.element)
-    expect(wrapper.get('[role="listbox"]').attributes('aria-label')).toBe('From unit')
+    await trigger.trigger('click')
+    expect(wrapper.get('[role="combobox"]').attributes('aria-label')).toBe('Search from unit')
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
   })
 
   it('searches names and aliases and emits the selected unit', async () => {
     const wrapper = mountPicker()
     await wrapper.get('button[aria-haspopup="listbox"]').trigger('click')
-    await wrapper.get('input[type="search"]').setValue('feet')
+    await wrapper.get('[role="combobox"]').setValue('feet')
 
     const options = wrapper.findAll('[role="option"]')
     expect(options).toHaveLength(1)
@@ -41,19 +45,22 @@ describe('UnitPicker', () => {
   it('shows an empty search state without leaving its category', async () => {
     const wrapper = mountPicker({ categoryId: 'temperature', modelValue: 'celsius' })
     await wrapper.get('button[aria-haspopup="listbox"]').trigger('click')
-    await wrapper.get('input[type="search"]').setValue('mile')
+    await wrapper.get('[role="combobox"]').setValue('mile')
 
     expect(wrapper.findAll('[role="option"]')).toHaveLength(0)
     expect(wrapper.get('[role="status"]').text()).toBe('No matching units')
   })
 
-  it('closes on Escape and restores focus to the trigger', async () => {
+  it('clears the query when the picker closes', async () => {
     const wrapper = mountPicker()
     const trigger = wrapper.get('button[aria-haspopup="listbox"]')
     await trigger.trigger('click')
-    await wrapper.get('input[type="search"]').trigger('keydown', { key: 'Escape' })
+    await wrapper.get('[role="combobox"]').setValue('feet')
+    expect(wrapper.findAll('[role="option"]')).toHaveLength(1)
 
-    expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
-    expect(document.activeElement).toBe(trigger.element)
+    await trigger.trigger('click')
+    await trigger.trigger('click')
+    expect(wrapper.get('[role="combobox"]').element.value).toBe('')
+    expect(wrapper.findAll('[role="option"]').length).toBeGreaterThan(1)
   })
 })

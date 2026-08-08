@@ -58,9 +58,12 @@ test('re-times every location with the converter and copies the meeting times', 
 
   // The converter shows one chosen wall-clock moment across every card. Anchoring the input to
   // Kolkata's own zone makes its card read back exactly 09:00, independent of the runner's clock.
-  await page.getByRole('tab', { name: 'Time converter' }).click()
-  await page.getByLabel("In this city's time").selectOption('Asia/Kolkata')
-  await page.getByLabel('Date and time').fill('2026-01-01T09:00')
+  await page.getByRole('radio', { name: 'Time converter' }).click()
+  await page.getByLabel("In this city's time").click()
+  await page.getByRole('option', { name: 'Kolkata' }).click()
+  const dateTime = page.getByLabel('Date and time')
+  await dateTime.fill('2026-01-01 09:00:00')
+  await dateTime.press('Enter')
   await expect(kolkata.locator('p.font-mono')).toContainText('09:00')
 
   // Clipboard access (grant + readText) is only reliable in headless Chromium.
@@ -89,9 +92,12 @@ test('launches directly and remains useful offline', async ({ browserName, conte
     await expect(kolkata).toBeVisible()
 
     // Time math is pure and client-side, so the converter keeps working with no network.
-    await page.getByRole('tab', { name: 'Time converter' }).click()
-    await page.getByLabel("In this city's time").selectOption('Asia/Kolkata')
-    await page.getByLabel('Date and time').fill('2026-01-01T09:00')
+    await page.getByRole('radio', { name: 'Time converter' }).click()
+    await page.getByLabel("In this city's time").click()
+    await page.getByRole('option', { name: 'Kolkata' }).click()
+    const dateTime = page.getByLabel('Date and time')
+    await dateTime.fill('2026-01-01 09:00:00')
+    await dateTime.press('Enter')
     await expect(kolkata.locator('p.font-mono')).toContainText('09:00')
   } finally {
     await context.setOffline(false)

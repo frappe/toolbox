@@ -3,9 +3,9 @@
     <div class="flex items-center justify-between px-4 py-2">
       <figcaption class="text-sm text-ink-gray-6">{{ caption }}</figcaption>
       <div class="flex gap-1" role="group" aria-label="Map zoom">
-        <button type="button" class="flex size-8 items-center justify-center rounded-lg bg-surface-base text-ink-gray-7 shadow-sm hover:bg-surface-gray-2" aria-label="Zoom in" @click="zoomBy(1.5)"><Icon name="lucide-plus" class="size-4" /></button>
-        <button type="button" class="flex size-8 items-center justify-center rounded-lg bg-surface-base text-ink-gray-7 shadow-sm hover:bg-surface-gray-2" aria-label="Zoom out" @click="zoomBy(1 / 1.5)"><Icon name="lucide-minus" class="size-4" /></button>
-        <button type="button" class="flex size-8 items-center justify-center rounded-lg bg-surface-base text-ink-gray-7 shadow-sm hover:bg-surface-gray-2" aria-label="Reset view" @click="resetView"><Icon name="lucide-locate-fixed" class="size-4" /></button>
+        <Button variant="subtle" icon="lucide-plus" aria-label="Zoom in" @click="zoomBy(1.5)" />
+        <Button variant="subtle" icon="lucide-minus" aria-label="Zoom out" @click="zoomBy(1 / 1.5)" />
+        <Button variant="subtle" icon="lucide-locate-fixed" aria-label="Reset view" @click="resetView" />
       </div>
     </div>
     <svg
@@ -42,7 +42,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Icon } from 'frappe-ui'
+import { Button, Icon } from 'frappe-ui'
 
 import indiaStates from './indiaStates.json'
 

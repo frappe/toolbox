@@ -3,14 +3,16 @@
     <div class="overflow-hidden rounded-xl bg-surface-elevation-1 shadow-xl">
       <div class="flex h-14 items-center border-b border-outline-gray-2 px-4">
         <Icon name="lucide-search" class="mr-3 size-5 shrink-0 text-ink-gray-5" />
-        <input
+        <TextInput
           ref="input"
-          v-model="query"
+          class="min-w-0 flex-1 [&_input]:h-full [&_input]:bg-transparent [&_input]:px-0"
           type="search"
-          class="h-full min-w-0 flex-1 border-0 bg-transparent text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4"
+          size="lg"
+          variant="ghost"
           placeholder="Search calculators, converters, and lookups"
           aria-label="Search tools"
-          autocomplete="off"
+          :model-value="query"
+          @update:model-value="query = $event"
         />
         <kbd class="rounded border border-outline-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-5">Esc</kbd>
       </div>
@@ -51,7 +53,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Dialog, Icon } from 'frappe-ui'
+import { Dialog, Icon, TextInput } from 'frappe-ui'
 
 import { isToolAvailable, tools } from '@/data/toolRegistry'
 import { searchTools } from '@/utils/toolSearch'
@@ -73,7 +75,7 @@ const results = computed(() => searchTools(query.value, searchableTools))
 watch(open, async (isOpen) => {
   if (isOpen) {
     await nextTick()
-    input.value?.focus()
+    input.value?.el?.focus()
   } else {
     query.value = ''
   }

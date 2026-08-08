@@ -113,11 +113,8 @@
     </section>
 
     <div class="flex flex-col gap-4 border-t border-outline-gray-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
-      <p
-        class="text-sm text-ink-gray-5"
-        :role="preferences.syncError.value ? 'alert' : 'status'"
-        aria-live="polite"
-      >
+      <ErrorMessage v-if="preferences.syncError.value" :message="preferences.syncError.value" />
+      <p v-else class="text-sm text-ink-gray-5" role="status" aria-live="polite">
         {{ persistenceMessage }}
       </p>
       <Button label="Reset settings" variant="subtle" @click="preferences.resetSettings()" />
@@ -127,7 +124,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Button, Checkbox, FormControl } from 'frappe-ui'
+import { Button, Checkbox, ErrorMessage, FormControl } from 'frappe-ui'
 
 import SettingRow from '@/components/settings/SettingRow.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'

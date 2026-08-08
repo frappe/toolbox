@@ -1,5 +1,11 @@
 <template>
   <div ref="root" class="relative">
+    <!--
+      Kept native: this row needs the label to fill between a left logo and a
+      right chevron. frappe-ui Button lays children out with justify-center and
+      renders its label in a content-sized span, so there is no supported way to
+      make it grow. Same reason as the sidebar rows and the list rows in #108.
+    -->
     <button
       ref="trigger"
       type="button"
@@ -73,16 +79,15 @@
           <Icon name="lucide-settings-2" class="size-4 shrink-0" />
           <span>Settings</span>
         </RouterLink>
-        <button
+        <Button
           v-if="session.isLoggedIn"
-          type="button"
+          class="h-9 w-full !justify-start"
+          variant="ghost"
           role="menuitem"
-          class="flex h-9 w-full items-center gap-2 rounded-lg px-2 text-left text-sm font-medium text-ink-gray-7 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+          label="Log out"
+          icon-left="lucide-log-out"
           @click="onLogout"
-        >
-          <Icon name="lucide-log-out" class="size-4 shrink-0" />
-          <span>Log out</span>
-        </button>
+        />
         <a
           v-else
           :href="loginHref"
@@ -99,7 +104,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, nextTick, ref, watch } from 'vue'
-import { Icon } from 'frappe-ui'
+import { Button, Icon } from 'frappe-ui'
 
 import { suiteApps } from '@/data/suiteApps'
 import { getToolboxSession, logoutToolbox, sessionInitials } from '@/utils/session'

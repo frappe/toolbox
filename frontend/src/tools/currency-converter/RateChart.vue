@@ -24,22 +24,22 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2 pt-4" role="group" aria-label="Chart range">
-      <Button
-        v-for="option in ranges"
-        :key="option.key"
-        class="h-8"
-        :label="option.label"
-        :variant="option.key === range ? 'solid' : 'outline'"
-        :aria-pressed="option.key === range"
-        @click="emit('set-range', option.key)"
-      />
+    <div class="flex flex-wrap items-center gap-2 pt-4">
+      <div class="overflow-x-auto">
+        <TabButtons
+          :model-value="range"
+          :options="rangeTabs"
+          size="md"
+          aria-label="Chart range"
+          @update:model-value="emit('set-range', $event)"
+        />
+      </div>
       <Button
         v-if="state === 'ready'"
         class="ml-auto h-8"
         label="Download CSV"
         variant="ghost"
-        icon="lucide-download"
+        icon-left="lucide-download"
         @click="downloadCsv"
       />
     </div>
@@ -50,7 +50,7 @@
         class="flex h-56 items-center justify-center rounded-xl bg-surface-gray-2"
         role="status"
       >
-        <p class="text-sm text-ink-gray-5">Loading rate history…</p>
+        <LoadingText text="Loading rate history…" />
       </div>
 
       <div
@@ -166,7 +166,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Button } from 'frappe-ui'
+import { Button, LoadingText, TabButtons } from 'frappe-ui'
 
 import { buildRateCsv } from './rateHistory'
 
@@ -194,6 +194,10 @@ const hoverIndex = ref(null)
 
 const numberFormat = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 6 })
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
+
+const rangeTabs = computed(() =>
+  props.ranges.map((option) => ({ label: option.label, value: option.key })),
+)
 
 const points = computed(() => props.series?.points ?? [])
 

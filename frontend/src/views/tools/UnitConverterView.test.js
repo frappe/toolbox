@@ -11,6 +11,10 @@ function valueInputs(wrapper) {
   return wrapper.findAll('input[inputmode="decimal"]')
 }
 
+function categoryTab(wrapper, name) {
+  return wrapper.findAll('[role="radio"]').find((tab) => tab.text() === name)
+}
+
 describe('UnitConverterView', () => {
   it('converts edits in both fields immediately', async () => {
     const wrapper = mountView()
@@ -25,7 +29,7 @@ describe('UnitConverterView', () => {
 
   it('changes category defaults and applies temperature formulas', async () => {
     const wrapper = mountView()
-    await wrapper.get('[data-category-id="temperature"]').trigger('click')
+    await categoryTab(wrapper, 'Temperature').trigger('click')
     const [fromInput, toInput] = valueInputs(wrapper)
     await fromInput.setValue('0')
 
@@ -38,7 +42,7 @@ describe('UnitConverterView', () => {
     const wrapper = mountView()
     const pickerTriggers = wrapper.findAll('button[aria-haspopup="listbox"]')
     await pickerTriggers[0].trigger('click')
-    await wrapper.get('input[type="search"]').setValue('feet')
+    await wrapper.get('[role="combobox"]').setValue('feet')
     await wrapper.get('[role="option"]').trigger('click')
 
     expect(wrapper.findAll('button[aria-haspopup="listbox"]')[0].text()).toContain('Foot')
@@ -125,12 +129,12 @@ describe('UnitConverterView', () => {
 
   it('clears the values while keeping the chosen category', async () => {
     const wrapper = mountView()
-    await wrapper.get('[data-category-id="temperature"]').trigger('click')
+    await categoryTab(wrapper, 'Temperature').trigger('click')
     await valueInputs(wrapper)[0].setValue('10')
     const clearButton = wrapper.findAll('button').find((button) => button.text() === 'Clear')
     await clearButton.trigger('click')
     expect(valueInputs(wrapper).map((input) => input.element.value)).toEqual(['', ''])
     // A single Clear empties the values but keeps the user's category.
-    expect(wrapper.get('[data-category-id="temperature"]').attributes('aria-pressed')).toBe('true')
+    expect(categoryTab(wrapper, 'Temperature').attributes('aria-checked')).toBe('true')
   })
 })

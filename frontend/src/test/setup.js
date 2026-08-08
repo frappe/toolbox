@@ -297,6 +297,32 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  const Slider = defineComponent({
+    name: 'Slider',
+    inheritAttrs: false,
+    props: {
+      modelValue: { type: Number, default: 0 },
+      min: { type: Number, default: 0 },
+      max: { type: Number, default: 100 },
+      step: { type: Number, default: 1 },
+      label: { type: String, default: '' },
+    },
+    emits: ['update:modelValue'],
+    setup(props, { attrs, emit }) {
+      return () =>
+        h('input', {
+          ...attrs,
+          type: 'range',
+          min: props.min,
+          max: props.max,
+          step: props.step,
+          value: props.modelValue,
+          'aria-label': attrs['aria-label'] || props.label || undefined,
+          onInput: (event) => emit('update:modelValue', Number(event.target.value)),
+        })
+    },
+  })
+
   // Stand-in for the TipTap-based rich editor: a contenteditable region that echoes the
   // content, so views that use TextEditor render a `[role="textbox"]` in tests.
   const TextEditor = defineComponent({
@@ -381,6 +407,7 @@ vi.mock('frappe-ui', async () => {
     FormControl,
     Icon,
     LoadingIndicator,
+    Slider,
     TabButtons,
     TextEditor,
     TextInput,

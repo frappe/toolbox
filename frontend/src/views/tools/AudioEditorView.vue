@@ -15,12 +15,9 @@
     <section v-if="editor.state.value === 'empty' || editor.state.value === 'error'" class="mt-8 rounded-2xl border border-dashed border-outline-gray-3 bg-surface-gray-1 p-8 text-center" aria-label="Import audio">
       <Icon name="lucide-file-audio" class="mx-auto size-8 text-ink-gray-5" />
       <p class="mx-auto max-w-md pt-3 text-sm leading-6 text-ink-gray-6">Choose an audio file to edit. Common formats your browser can decode (WAV, MP3, OGG, M4A) are supported.</p>
-      <label class="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-surface-gray-7 px-4 py-2 text-sm font-medium text-white outline-none focus-within:ring-2 focus-within:ring-outline-gray-3 hover:bg-surface-gray-6">
-        <Icon name="lucide-upload" class="size-4" />
-        Choose audio file
-        <input type="file" accept="audio/*" class="sr-only" @change="onFile" />
-      </label>
-      <p v-if="editor.error.value" class="mx-auto mt-4 max-w-md rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ editor.error.value }}</p>
+      <input ref="fileInput" type="file" accept="audio/*" class="hidden" @change="onFile" />
+      <Button class="mt-4" variant="solid" icon-left="lucide-upload" label="Choose audio file" @click="fileInput?.click()" />
+      <Alert v-if="editor.error.value" class="mx-auto mt-4 max-w-md text-left" theme="red" :dismissible="false" :title="editor.error.value" />
     </section>
 
     <div v-else-if="editor.state.value === 'decoding'" class="mt-8 h-40 animate-pulse rounded-2xl bg-surface-gray-2 motion-reduce:animate-none" aria-hidden="true" />
@@ -41,30 +38,62 @@
 
         <!-- Trim -->
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
-            <span class="flex justify-between"><span>Start</span><span class="tabular-nums text-ink-gray-5">{{ formatTime(editor.project.value.trimStart) }}</span></span>
-            <input type="range" min="0" :max="editor.source.value.duration" step="0.01" :value="editor.project.value.trimStart" aria-label="Trim start" @change="setTrimStart($event.target.value)" />
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
-            <span class="flex justify-between"><span>End</span><span class="tabular-nums text-ink-gray-5">{{ formatTime(editor.project.value.trimEnd) }}</span></span>
-            <input type="range" min="0" :max="editor.source.value.duration" step="0.01" :value="editor.project.value.trimEnd" aria-label="Trim end" @change="setTrimEnd($event.target.value)" />
-          </label>
+          <Slider
+            label="Start"
+            :description="formatTime(editor.project.value.trimStart)"
+            :min="0"
+            :max="editor.source.value.duration"
+            :step="0.01"
+            aria-label="Trim start"
+            :model-value="editor.project.value.trimStart"
+            @update:model-value="setTrimStart"
+          />
+          <Slider
+            label="End"
+            :description="formatTime(editor.project.value.trimEnd)"
+            :min="0"
+            :max="editor.source.value.duration"
+            :step="0.01"
+            aria-label="Trim end"
+            :model-value="editor.project.value.trimEnd"
+            @update:model-value="setTrimEnd"
+          />
         </div>
 
         <!-- Fades + gain -->
         <div class="mt-4 grid gap-4 sm:grid-cols-3">
-          <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
-            Fade in (s)
-            <input type="number" min="0" :max="maxFade" step="0.1" :value="editor.project.value.fadeIn" aria-label="Fade in seconds" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="setFade('fadeIn', $event.target.value)" />
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
-            Fade out (s)
-            <input type="number" min="0" :max="maxFade" step="0.1" :value="editor.project.value.fadeOut" aria-label="Fade out seconds" class="h-10 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" @change="setFade('fadeOut', $event.target.value)" />
-          </label>
-          <label class="grid gap-1.5 text-sm font-medium text-ink-gray-7">
-            <span class="flex justify-between"><span>Gain</span><span class="tabular-nums text-ink-gray-5">{{ gainLabel }}</span></span>
-            <input type="range" min="-24" max="12" step="1" :value="editor.project.value.gainDb" aria-label="Gain in decibels" @change="editor.update({ gainDb: Number($event.target.value) })" />
-          </label>
+          <FormControl
+            type="number"
+            size="md"
+            label="Fade in (s)"
+            min="0"
+            :max="maxFade"
+            step="0.1"
+            aria-label="Fade in seconds"
+            :model-value="editor.project.value.fadeIn"
+            @update:model-value="setFade('fadeIn', $event)"
+          />
+          <FormControl
+            type="number"
+            size="md"
+            label="Fade out (s)"
+            min="0"
+            :max="maxFade"
+            step="0.1"
+            aria-label="Fade out seconds"
+            :model-value="editor.project.value.fadeOut"
+            @update:model-value="setFade('fadeOut', $event)"
+          />
+          <Slider
+            label="Gain"
+            :description="gainLabel"
+            :min="-24"
+            :max="12"
+            :step="1"
+            aria-label="Gain in decibels"
+            :model-value="editor.project.value.gainDb"
+            @update:model-value="editor.update({ gainDb: Number($event) })"
+          />
         </div>
       </section>
 
@@ -78,34 +107,36 @@
 
         <div v-if="opusAvailable" class="mt-4 grid gap-2 text-sm font-medium text-ink-gray-7">
           <span>Export format</span>
-          <div class="flex flex-wrap gap-2" role="group" aria-label="Export format">
-            <button
-              v-for="option in FORMATS"
-              :key="option.id"
-              type="button"
-              class="h-9 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-              :class="exportFormat === option.id ? 'border-outline-gray-4 bg-surface-gray-3 text-ink-gray-9' : 'border-outline-gray-2 bg-surface-base text-ink-gray-7 hover:border-outline-gray-3'"
-              :aria-pressed="exportFormat === option.id"
-              @click="exportFormat = option.id"
-            >
-              {{ option.label }}
-            </button>
+          <div class="overflow-x-auto">
+            <TabButtons
+              :options="formatOptions"
+              :model-value="exportFormat"
+              size="md"
+              aria-label="Export format"
+              @update:model-value="exportFormat = $event"
+            />
           </div>
         </div>
 
         <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-          <label class="grid flex-1 gap-1.5 text-sm font-medium text-ink-gray-7">
-            Save to your library
-            <input v-model="saveTitle" type="text" placeholder="Name this clip" aria-label="Saved clip title" class="h-10 min-w-0 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none focus-visible:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" />
-          </label>
+          <FormControl
+            type="text"
+            size="md"
+            class="flex-1"
+            label="Save to your library"
+            placeholder="Name this clip"
+            aria-label="Saved clip title"
+            :model-value="saveTitle"
+            @update:model-value="saveTitle = $event"
+          />
           <div class="flex gap-2">
             <Button variant="solid" icon-left="lucide-save" :label="library.isSaving.value || encoding ? 'Saving…' : 'Save'" :loading="library.isSaving.value || encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onSave" />
             <Button variant="subtle" icon-left="lucide-download" :label="downloadLabel" :loading="encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onDownload" />
           </div>
         </div>
         <p v-if="encoding" class="mt-3 text-sm text-ink-gray-6">Encoding to Opus… this runs in real time, so it takes about the length of the clip.</p>
-        <p v-if="savedTitle" class="mt-3 flex items-center gap-2 rounded-lg bg-surface-green-1 px-3 py-2 text-sm text-ink-green-7" role="status"><Icon name="lucide-check" class="size-4" /> Saved “{{ savedTitle }}” to your Audio Recorder library.</p>
-        <p v-if="library.saveError.value" class="mt-3 rounded-lg bg-surface-red-1 px-3 py-2 text-sm text-ink-red-4" role="alert">{{ library.saveError.value }}</p>
+        <Alert v-if="savedTitle" class="mt-3" theme="green" :dismissible="false" :title="`Saved “${savedTitle}” to your Audio Recorder library.`" />
+        <Alert v-if="library.saveError.value" class="mt-3" theme="red" :dismissible="false" :title="library.saveError.value" />
       </section>
     </template>
   </div>
@@ -113,7 +144,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Alert, Button, FormControl, Icon, Slider, TabButtons } from 'frappe-ui'
 import { useRoute } from 'vue-router'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
@@ -156,12 +187,15 @@ async function loadAsset(name) {
 }
 
 const waveformCanvas = ref(null)
+const fileInput = ref(null)
 const previewUrl = ref('')
 const saveTitle = ref('')
 const savedTitle = ref('')
 const exportFormat = ref('wav')
 const encoding = ref(false)
 const opusAvailable = canEncodeOpus()
+
+const formatOptions = computed(() => FORMATS.map((format) => ({ label: format.label, value: format.id })))
 
 const maxFade = computed(() => Math.max(0, editor.outputDuration.value))
 const gainLabel = computed(() => {

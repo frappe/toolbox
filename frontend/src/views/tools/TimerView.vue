@@ -18,8 +18,8 @@
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
           <div class="grid gap-4 pt-5 sm:grid-cols-2">
-            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Minutes<input v-model="timerMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="number" min="1" max="1440" /></label>
-            <label class="grid gap-2 text-sm font-medium text-ink-gray-7">Label (optional)<input v-model="timerLabel" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" maxlength="80" placeholder="Tea break" /></label>
+            <FormControl type="number" size="md" label="Minutes" min="1" max="1440" :model-value="timerMinutes" @update:model-value="timerMinutes = $event" />
+            <FormControl type="text" size="md" label="Label (optional)" maxlength="80" placeholder="Tea break" :model-value="timerLabel" @update:model-value="timerLabel = $event" />
           </div>
           <div class="flex flex-wrap gap-2 pt-6"><Button label="Set timer" icon-left="lucide-timer" variant="subtle" class="h-12" @click="setTimer" /><Button :label="timerAction" :icon-left="timerActionIcon" variant="solid" class="h-12" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetActiveTimer" /></div>
         </div>
@@ -40,10 +40,10 @@
           <h2 id="countdown-heading" class="text-lg font-semibold text-ink-gray-9">Countdown</h2>
           <div class="grid gap-5 pt-5">
             <fieldset class="grid gap-3"><legend class="text-sm font-medium text-ink-gray-7">Countdown mode</legend><div class="flex gap-4"><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="duration" /> Duration</label><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="date" /> Date and time</label></div></fieldset>
-            <label v-if="countdownMode === 'duration'" class="grid gap-2 text-sm font-medium text-ink-gray-7">Duration in minutes<input v-model="countdownMinutes" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="number" min="1" max="525600" /></label>
-            <label v-else class="grid gap-2 text-sm font-medium text-ink-gray-7">Target date and time<input v-model="countdownDate" class="h-11 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base" type="datetime-local" /></label>
+            <FormControl v-if="countdownMode === 'duration'" type="number" size="md" label="Duration in minutes" min="1" max="525600" :model-value="countdownMinutes" @update:model-value="countdownMinutes = $event" />
+            <FormControl v-else type="datetime" size="md" label="Target date and time" :model-value="countdownDate" @update:model-value="countdownDate = $event" />
           </div>
-          <p v-if="countdownError" class="pt-3 text-sm text-ink-red-3" role="alert">{{ countdownError }}</p>
+          <ErrorMessage class="pt-3" :message="countdownError" />
           <div class="flex flex-wrap gap-2 pt-6"><Button label="Start countdown" icon-left="lucide-play" variant="solid" class="h-12" @click="startCountdown" /><Button label="Clear" icon-left="lucide-x" variant="outline" class="h-12" @click="workspace.clearCountdown" /></div>
           <p v-if="workspace.state.countdown.targetAt" class="pt-5 text-sm text-ink-gray-6">Target: <time>{{ targetText }}</time></p>
         </div>
@@ -51,13 +51,13 @@
       </section>
     </div>
 
-    <aside class="mt-8 flex gap-3 rounded-xl bg-surface-amber-1 px-4 py-3 text-sm leading-6 text-ink-gray-7"><Icon name="lucide-info" class="mt-1 size-4 shrink-0" /><p>Browsers and operating systems can suspend background tabs. Toolbox restores the correct time when you return, but it cannot guarantee that an alarm sounds while suspended.</p></aside>
+    <Alert class="mt-8" theme="yellow" :dismissible="false" title="Browsers and operating systems can suspend background tabs. Toolbox restores the correct time when you return, but it cannot guarantee that an alarm sounds while suspended." />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Button, Icon, TabButtons } from 'frappe-ui'
+import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TimeDisplay from '@/tools/timer/TimeDisplay.vue'
 import { useTimerWorkspace } from '@/tools/timer/useTimerWorkspace'

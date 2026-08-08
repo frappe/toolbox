@@ -10,18 +10,23 @@
     >
       {{ formatDuration(milliseconds, precise) }}
     </p>
-    <span class="rounded-full bg-surface-base px-3 py-1 text-xs font-medium capitalize text-ink-gray-7">
-      {{ status }}
-    </span>
+    <Badge :theme="statusTheme" variant="subtle" size="md" :label="statusLabel" />
   </aside>
 </template>
 <script setup>
+import { computed } from 'vue'
+import { Badge } from 'frappe-ui'
+
 import { formatDuration } from './formatTime'
 
-defineProps({
+const props = defineProps({
   label: { type: String, required: true },
   milliseconds: { type: Number, required: true },
   status: { type: String, required: true },
   precise: Boolean,
 })
+
+const statusLabel = computed(() => props.status.charAt(0).toUpperCase() + props.status.slice(1))
+// Colour the pill by state; anything unmapped (e.g. idle) reads neutral gray.
+const statusTheme = computed(() => ({ running: 'green', paused: 'orange', finished: 'blue' })[props.status] || 'gray')
 </script>

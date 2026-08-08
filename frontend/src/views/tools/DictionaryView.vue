@@ -13,9 +13,10 @@
       <label for="dictionary-search" class="block text-sm font-medium text-ink-gray-7">Search a word</label>
       <div class="mt-2 flex flex-col gap-2 sm:flex-row">
         <div class="relative min-w-0 flex-1">
-          <input id="dictionary-search" v-model="dict.query.value" class="h-12 w-full rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-base text-ink-gray-9" type="search" autocomplete="off" spellcheck="false" placeholder="serendipity, run, quiet" role="combobox" aria-controls="dictionary-suggestions" :aria-expanded="dict.suggestions.value.length > 0" />
+          <TextInput id="dictionary-search" class="[&_input]:h-12" type="search" size="lg" variant="outline" spellcheck="false" placeholder="serendipity, run, quiet" role="combobox" aria-controls="dictionary-suggestions" :aria-expanded="dict.suggestions.value.length > 0" :model-value="dict.query.value" @update:model-value="dict.query.value = $event" />
           <ul v-if="dict.suggestions.value.length" id="dictionary-suggestions" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Word suggestions">
             <li v-for="candidate in dict.suggestions.value" :key="candidate">
+              <!-- Left-aligned full-width list row: Button centres its label. -->
               <button type="button" class="min-h-11 w-full rounded-lg px-3 py-2 text-left text-ink-gray-8 hover:bg-surface-gray-2" @click="dict.selectWord(candidate)">{{ candidate }}</button>
             </li>
           </ul>
@@ -30,7 +31,7 @@
         <Button label="Clear" variant="ghost" size="sm" @click="dict.clearRecent" />
       </div>
       <div class="flex flex-wrap gap-2 pt-2">
-        <button v-for="recent in dict.recentWords.value" :key="recent" type="button" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-3" @click="dict.selectWord(recent)">{{ recent }}</button>
+        <Button v-for="recent in dict.recentWords.value" :key="recent" variant="subtle" :label="recent" @click="dict.selectWord(recent)" />
       </div>
     </div>
 
@@ -50,7 +51,7 @@
                 </ul>
                 <div v-if="sense.synonyms?.length" class="flex flex-wrap items-center gap-2 pt-3">
                   <span class="text-xs font-medium text-ink-gray-5">Synonyms</span>
-                  <button v-for="synonym in sense.synonyms" :key="synonym" type="button" class="rounded-md bg-surface-gray-2 px-2 py-1 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-3" @click="dict.selectWord(synonym)">{{ synonym }}</button>
+                  <Button v-for="synonym in sense.synonyms" :key="synonym" variant="subtle" size="sm" :label="synonym" @click="dict.selectWord(synonym)" />
                 </div>
               </div>
             </li>
@@ -69,7 +70,7 @@
         <p v-if="dict.missSuggestions.value.length" class="pt-1 text-sm leading-6 text-ink-gray-6">Did you mean one of these?</p>
         <p v-else class="pt-1 text-sm leading-6 text-ink-gray-6">Check the spelling and try another word.</p>
         <div v-if="dict.missSuggestions.value.length" class="flex flex-wrap justify-center gap-2 pt-4">
-          <button v-for="candidate in dict.missSuggestions.value" :key="candidate" type="button" class="rounded-lg bg-surface-gray-2 px-3 py-2 text-sm font-medium text-ink-gray-7 hover:bg-surface-gray-3" @click="dict.selectWord(candidate)">{{ candidate }}</button>
+          <Button v-for="candidate in dict.missSuggestions.value" :key="candidate" variant="subtle" :label="candidate" @click="dict.selectWord(candidate)" />
         </div>
       </section>
 
@@ -104,7 +105,7 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { Button, Icon, LoadingIndicator } from 'frappe-ui'
+import { Button, Icon, LoadingIndicator, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useDictionary } from '@/tools/dictionary/useDictionary'

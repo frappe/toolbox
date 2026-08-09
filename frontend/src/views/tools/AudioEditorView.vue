@@ -44,7 +44,6 @@
             :min="0"
             :max="editor.source.value.duration"
             :step="0.01"
-            aria-label="Trim start"
             :model-value="[editor.project.value.trimStart]"
             @update:model-value="setTrimStart($event[0])"
           />
@@ -54,7 +53,6 @@
             :min="0"
             :max="editor.source.value.duration"
             :step="0.01"
-            aria-label="Trim end"
             :model-value="[editor.project.value.trimEnd]"
             @update:model-value="setTrimEnd($event[0])"
           />
@@ -90,7 +88,6 @@
             :min="-24"
             :max="12"
             :step="1"
-            aria-label="Gain in decibels"
             :model-value="[editor.project.value.gainDb]"
             @update:model-value="editor.update({ gainDb: Number($event[0]) })"
           />

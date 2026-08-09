@@ -34,7 +34,6 @@
           :min="20"
           :max="2000"
           :step="1"
-          aria-label="Frequency"
           :model-value="[Math.min(frequency, 2000)]"
           @update:model-value="updateFrequency($event[0])"
         />
@@ -96,7 +95,6 @@
           :min="0"
           :max="1"
           :step="0.01"
-          aria-label="Volume"
           :model-value="[volume]"
           @update:model-value="updateVolume($event[0])"
         />

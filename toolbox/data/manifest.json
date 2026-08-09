@@ -4,11 +4,11 @@
       "compression": "gzip",
       "format": "jsonl",
       "path": "cities15000.jsonl.gz",
-      "sha256": "4d49f05c5a55ac410b141b076291f91bac6dbd4c041ffbf6bd3697920054f643",
-      "size": 950282,
+      "sha256": "f441ae7e059b191cca6608afc08158c91cb338e9de11072e2139d3c93453f317",
+      "size": 1156416,
       "sourceUpdatedAt": "2026-08-08",
       "sourceUrl": "https://download.geonames.org/export/dump/cities15000.zip",
-      "version": "2026-08-08"
+      "version": "2026-08-08+aliases"
     },
     "Dictionary": {
       "compression": "gzip",

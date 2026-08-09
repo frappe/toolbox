@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-08-09 00:00:00.000000",
+ "description": "A name a city is also known by. Search keys only; the interface always shows the city's own name.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "dataset_release",
+  "city",
+  "search_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "dataset_release",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Dataset Release",
+   "options": "Toolbox Dataset Release",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "City",
+   "options": "Toolbox City Record",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "description": "The alternate name folded for search: NFKD normalised, combining marks stripped, casefolded.",
+   "fieldname": "search_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Search Name",
+   "reqd": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-08-09 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Toolbox",
+ "name": "Toolbox City Alias",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

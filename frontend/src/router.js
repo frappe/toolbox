@@ -15,17 +15,9 @@ const implementedToolViews = {
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   weather: () => import('@/views/tools/WeatherView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
-  checklists: () => import('@/views/tools/ChecklistsView.vue'),
-  notes: () => import('@/views/tools/NotesView.vue'),
-  library: () => import('@/views/tools/LibraryView.vue'),
-  reminders: () => import('@/views/tools/RemindersView.vue'),
-  expenses: () => import('@/views/tools/ExpensesView.vue'),
   'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),
   'audio-editor': () => import('@/views/tools/AudioEditorView.vue'),
-  'tone-generator': () => import('@/views/tools/ToneGeneratorView.vue'),
-  metronome: () => import('@/views/tools/MetronomeView.vue'),
-  'audio-inspector': () => import('@/views/tools/AudioInspectorView.vue'),
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

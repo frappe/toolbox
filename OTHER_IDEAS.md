@@ -1,0 +1,138 @@
+# Other ideas to explore
+
+Toolbox is a free public website. Anyone can use it without an account. This document records the
+tools and ideas that Toolbox does not ship, and the reason for each one.
+
+Read this document before you propose a feature. An idea listed here is not a bad idea. Most of
+these ideas failed a product test, a license test, or a cost test that still applies today. A few
+wait for a decision.
+
+Each entry names the reason. When the reason stops being true, the idea becomes available again.
+
+## Tools removed on 2026-08-09
+
+Toolbox changed from an authenticated single-owner application to a free public website on
+`frappe.tools`. The site holds no user accounts and stores no user data. Eight tools left the
+product on that date.
+
+### Tools that needed an account
+
+These five tools stored personal records for a signed-in owner. Toolbox has no accounts now, so
+none of them can work.
+
+| Tool | Size | Reason beyond the account |
+| --- | --- | --- |
+| Expenses | ~2,491 lines, 6 backend modules, 6 DocTypes | The largest module in the app. It held financial records and uploaded receipts for members of the public. That creates data-protection duties that a free brand website should not carry. |
+| Library | ~1,565 lines, 2 DocTypes | It ran an outbound metadata fetcher driven by user-supplied URLs. That is a live request surface open to anonymous input. |
+| Reminders | ~1,236 lines, 2 DocTypes | It needed a 5-minute scheduler job and outgoing mail to strangers. A missed reminder becomes support load. |
+| Checklists | ~1,316 lines, 4 DocTypes | It does not beat the checklist app already on the visitor's phone. |
+| Notes | ~524 lines, 1 DocType | Same reason as Checklists. It was the lightest of the five. |
+
+### Tools removed to keep the list focused
+
+| Tool | Size | Reason |
+| --- | --- | --- |
+| Tone Generator | 139 lines, no server code | It works well. The tool list needed to stay short. Cheap to bring back. |
+| Metronome | 165 lines, no server code | Same reason as Tone Generator. Cheap to bring back. |
+| Audio Inspector | 74 lines, no server code | Almost nobody searches for it. |
+
+Tone Generator and Metronome are the two easiest tools on this page to restore. Both run fully in
+the browser. Both need no dataset, no server code, and no license review.
+
+## Ideas explored and dropped
+
+### Audio format converter with ffmpeg
+
+Dropped in session 7. Every official `@ffmpeg/core` build is GPL-2.0, because it links x264, x265,
+and LAME. No permissive prebuilt core exists. Toolbox uses browser-native audio instead, and exports
+WAV, which needs no codec license.
+
+Do not rebuild this with ffmpeg. A permissive WebAssembly build of the needed codecs would change
+the answer.
+
+### Speech to text
+
+Parked on a privacy decision that never closed. The browser `SpeechRecognition` API sends audio to a
+cloud service. An offline model such as Whisper through transformers.js keeps the audio private, but
+the model download is large.
+
+The privacy principle favors the offline option. The cost is the download size.
+
+### Split, reorder, and rejoin in the Audio Editor
+
+Declined in session 7. The editor stays at trim, fade, and gain, with WAV and Opus export.
+
+### Wallet, shared expenses, and a password vault
+
+Dropped during Phase 2 planning. A Splitwise-style shared expense tool needs more than one user.
+Toolbox is a single-user product with no accounts, so the idea cannot work here.
+
+A password vault holds the most sensitive data a person owns. A free public tool is the wrong place
+for it.
+
+### Calculation history across devices
+
+Declined in session 10, because the history changes often and would inflate the preference record.
+The no-account decision then removed the option completely. Toolbox now keeps history for the
+browser session only, and limits it to the last 10 entries.
+
+### Collaboration and multiple users
+
+Never in scope. Toolbox is a single-user product. One person uses one browser. Nothing is shared.
+
+### Merge into Frappe Suite
+
+Dropped in session 12. Toolbox ships as a free public tool on `frappe.tools` instead. The goal is
+brand awareness and customer acquisition for Frappe.
+
+### Reminder integrations
+
+Deferred when Reminders shipped, and now moot because Reminders is gone. The list held Frappe
+Calendar (Event) integration, a Mail adapter, a linked-record picker, and a custom date-time snooze.
+
+## Ideas we still want
+
+### Language tools
+
+Dictionary stays and grows. Synonyms and antonyms become **sections inside Dictionary**, not
+separate tools. One word input answers all three questions. The placeholder text tells the visitor
+so: type the word you want the meaning, synonyms, or antonyms of.
+
+1. **Synonyms.** The data is already loaded. 110,635 of 147,982 dictionary entries carry a populated
+   `synonyms` array, because WordNet is built on synsets. This needs a new section, not a new
+   dataset.
+2. **Antonyms.** WordNet records antonyms as an explicit relation. The current importer skips it.
+   This needs an extended extractor and one re-import.
+
+Transliteration already ships as Script Conversion, and moves into the same category.
+
+### Translate
+
+Dropped. No free option is both open and clear for commercial use. Bundled models are large. The
+usable APIs charge. A cheap permissive option would change the answer.
+
+### Weather without a license problem
+
+Solved, and recorded here because the reasoning matters. Open-Meteo publishes its data under
+CC BY 4.0, which permits commercial use. The restriction sits in the free-tier service terms, which
+allow non-commercial use only.
+
+MET Norway Locationforecast 2.0 serves the same CC BY 4.0 data with no such service term. It needs
+an identifying `User-Agent` with a contact address, and stays under 20 requests per second.
+
+Self-hosting Open-Meteo is also legal, because the server is AGPLv3 with Docker images. It needs
+continuous ingest of multi-gigabyte model data. That is too much operations work for one tool.
+
+### Administrator controls for datasets
+
+Toolbox ships PIN, IFSC, HSN, and Dictionary data as checksummed releases. An administrator cannot
+yet import a release or change its status from the interface. Both actions need the command line.
+
+## How to bring an idea back
+
+1. Read the reason recorded above. Confirm that the reason no longer holds.
+2. Check the tool against the product test. A visitor arrives from a search engine. The tool must
+   give value in seconds, and must beat what the visitor already owns.
+3. Confirm that the tool needs no account. Toolbox stores no user data.
+4. Confirm the license of every dataset and every API, for commercial use.
+5. Open an issue on `frappe/toolbox` that quotes the reason from this document.

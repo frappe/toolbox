@@ -1,12 +1,15 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU Affero General Public License v3
-"""Shared permission foundation for Phase 2 personal modules.
+"""Shared permission foundation for owner-private records.
 
-Phase 2 records (notes, checklists, saved links, reminders, expenses, audio) are private to
-their owner. Toolbox is authenticated-only, so every real user is granted the ``Toolbox User``
-role and each personal DocType restricts access to its owner. ``Toolbox Manager`` administers
-shared configuration (system templates, feature flags) without routine access to personal
-content. Site administrators keep the technical access inherent to running a Frappe site.
+Audio recordings are the last records private to their owner. The tools that stored notes,
+checklists, saved links, reminders and expenses were removed when Toolbox became a free public
+site with no accounts, and audio moves to the browser next. This whole module goes with them.
+
+Until then: every real user is granted the ``Toolbox User`` role, and each personal DocType
+restricts access to its owner. ``Toolbox Manager`` administers shared configuration without
+routine access to personal content. Site administrators keep the technical access inherent to
+running a Frappe site.
 """
 
 import frappe

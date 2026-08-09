@@ -77,27 +77,43 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // Mirrors the three Button behaviours that call sites keep getting wrong:
+  //  - `icon` makes it icon-only. The label leaves the DOM and survives only as the
+  //    accessible name (#134). A stub that draws the label hides that.
+  //  - `aria-label` is `props.label ?? attrs['aria-label']`, applied last, so `label`
+  //    wins and a caller's `aria-label` is dead (#144).
+  //  - `loading` sets the native `disabled`, so a loading button cannot be clicked
+  //    and a `type="submit"` cannot submit.
   const Button = defineComponent({
     name: 'Button',
     inheritAttrs: false,
     props: {
       icon: { type: String, default: '' },
-      label: { type: String, default: '' },
+      label: { type: String, default: undefined },
       variant: { type: String, default: '' },
+      type: { type: String, default: 'button' },
+      loading: { type: Boolean, default: false },
+      disabled: { type: Boolean, default: false },
     },
     emits: ['click'],
     setup(props, { attrs, emit, slots }) {
+      const isIconButton = () => Boolean(props.icon)
+      const isDisabled = () => props.disabled || props.loading
+
       return () =>
         h(
           'button',
           {
             ...attrs,
-            type: 'button',
+            type: props.type,
+            disabled: isDisabled() || undefined,
             'data-icon': props.icon,
             'data-variant': props.variant,
+            'aria-label': props.label ?? attrs['aria-label'],
+            'aria-busy': props.loading || undefined,
             onClick: (event) => emit('click', event),
           },
-          props.label || slots.default?.(),
+          isIconButton() ? null : (slots.default?.() ?? props.label),
         )
     },
   })
@@ -427,12 +443,13 @@ vi.mock('frappe-ui', async () => {
       modelValue: { type: Boolean, default: true },
     },
     setup(props, { attrs, slots }) {
+      // The real Alert declares icon/description/footer and no default slot, so
+      // default-slot content renders nowhere. Do not draw it here.
       return () =>
         h('div', { ...attrs, role: 'alert', 'data-theme': props.theme || undefined }, [
           props.title,
           slots.description?.() ?? props.description,
           slots.footer?.(),
-          slots.default?.(),
         ])
     },
   })

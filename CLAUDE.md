@@ -112,6 +112,24 @@ yarn --cwd frontend playwright install chromium
 yarn verify
 ```
 
+#### The frappe-ui test double
+
+`frontend/src/test/setup.js` replaces every frappe-ui component with a stub. Follow one
+rule when you change it:
+
+**A stub may render less than the real component. A stub must never accept an input the
+real component rejects, and must never render an output the real component omits.**
+
+A stub that is kinder than the component turns the suite green over a broken app. Three
+shipped defects were found this way, each of them invisible to a full test run: `Button`
+drew a label the real component hides behind `icon`, `Button` kept a caller `aria-label`
+that the real component overwrites with `label`, and `Slider` accepted a scalar model
+where the real component needs an array and silently falls back to its minimum.
+
+Read the component's `types.ts` and `.vue` source before you write a stub. The
+`.api.md` files are generated and repeat the source JSDoc, including its errors.
+`frontend/src/test/frappeUiStub.test.js` locks the contracts that were wrong before.
+
 ### Frappe commands
 
 Run these commands from the bench root at `../..`.

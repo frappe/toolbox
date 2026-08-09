@@ -9,7 +9,17 @@
     <link rel="manifest" href="/assets/toolbox/pwa/manifest.webmanifest" />
     <link rel="icon" href="/assets/toolbox/pwa/toolbox-192.png" />
     <link rel="apple-touch-icon" href="/assets/toolbox/pwa/toolbox-192.png" />
+    <!-- toolbox:server-meta:start -->
+    <!-- The build replaces everything between these markers, in toolbox/www/toolbox.html only,
+         with per-route metadata. See frontend/build/pwaBuildPlugin.js. What stays here is what
+         the dev server shows and what the service worker caches as the offline shell, so it has
+         to read sensibly on its own. -->
     <title>Toolbox</title>
+    <meta
+      name="description"
+      content="Free online calculators, converters and lookups. No account, and nothing stored about you."
+    />
+    <!-- toolbox:server-meta:end -->
     <script>
       // Resolve the saved theme before first paint so dark users never see a
       // light flash. useTheme() re-applies and keeps this reactive after boot.

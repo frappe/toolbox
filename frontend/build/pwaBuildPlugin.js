@@ -8,6 +8,11 @@ const APP_ROUTES_PLACEHOLDER = '__TOOLBOX_APP_ROUTES__'
 const TEMPLATE_PATH = path.resolve(import.meta.dirname, '../pwa/service-worker.template.js')
 const WORKER_OUTPUT_PATH = path.resolve(import.meta.dirname, '../../toolbox/www/toolbox-sw.js')
 
+const SERVER_META_TEMPLATE_PATH = path.resolve(import.meta.dirname, 'server-meta.template.html')
+const WEB_PAGE_PATH = path.resolve(import.meta.dirname, '../../toolbox/www/toolbox.html')
+export const SERVER_META_START = '<!-- toolbox:server-meta:start -->'
+export const SERVER_META_END = '<!-- toolbox:server-meta:end -->'
+
 export function toolboxPwaBuild() {
   let releaseInfo
 
@@ -32,7 +37,35 @@ export function toolboxPwaBuild() {
       )
       fs.writeFileSync(WORKER_OUTPUT_PATH, workerSource)
     },
+    // closeBundle, not writeBundle: Rollup runs every writeBundle hook in parallel, and the
+    // frappe-ui plugin copies the built HTML to toolbox/www/toolbox.html in one of them. Reading
+    // that file from a writeBundle hook is a race. closeBundle runs after all of them.
+    closeBundle() {
+      const metaBlock = fs.readFileSync(SERVER_META_TEMPLATE_PATH, 'utf8')
+      const webPage = fs.readFileSync(WEB_PAGE_PATH, 'utf8')
+      fs.writeFileSync(WEB_PAGE_PATH, injectServerMeta(webPage, metaBlock))
+    },
   }
+}
+
+// The metadata is Jinja, so it belongs only in the page Frappe renders. The identical HTML is
+// also published as an asset and cached by the service worker as the offline shell, where Jinja
+// never runs and `{{ seo.title }}` would be the visitor's tab title.
+//
+// This throws rather than returning the HTML unchanged. A silent miss ships a site whose every
+// page claims the same title, which is the exact failure this whole change exists to fix, and
+// nothing else in the build would notice.
+export function injectServerMeta(html, metaBlock) {
+  const start = html.indexOf(SERVER_META_START)
+  const end = html.indexOf(SERVER_META_END)
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error(
+      `The server metadata markers are missing from the built page. ` +
+        `frontend/index.html must keep ${SERVER_META_START} and ${SERVER_META_END}.`,
+    )
+  }
+
+  return html.slice(0, start) + metaBlock.trimEnd() + html.slice(end + SERVER_META_END.length)
 }
 
 export function createReleaseInfo({ now = new Date(), randomSuffix } = {}) {

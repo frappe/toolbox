@@ -473,15 +473,22 @@ vi.mock('frappe-ui', async () => {
     setup(props, { attrs, emit }) {
       const resolved = () => (props.modelValue?.length ? props.modelValue : [props.min])
 
+      // The real Slider never binds `$attrs` — its root is LabelingWrapper, which drops
+      // them — so `class`, `aria-label` and root listeners reach nothing. Dropping them
+      // here too stops a call site relying on a name the app does not render.
+      //
+      // Known divergence: naming through `label` is kinder than the real component, which
+      // puts `aria-labelledby` on a roleless wrapper and leaves the `role="slider"`
+      // element unnamed. That is an upstream defect (#147); modelling it would make every
+      // slider unqueryable without testing anything the app controls.
       return () =>
         h('input', {
-          ...attrs,
           type: 'range',
           min: props.min,
           max: props.max,
           step: props.step,
           value: resolved()[0],
-          'aria-label': attrs['aria-label'] || props.label || undefined,
+          'aria-label': props.label || undefined,
           onInput: (event) => emit('update:modelValue', [Number(event.target.value)]),
         })
     },

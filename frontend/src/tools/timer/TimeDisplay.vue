@@ -28,5 +28,8 @@ const props = defineProps({
 
 const statusLabel = computed(() => props.status.charAt(0).toUpperCase() + props.status.slice(1))
 // Colour the pill by state; anything unmapped (e.g. idle) reads neutral gray.
-const statusTheme = computed(() => ({ running: 'green', paused: 'orange', finished: 'blue' })[props.status] || 'gray')
+// Keep every value inside Badge's theme union: an unknown theme is not ignored, it
+// throws while computing the classes and takes the whole subtree down. 'amber' is the
+// real name — 'orange' is a silent deprecated alias for it.
+const statusTheme = computed(() => ({ running: 'green', paused: 'amber', finished: 'blue' })[props.status] || 'gray')
 </script>

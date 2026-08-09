@@ -7,24 +7,30 @@ Mirrors the PIN/IFSC/HSN/Dictionary engines: stage a complete local file, valida
 atomically activate it, keeping the previous release for fast rollback. The dataset is
 GeoNames `cities15000` joined to country and region names, so Weather geocodes from local
 data instead of calling a third-party geocoder.
+
+Each city also carries the names it is known by locally, because GeoNames names a place in
+whichever language it judges most common: Munich, not München. Those go to their own table
+so that they can be matched by an indexed prefix, exactly as the city's own name is.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import unicodedata
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 import frappe
 from frappe.utils import now_datetime
 
+from toolbox.city_names import search_name
 from toolbox.india_business_data import RELEASE_DOCTYPE, file_sha256
 
 DATASET_TYPE = "City"
 CITY_DOCTYPE = "Toolbox City Record"
+ALIAS_DOCTYPE = "Toolbox City Alias"
 BATCH_SIZE = 5_000
+MAX_ALIAS_LENGTH = 60
 CITY_SOURCE = {
 	"source_name": "GeoNames cities15000",
 	"source_url": "https://download.geonames.org/export/dump/",
@@ -41,12 +47,6 @@ def import_city_jsonl(path: str, version: str, source_updated_at: str) -> dict[s
 	checksum = file_sha256(file_path)
 	with frappe.db.advisory_lock("toolbox:city-dataset-import", timeout=30):
 		return _import_jsonl_locked(file_path, checksum, version, source_updated_at)
-
-
-def search_name(value: str) -> str:
-	"""Fold a city name for search: strip accents and case so "Zurich" finds "Zürich"."""
-	decomposed = unicodedata.normalize("NFKD", str(value or ""))
-	return "".join(char for char in decomposed if not unicodedata.combining(char)).casefold().strip()
 
 
 def normalize_city_row(row: Mapping[str, object] | None) -> dict[str, object] | None:
@@ -75,8 +75,8 @@ def normalize_city_row(row: Mapping[str, object] | None) -> dict[str, object] | 
 def stage_rows(lines: Iterable[str], release_name: str) -> dict[str, int]:
 	"""Parse each JSONL line, normalize it, and bulk-insert deduplicated records."""
 	seen = set()
-	batch = []
-	record_count = 0
+	cities = _Batch(CITY_DOCTYPE)
+	aliases = _Batch(ALIAS_DOCTYPE)
 	exclusion_count = 0
 	duplicate_count = 0
 
@@ -84,7 +84,8 @@ def stage_rows(lines: Iterable[str], release_name: str) -> dict[str, int]:
 		stripped = line.strip()
 		if not stripped:
 			continue
-		normalized = normalize_city_row(_parse_line(stripped))
+		parsed = _parse_line(stripped)
+		normalized = normalize_city_row(parsed)
 		if normalized is None:
 			exclusion_count += 1
 			continue
@@ -93,25 +94,65 @@ def stage_rows(lines: Iterable[str], release_name: str) -> dict[str, int]:
 			duplicate_count += 1
 			continue
 		seen.add(geoname_id)
-		record_key = f"{release_name}:{geoname_id}"
-		batch.append({
-			"name": hashlib.sha256(record_key.encode()).hexdigest()[:40],
-			"dataset_release": release_name,
-			**normalized,
-		})
-		if len(batch) == BATCH_SIZE:
-			_bulk_insert(batch)
-			record_count += len(batch)
-			batch = []
+		city_name = _row_name(f"{release_name}:{geoname_id}")
+		cities.add({"name": city_name, "dataset_release": release_name, **normalized})
+		for alias in city_aliases(parsed, normalized["search_name"]):
+			aliases.add({
+				"name": _row_name(f"{release_name}:{geoname_id}:{alias}"),
+				"dataset_release": release_name,
+				"city": city_name,
+				"search_name": alias,
+			})
 
-	if batch:
-		_bulk_insert(batch)
-		record_count += len(batch)
+	cities.flush()
+	aliases.flush()
 	return {
-		"record_count": record_count,
+		"record_count": cities.count,
 		"exclusion_count": exclusion_count,
 		"duplicate_count": duplicate_count,
+		"alias_count": aliases.count,
 	}
+
+
+def city_aliases(row: Mapping[str, object] | None, primary: str) -> list[str]:
+	"""The folded names a city answers to besides its own, in file order and deduplicated.
+
+	Folding again here is deliberate. The build script already folded these, but folding is
+	idempotent and the file is editable, and two rows folding alike would collide on the key.
+	"""
+	values = row.get("alias") if isinstance(row, Mapping) else None
+	if not isinstance(values, list):
+		return []
+	seen = {primary}
+	folded = []
+	for value in values:
+		alias = search_name(value)
+		if alias and alias not in seen and len(alias) <= MAX_ALIAS_LENGTH:
+			seen.add(alias)
+			folded.append(alias)
+	return folded
+
+
+class _Batch:
+	"""Rows destined for one table, inserted in fixed-size chunks."""
+
+	def __init__(self, doctype: str) -> None:
+		self.doctype = doctype
+		self.rows: list[dict[str, object]] = []
+		self.count = 0
+
+	def add(self, row: dict[str, object]) -> None:
+		self.rows.append(row)
+		if len(self.rows) == BATCH_SIZE:
+			self.flush()
+
+	def flush(self) -> None:
+		if not self.rows:
+			return
+		fields = list(self.rows[0])
+		frappe.db.bulk_insert(self.doctype, fields, ([row[field] for field in fields] for row in self.rows))
+		self.count += len(self.rows)
+		self.rows = []
 
 
 def _import_jsonl_locked(
@@ -187,6 +228,7 @@ def _activate_release(release_name: str, result: dict[str, int]) -> None:
 		"record_count": result["record_count"],
 		"exclusion_count": result["exclusion_count"],
 		"duplicate_count": result["duplicate_count"],
+		"alias_count": result["alias_count"],
 		"imported_at": now_datetime(),
 		"failure_reason": "",
 	})
@@ -203,23 +245,24 @@ def _prune_superseded_rows(keep: set[str]) -> None:
 	)
 	for name in superseded:
 		if name not in keep:
-			frappe.db.delete(CITY_DOCTYPE, {"dataset_release": name})
-
-
-def _bulk_insert(rows: list[dict[str, object]]) -> None:
-	fields = list(rows[0])
-	frappe.db.bulk_insert(CITY_DOCTYPE, fields, ([row[field] for field in fields] for row in rows))
+			_delete_release_rows(name)
 
 
 def _delete_release_rows(release_name: str) -> None:
+	# Aliases first: each one points at a city record that is about to go.
+	frappe.db.delete(ALIAS_DOCTYPE, {"dataset_release": release_name})
 	frappe.db.delete(CITY_DOCTYPE, {"dataset_release": release_name})
+
+
+def _row_name(key: str) -> str:
+	return hashlib.sha256(key.encode()).hexdigest()[:40]
 
 
 def _release_payload(name: str) -> dict[str, object]:
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		name,
-		["name", "dataset_type", "status", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count"],
+		["name", "dataset_type", "status", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count", "alias_count"],
 		as_dict=True,
 	)
 

@@ -126,14 +126,22 @@ continuous ingest of multi-gigabyte model data. That is too much operations work
 
 ### City names in a language other than English
 
-Deferred when Weather moved to MET Norway. The bundled GeoNames dataset ships one name for each
-city, and GeoNames chooses the common English form: Munich, Rome, Cologne. A visitor who types
-"München" or "Roma" finds nothing.
+Done. A city now carries the names it is known by locally, so "München", "Roma" and "Bombay" all
+find their city.
 
-GeoNames also publishes alternate names. Taking the Latin-script ones for cities above 200,000
-people, capped at six each, adds about 77 KB to a 950 KB dataset. The open question is where they
-live, because a name held in one column can only be matched with a leading wildcard, which no index
-can serve.
+The first plan was to take names from the `alternatenames` column of `cities15000.txt`, capped at
+six per city for cities above 200,000 people. Measuring it showed that plan could not work, and
+the reason is worth keeping. That column is **alphabetical**, not ranked, so the first six names
+for Munich are "lungsod ng muenchen", "muc", "minca", "minche", "minga" and "mjunkhen", and
+"münchen" sits at position 27. The cap lost 14 of 16 test names. The population floor was wrong
+too: Venice has 51,298 people.
+
+What works is `alternateNames.zip`, the dump that carries language tags. A name is kept when it is
+tagged with one of the country's own languages or with English, or when GeoNames left it untagged
+but marked it preferred, which is how romanisations such as "Moskva" are recorded. No cap and no
+population floor are needed, because the language rule is self-limiting at a median of two names
+per city. Colloquial names are dropped: Jakarta is "the Big Durian" and Murmansk is "the fish
+capital", and neither is a search term.
 
 ### Administrator controls for datasets
 

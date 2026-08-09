@@ -235,7 +235,11 @@ These 15 utilities are operational:
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 
-All five datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982, City 34,080. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The city dataset is the one bundled in the repository rather than downloaded, because it is small and static.
+All five datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982, City 34,080 with 23,992 alternate names. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The city dataset is the one bundled in the repository rather than downloaded, because it is small and static.
+
+A city carries the names it is known by locally, because GeoNames names a place in whichever language it judges most common: Munich, not München. Those names live in `Toolbox City Alias` and are matched by an indexed prefix, the same way the city's own name is. They are search keys only. The interface always shows the city's own name.
+
+`toolbox/city_names.py` owns the folding rule that turns a name or a query into a search key. The importer and the search must fold identically or a city becomes unreachable, so the rule has one home, and it imports nothing from Frappe because `scripts/build_city_dataset.py` uses it outside a bench.
 
 Weather and Dictionary are complete tools, not placeholders. Weather forecasts come from MET Norway and it geocodes from the local city dataset. Dictionary reads the local WordNet 3.1 dataset.
 
@@ -261,13 +265,11 @@ Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work
 
 3. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
 
-4. Let city search find a place by its local name. GeoNames ships the English name only, so "München" finds nothing. `OTHER_IDEAS.md` records the measured cost.
-
-5. Run `yarn verify` and the full browser matrix before a release.
+4. Run `yarn verify` and the full browser matrix before a release.
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 125 tests.
+The isolated Frappe test site passed 135 tests.
 
 The frontend passed 596 tests across 79 files. The production Vite build passed.
 

@@ -21,6 +21,7 @@
   {"default": "0", "fieldname": "record_count", "fieldtype": "Int", "label": "Record Count", "read_only": 1, "reqd": 1},
   {"default": "0", "fieldname": "exclusion_count", "fieldtype": "Int", "label": "Exclusion Count", "read_only": 1, "reqd": 1},
   {"default": "0", "fieldname": "duplicate_count", "fieldtype": "Int", "label": "Duplicate Count", "read_only": 1, "reqd": 1},
+  {"default": "0", "description": "Alternate names imported alongside the records. City data only.", "fieldname": "alias_count", "fieldtype": "Int", "label": "Alias Count", "read_only": 1},
   {"fieldname": "failure_reason", "fieldtype": "Small Text", "label": "Failure Reason", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,

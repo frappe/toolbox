@@ -15,8 +15,9 @@ from frappe.query_builder import Order
 from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
 
-from toolbox.city_data import CITY_DOCTYPE, search_name
+from toolbox.city_data import ALIAS_DOCTYPE, CITY_DOCTYPE
 from toolbox.city_data import DATASET_TYPE as CITY_DATASET_TYPE
+from toolbox.city_names import search_name
 from toolbox.india_business_data import RELEASE_DOCTYPE
 from toolbox.weather_forecast import WeatherProviderError
 from toolbox.weather_provider import MetNoProvider
@@ -82,14 +83,27 @@ class LocationSearchService:
 		}
 
 	def _matches(self, term: str, release_name: str) -> list[dict[str, object]]:
-		"""Names that start with the term, and only if there are none, names that contain it.
+		"""Cities whose own name or local name starts with the term, then, only if neither
+		does, cities whose name merely contains it.
 
-		A leading wildcard cannot use an index, so the second pass reads every row of the
-		release: half a millisecond becomes sixty. Running it only on an empty first pass keeps
-		that cost off the common path while "vegas" still reaches Las Vegas.
+		Both prefix passes are indexed. The contained pass is not — a leading wildcard reads
+		every row of the release, half a millisecond against sixty — so it runs last and only
+		when nothing else answered. It still reaches Las Vegas from "vegas".
 		"""
-		rows = self._query(term, release_name, prefix=True)
+		rows = self._merge(
+			self._query(term, release_name, prefix=True),
+			self._alias_query(term, release_name),
+		)
 		return rows or self._query(term, release_name, prefix=False)
+
+	def _merge(self, *results: list[dict[str, object]]) -> list[dict[str, object]]:
+		"""One row per city, most populous first, however many ways it was matched."""
+		best: dict[int, dict[str, object]] = {}
+		for rows in results:
+			for row in rows:
+				best.setdefault(row["geoname_id"], row)
+		ranked = sorted(best.values(), key=lambda row: row["population"], reverse=True)
+		return ranked[: self.limit]
 
 	def _query(self, term: str, release_name: str, prefix: bool) -> list[dict[str, object]]:
 		record = frappe.qb.DocType(CITY_DOCTYPE)
@@ -99,6 +113,27 @@ class LocationSearchService:
 			.select(*(getattr(record, field) for field in CITY_FIELDS))
 			.where(record.dataset_release == release_name)
 			.where(record.search_name.like(pattern))
+			.orderby(record.population, order=Order.desc)
+			.limit(self.limit)
+			.run(as_dict=True)
+		)
+
+	def _alias_query(self, term: str, release_name: str) -> list[dict[str, object]]:
+		"""Cities reached through a name they are known by locally, such as "Roma" for Rome.
+
+		Distinct, because a short prefix can match several of one city's names — "mo" matches
+		both "moskva" and "moskau" — and a limit filled with one city is a limit wasted.
+		"""
+		record = frappe.qb.DocType(CITY_DOCTYPE)
+		alias = frappe.qb.DocType(ALIAS_DOCTYPE)
+		return (
+			frappe.qb.from_(alias)
+			.join(record)
+			.on(alias.city == record.name)
+			.distinct()
+			.select(*(getattr(record, field) for field in CITY_FIELDS))
+			.where(alias.dataset_release == release_name)
+			.where(alias.search_name.like(f"{_escape(term)}%"))
 			.orderby(record.population, order=Order.desc)
 			.limit(self.limit)
 			.run(as_dict=True)

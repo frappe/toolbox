@@ -39,7 +39,7 @@
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="countdown-heading" class="text-lg font-semibold text-ink-gray-9">Countdown</h2>
           <div class="grid gap-5 pt-5">
-            <fieldset class="grid gap-3"><legend class="text-sm font-medium text-ink-gray-7">Countdown mode</legend><div class="flex gap-4"><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="duration" /> Duration</label><label class="flex items-center gap-2"><input v-model="countdownMode" type="radio" value="date" /> Date and time</label></div></fieldset>
+            <div class="grid gap-2"><p id="countdown-mode-label" class="text-sm font-medium text-ink-gray-7">Countdown mode</p><TabButtons v-model="countdownMode" :options="countdownModes" size="md" aria-labelledby="countdown-mode-label" /></div>
             <FormControl v-if="countdownMode === 'duration'" type="number" size="md" label="Duration in minutes" min="1" max="525600" :model-value="countdownMinutes" @update:model-value="countdownMinutes = $event" />
             <FormControl v-else type="datetime" size="md" label="Target date and time" :model-value="countdownDate" @update:model-value="countdownDate = $event" />
           </div>
@@ -64,6 +64,7 @@ import { useTimerWorkspace } from '@/tools/timer/useTimerWorkspace'
 import { formatDuration } from '@/tools/timer/formatTime'
 
 const tabs = [{ value: 'timer', label: 'Timer' }, { value: 'stopwatch', label: 'Stopwatch' }, { value: 'countdown', label: 'Countdown' }]
+const countdownModes = [{ value: 'duration', label: 'Duration' }, { value: 'date', label: 'Date and time' }]
 const activeTab = ref('timer'), timerMinutes = ref('5'), timerLabel = ref(''), countdownMode = ref('duration'), countdownMinutes = ref('60'), countdownDate = ref(''), countdownError = ref('')
 const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
 const stopwatchElapsed = workspace.stopwatchElapsed

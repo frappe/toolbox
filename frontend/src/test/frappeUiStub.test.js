@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { Alert, Button, Slider } from 'frappe-ui'
-import { describe, expect, it } from 'vitest'
+import { Alert, Button, Dropdown, Slider } from 'frappe-ui'
+import { describe, expect, it, vi } from 'vitest'
 
 // Guards the stub contract itself (#145).
 //
@@ -64,6 +64,42 @@ describe('Slider stub matches the real model contract', () => {
     await wrapper.find('input').setValue('121')
 
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([[121]])
+  })
+})
+
+describe('Dropdown stub opens and runs its options', () => {
+  const mountDropdown = (options) =>
+    mount(Dropdown, { props: { options }, slots: { default: '<button>Export</button>' } })
+
+  it('keeps the menu closed until the trigger is clicked', async () => {
+    const wrapper = mountDropdown([{ label: 'Markdown', onClick: vi.fn() }])
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
+    expect(wrapper.findAll('[role="menuitem"]').map((i) => i.text())).toEqual(['Markdown'])
+  })
+
+  it('runs the option handler and closes', async () => {
+    const onClick = vi.fn()
+    const wrapper = mountDropdown([{ label: 'Markdown', onClick }])
+
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+    await wrapper.find('[role="menuitem"]').trigger('click')
+
+    expect(onClick).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+  })
+
+  it('drops options whose condition is false', async () => {
+    const wrapper = mountDropdown([
+      { label: 'Markdown', onClick: vi.fn() },
+      { label: 'HTML', onClick: vi.fn(), condition: () => false },
+    ])
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+
+    expect(wrapper.findAll('[role="menuitem"]').map((i) => i.text())).toEqual(['Markdown'])
   })
 })
 

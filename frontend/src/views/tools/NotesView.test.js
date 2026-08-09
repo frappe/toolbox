@@ -80,4 +80,28 @@ describe('NotesView', () => {
     expect(wrapper.find('[role="textbox"]').exists()).toBe(true)
     expect(wrapper.findAll('button').some((button) => button.text() === 'Duplicate')).toBe(true)
   })
+
+  // Reachable only since the Dropdown stub started opening its menu. Before that the
+  // options of all 8 dropdowns in the app were unreachable from any test.
+  it('exports the open note as Markdown from the export menu', async () => {
+    const download = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:note')
+    api.listNotes.mockResolvedValue(rows)
+    api.getNote.mockResolvedValue(groceriesDetail)
+    const wrapper = await mountView()
+
+    await wrapper.get('[data-note-name="A"]').trigger('click')
+    await flushPromises()
+
+    const exportMenu = wrapper
+      .findAll('[data-component="Dropdown"]')
+      .find((menu) => menu.text().includes('Export'))
+    await exportMenu.find('div').trigger('click')
+
+    const markdown = exportMenu.findAll('[role="menuitem"]').find((item) => item.text() === 'Markdown')
+    expect(markdown).toBeTruthy()
+    await markdown.trigger('click')
+
+    expect(download).toHaveBeenCalled()
+    download.mockRestore()
+  })
 })

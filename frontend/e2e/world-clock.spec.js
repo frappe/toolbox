@@ -22,10 +22,12 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
   await expect(page.getByRole('heading', { name: 'World Clock', level: 1 })).toBeVisible()
 
   const locations = page.getByRole('region', { name: 'Locations' })
-  await page.getByRole('searchbox', { name: 'Add a city or time zone' }).fill('Tokyo')
+  // The add-a-city field is a real ARIA combobox now (#142): the input is
+  // role=combobox and the results are role=option inside a role=listbox.
+  await page.getByRole('combobox', { name: 'Add a city or time zone' }).fill('Tokyo')
   await page
-    .getByRole('list', { name: 'Time zone search results' })
-    .getByRole('button', { name: /Tokyo/ })
+    .getByRole('listbox', { name: 'Time zone search results' })
+    .getByRole('option', { name: /Tokyo/ })
     .first()
     .click()
 
@@ -41,6 +43,22 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
 
   await tokyo.getByRole('button', { name: 'Remove Tokyo' }).click()
   await expect(tokyo).toHaveCount(0)
+})
+
+test('adds a time zone with the keyboard alone', async ({ page }) => {
+  await page.goto('/toolbox/world-clock')
+
+  const search = page.getByRole('combobox', { name: 'Add a city or time zone' })
+  await search.fill('Tokyo')
+  await expect(page.getByRole('listbox', { name: 'Time zone search results' })).toBeVisible()
+
+  await search.press('ArrowDown')
+  await expect(page.getByRole('option', { name: /Tokyo/ }).first()).toHaveAttribute('aria-selected', 'true')
+
+  await search.press('Enter')
+  await expect(
+    page.getByRole('region', { name: 'Locations' }).getByRole('listitem').filter({ hasText: 'Asia/Tokyo' }),
+  ).toBeVisible()
 })
 
 test('re-times every location with the converter and copies the meeting times', async ({

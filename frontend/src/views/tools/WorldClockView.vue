@@ -22,14 +22,25 @@
     </div>
 
     <div class="pt-8">
-      <label for="zone-search" class="block text-sm font-medium text-ink-gray-7">Add a city or time zone</label>
-      <div class="relative mt-2 max-w-xl">
-        <TextInput id="zone-search" type="search" size="lg" placeholder="Mumbai, London, New York" :model-value="clock.query.value" @update:model-value="clock.query.value = $event" />
-        <ul v-if="clock.searchResults.value.length" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Time zone search results">
-          <li v-for="result in clock.searchResults.value" :key="result.id">
-            <button type="button" class="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-surface-gray-2" @click="clock.addLocation(result)"><span class="font-medium text-ink-gray-8">{{ result.label }}</span><span class="truncate text-sm text-ink-gray-5">{{ result.region }}</span></button>
-          </li>
-        </ul>
+      <div class="max-w-xl">
+        <SearchSelect
+          size="lg"
+          label="Add a city or time zone"
+          placeholder="Mumbai, London, New York"
+          results-label="Time zone search results"
+          option-key-field="id"
+          :results="clock.searchResults.value"
+          :model-value="clock.query.value"
+          @update:model-value="clock.query.value = $event"
+          @select="clock.addLocation($event)"
+        >
+          <template #option="{ result }">
+            <span class="flex items-center justify-between gap-4">
+              <span class="font-medium text-ink-gray-8">{{ result.label }}</span>
+              <span class="truncate text-sm text-ink-gray-5">{{ result.region }}</span>
+            </span>
+          </template>
+        </SearchSelect>
       </div>
     </div>
 
@@ -70,8 +81,9 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Badge, Button, FormControl, Icon, TabButtons, TextInput } from 'frappe-ui'
+import { Badge, Button, FormControl, Icon, TabButtons } from 'frappe-ui'
 
+import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useWorldClock } from '@/tools/world-clock/useWorldClock'
 

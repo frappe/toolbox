@@ -10,17 +10,22 @@
     </header>
 
     <form class="pt-8" role="search" @submit.prevent="dict.submit">
-      <label for="dictionary-search" class="block text-sm font-medium text-ink-gray-7">Search a word</label>
-      <div class="mt-2 flex flex-col gap-2 sm:flex-row">
-        <div class="relative min-w-0 flex-1">
-          <TextInput id="dictionary-search" class="[&_input]:h-12" type="search" size="lg" variant="outline" spellcheck="false" placeholder="serendipity, run, quiet" role="combobox" aria-controls="dictionary-suggestions" :aria-expanded="dict.suggestions.value.length > 0" :model-value="dict.query.value" @update:model-value="dict.query.value = $event" />
-          <ul v-if="dict.suggestions.value.length" id="dictionary-suggestions" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Word suggestions">
-            <li v-for="candidate in dict.suggestions.value" :key="candidate">
-              <!-- Left-aligned full-width list row: Button centres its label. -->
-              <button type="button" class="min-h-11 w-full rounded-lg px-3 py-2 text-left text-ink-gray-8 hover:bg-surface-gray-2" @click="dict.selectWord(candidate)">{{ candidate }}</button>
-            </li>
-          </ul>
-        </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <SearchSelect
+          class="min-w-0 flex-1 [&_input]:h-12"
+          size="lg"
+          variant="outline"
+          spellcheck="false"
+          label="Search a word"
+          placeholder="serendipity, run, quiet"
+          results-label="Word suggestions"
+          :results="dict.suggestions.value"
+          :model-value="dict.query.value"
+          @update:model-value="dict.query.value = $event"
+          @select="dict.selectWord($event)"
+        >
+          <template #option="{ result }">{{ result }}</template>
+        </SearchSelect>
         <Button class="h-12 sm:w-28" variant="solid" label="Look up" type="submit" :loading="dict.state.value === 'loading'" />
       </div>
     </form>
@@ -105,8 +110,9 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { Button, Icon, LoadingIndicator, TextInput } from 'frappe-ui'
+import { Button, Icon, LoadingIndicator } from 'frappe-ui'
 
+import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useDictionary } from '@/tools/dictionary/useDictionary'
 

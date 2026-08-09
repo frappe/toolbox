@@ -10,22 +10,29 @@
     </header>
 
     <div class="pt-8">
-      <!--
-        Combobox does not fit here. It owns the query lifecycle, while
-        useWeather clears its own query and results the moment a place is
-        chosen — so the option unmounts before the model update resolves and
-        the selection is lost. Same call as World Clock (#114) and Dictionary
-        (#117): frappe-ui TextInput, composable-driven results list.
-      -->
-      <label for="weather-search" class="block text-sm font-medium text-ink-gray-7">Search a city or place</label>
-      <div class="relative mt-2 max-w-xl">
-        <TextInput id="weather-search" class="[&_input]:h-12" type="search" size="lg" variant="outline" placeholder="Bengaluru, London, New York" role="combobox" aria-controls="weather-results" :aria-expanded="weather.results.value.length > 0" :model-value="weather.query.value" @update:model-value="weather.query.value = $event" />
-        <ul v-if="weather.results.value.length" id="weather-results" class="absolute z-10 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-outline-gray-2 bg-surface-base p-2 shadow-lg" aria-label="Location search results">
-          <li v-for="place in weather.results.value" :key="placeKey(place)">
-            <!-- Left-aligned two-line list row: Button centres its label. -->
-            <button type="button" class="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 py-2 text-left hover:bg-surface-gray-2" @click="weather.selectPlace(place)"><span class="min-w-0"><span class="block truncate font-medium text-ink-gray-8">{{ place.name }}</span><span class="block truncate text-sm text-ink-gray-5">{{ placeRegion(place) }}</span></span><span class="shrink-0 text-xs font-medium text-ink-gray-5">{{ place.countryCode }}</span></button>
-          </li>
-        </ul>
+      <div class="max-w-xl">
+        <SearchSelect
+          class="[&_input]:h-12"
+          size="lg"
+          variant="outline"
+          label="Search a city or place"
+          placeholder="Bengaluru, London, New York"
+          results-label="Location search results"
+          :results="weather.results.value"
+          :model-value="weather.query.value"
+          @update:model-value="weather.query.value = $event"
+          @select="weather.selectPlace($event)"
+        >
+          <template #option="{ result }">
+            <span class="flex items-center justify-between gap-4">
+              <span class="min-w-0">
+                <span class="block truncate font-medium text-ink-gray-8">{{ result.name }}</span>
+                <span class="block truncate text-sm text-ink-gray-5">{{ placeRegion(result) }}</span>
+              </span>
+              <span class="shrink-0 text-xs font-medium text-ink-gray-5">{{ result.countryCode }}</span>
+            </span>
+          </template>
+        </SearchSelect>
       </div>
       <p v-if="weather.searching.value && !weather.searchError.value" class="mt-2 text-sm text-ink-gray-5">Searching…</p>
       <Alert v-if="weather.searchError.value" class="mt-2 max-w-xl" theme="red" :dismissible="false" :title="weather.searchError.value" />
@@ -118,8 +125,9 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { Alert, Button, Icon, LoadingIndicator, TextInput } from 'frappe-ui'
+import { Alert, Button, Icon, LoadingIndicator } from 'frappe-ui'
 
+import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useWeather } from '@/tools/weather/useWeather'
 import { describeWeatherCode, windCompass } from '@/tools/weather/weatherCodes'

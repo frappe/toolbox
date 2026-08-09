@@ -144,6 +144,12 @@ bench --site toolbox-test.localhost run-tests --app toolbox
 bench --site toolbox-test.localhost run-tests --module toolbox.tests.test_india_business
 ```
 
+Let the dataset sync finish before you run the tests. `migrate` enqueues
+`toolbox.dataset_sync.sync_datasets` on the long queue, and a dataset import holds row locks on
+the tables the integration tests clear between cases. Running the suite straight after a migrate
+fails one test with `QueryTimeoutError (1205) Lock wait timeout exceeded` and takes about 150
+seconds; the same suite passes in about 2 seconds once the import is done.
+
 ### PIN and IFSC imports
 
 Run imports from the bench root. Replace each placeholder with release-specific values.

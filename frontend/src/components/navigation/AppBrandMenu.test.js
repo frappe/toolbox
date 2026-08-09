@@ -1,8 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { suiteApps } from '@/data/suiteApps'
 import AppBrandMenu from './AppBrandMenu.vue'
 
 function mountMenu(props = {}) {
@@ -15,12 +14,6 @@ function mountMenu(props = {}) {
   })
   return mount(AppBrandMenu, { props, global: { plugins: [router] }, attachTo: document.body })
 }
-
-afterEach(() => {
-  delete globalThis.is_logged_in
-  delete globalThis.user
-  delete globalThis.full_name
-})
 
 describe('AppBrandMenu', () => {
   it('stays closed until the trigger is clicked', async () => {
@@ -35,36 +28,25 @@ describe('AppBrandMenu', () => {
     expect(trigger.attributes('aria-expanded')).toBe('true')
   })
 
-  it('lists every Suite app and a Settings entry', async () => {
+  it('offers Settings', async () => {
     const wrapper = mountMenu()
     await wrapper.get('button[aria-label="Toolbox menu"]').trigger('click')
 
-    for (const app of suiteApps) {
-      expect(wrapper.get(`a[href="${app.href}"]`).text()).toContain(app.name)
-    }
     expect(wrapper.get('a[href="/settings"]').text()).toContain('Settings')
   })
 
-  it('offers Sign in for guests', async () => {
+  // Toolbox has no accounts. Nothing in the menu may offer one, ask for one, or imply that a
+  // visitor is signed in as somebody.
+  it('offers no account, sign-in or sign-out', async () => {
     const wrapper = mountMenu()
     await wrapper.get('button[aria-label="Toolbox menu"]').trigger('click')
 
-    expect(wrapper.text()).toContain('Not signed in')
-    expect(wrapper.find('a[href="/login?redirect-to=/toolbox"]').exists()).toBe(true)
-    expect(wrapper.text()).not.toContain('Log out')
-  })
-
-  it('shows the signed-in name and a Log out action', async () => {
-    globalThis.is_logged_in = true
-    globalThis.user = 'ada@example.com'
-    globalThis.full_name = 'Ada Lovelace'
-
-    const wrapper = mountMenu()
-    await wrapper.get('button[aria-label="Toolbox menu"]').trigger('click')
-
-    expect(wrapper.text()).toContain('Ada Lovelace')
-    expect(wrapper.text()).toContain('ada@example.com')
-    expect(wrapper.findAll('button').some((button) => button.text().includes('Log out'))).toBe(true)
+    const text = wrapper.text()
+    expect(text).toContain('no account')
+    expect(text).not.toContain('Sign in')
+    expect(text).not.toContain('Log out')
+    expect(text).not.toContain('Not signed in')
+    expect(wrapper.find('a[href^="/login"]').exists()).toBe(false)
   })
 
   it('closes when a menu item is chosen', async () => {

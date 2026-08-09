@@ -27,14 +27,14 @@ QUERY_MAX_LENGTH = 80
 FORECAST_NOTICE = "Weather forecasts are for general information only and may be delayed or inaccurate."
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=30, seconds=60)
 def search_locations(query: str) -> dict[str, object]:
 	"""Return matching places for a name. User input is validated and never trusted downstream."""
 	return LocationSearchService().search(query)
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=60, seconds=60)
 def get_forecast(latitude: float, longitude: float, timezone: str | None = None) -> dict[str, object]:
 	"""Return a cached public forecast for a coordinate. No user account data is involved."""

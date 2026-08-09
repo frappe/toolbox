@@ -17,7 +17,7 @@ MAX_TRIM = 3
 MAX_DISTANCE = 5
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def get_dataset_status() -> dict[str, object]:
@@ -27,7 +27,7 @@ def get_dataset_status() -> dict[str, object]:
 	}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def lookup(word: str) -> dict[str, object]:
@@ -59,7 +59,7 @@ def lookup(word: str) -> dict[str, object]:
 	}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def suggest(query: str) -> dict[str, object]:

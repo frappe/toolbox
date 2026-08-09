@@ -24,8 +24,6 @@ describe('SettingsView', () => {
   beforeEach(() => {
     Object.assign(preferences.settings, defaultSettings)
     preferences.hiddenIds.value = []
-    preferences.isSaving.value = false
-    preferences.syncError.value = ''
   })
 
   it('gives every setting control a stable accessible name', () => {
@@ -70,17 +68,12 @@ describe('SettingsView', () => {
     expect(preferences.isHidden('calculator')).toBe(true)
   })
 
-  it('explains where preferences are saved and announces sync failures', async () => {
-    const wrapper = mount(SettingsView)
+  // There is no account to save to any more, and the page must not imply otherwise.
+  it('says settings stay in the browser, and claims no account', () => {
+    const text = mount(SettingsView).text()
 
-    expect(wrapper.get('[role="status"]').text()).toBe('Saved to your Frappe account.')
-
-    preferences.isSaving.value = true
-    await wrapper.vm.$nextTick()
-    expect(wrapper.get('[role="status"]').text()).toBe('Saving to your Frappe account…')
-
-    preferences.syncError.value = 'Your preferences could not be saved.'
-    await wrapper.vm.$nextTick()
-    expect(wrapper.get('[role="alert"]').text()).toBe('Your preferences could not be saved.')
+    expect(text).toContain('stay in this browser')
+    expect(text).not.toContain('Frappe account')
+    expect(text).not.toContain('Saving')
   })
 })

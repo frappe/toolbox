@@ -59,7 +59,7 @@ class CurrencyHistoryError(Exception):
 	pass
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=30, seconds=60)
 def get_rate_history(base: str, quote: str, range: str = "1Y") -> dict[str, object]:
 	"""Return a real dated ECB rate-over-time series for base -> quote."""

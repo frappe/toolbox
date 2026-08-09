@@ -1,10 +1,12 @@
 import { ref } from 'vue'
 
-// A shared, browser-local "recent results" log used by the calculators and converters.
-// Each tool keeps its own list under a versioned key. History stays in this browser only:
-// it is high-volume, high-churn, device-contextual data, so it deliberately does not sync
-// into the 64 KB Toolbox User Preference record the way favourites and saved pairs do.
-export const MAX_TOOL_HISTORY_ENTRIES = 50
+// A shared "recent results" log used by the calculators and converters. Each tool keeps its own
+// list under a versioned key.
+//
+// History lasts for the browser session and no longer. Toolbox has no accounts and remembers
+// nothing between visits, and a calculation log is the most revealing thing a visitor leaves
+// behind, so it goes in `sessionStorage` and stops at ten entries.
+export const MAX_TOOL_HISTORY_ENTRIES = 10
 const MAX_LABEL_LENGTH = 512
 const MAX_VALUE_LENGTH = 200
 const MAX_PAYLOAD_BYTES = 2048
@@ -71,7 +73,8 @@ export function useToolHistory(
 
 function getBrowserStorage() {
   try {
-    return globalThis.localStorage ?? null
+    // sessionStorage, not localStorage: history must not outlive the browser session.
+    return globalThis.sessionStorage ?? null
   } catch {
     return null
   }

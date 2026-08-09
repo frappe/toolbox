@@ -2,7 +2,7 @@ import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
 import { resetToolboxPreferences } from './support/preferences'
 
-// Saving a pair writes to the shared Administrator preferences; start each test from a clean
+// Saving a pair writes to this context's own sessionStorage; start each test from a clean
 // slate so the saved-pair assertions do not depend on a prior run's state.
 test.beforeEach(async ({ page }) => {
   await page.goto('/toolbox/all-tools')

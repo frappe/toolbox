@@ -3,7 +3,15 @@ import { reactive, ref } from 'vue'
 import { toolsById } from '@/data/toolRegistry'
 
 export const MAX_RECENT_TOOLS = 10
-export const REMOTE_SAVE_DELAY_MS = 250
+
+// Toolbox has no accounts and keeps nothing between visits, so preferences live in
+// `sessionStorage`: they last as long as the tab and then go.
+//
+// `theme` is the one exception, and it is deliberate. It is a display choice rather than a record
+// of what somebody did, and holding it in `sessionStorage` would flash a returning dark-mode
+// visitor with a white page on every visit. It goes to `localStorage` on its own key.
+export const PREFERENCES_STORAGE_KEY = 'toolbox:preferences:v1'
+export const THEME_STORAGE_KEY = 'toolbox:theme:v1'
 
 export const settingOptions = Object.freeze({
   numberFormat: ['indian', 'international'],
@@ -28,18 +36,18 @@ export const defaultSettings = Object.freeze({
 })
 
 export class ToolboxPreferencesStore {
-  constructor() {
-    this.remoteSave = null
-    this.remoteReady = false
-    this.remoteSaveTimer = null
-    this.pendingRemoteOperations = []
-    this.remoteSavePromise = null
+  // `options` is read defensively rather than destructured in the signature: callers pass an
+  // explicit null, and a default parameter only fills in for undefined.
+  constructor(options) {
+    const {
+      session = resolveStorage('sessionStorage'),
+      local = resolveStorage('localStorage'),
+    } = options ?? {}
+    this.session = session
+    this.local = local
     this.isReady = ref(true)
-    this.isSaving = ref(false)
-    this.syncError = ref('')
-    // Toolbox is authenticated-only: the real values arrive from the per-user
-    // server record through `completeRemoteLoad`. Start from defaults.
-    const initial = createDefaultPreferences()
+
+    const initial = this.read()
     this.hiddenIds = ref(initial.hiddenToolIds)
     this.recentToolIds = ref(initial.recentToolIds)
     this.savedCurrencyPairs = ref(initial.savedCurrencyPairs)
@@ -56,9 +64,10 @@ export class ToolboxPreferencesStore {
     if (!toolsById.has(toolId)) return
 
     const hidden = this.hiddenIds.value
-    const isHidden = !hidden.includes(toolId)
-    this.hiddenIds.value = isHidden ? [...hidden, toolId] : hidden.filter((id) => id !== toolId)
-    this.persist({ type: 'setHidden', toolId, isHidden })
+    this.hiddenIds.value = hidden.includes(toolId)
+      ? hidden.filter((id) => id !== toolId)
+      : [...hidden, toolId]
+    this.persist()
   }
 
   recordRecent(toolId) {
@@ -68,66 +77,38 @@ export class ToolboxPreferencesStore {
       toolId,
       ...this.recentToolIds.value.filter((id) => id !== toolId),
     ].slice(0, MAX_RECENT_TOOLS)
-    this.persist({ type: 'prependRecent', toolId })
+    this.persist()
   }
 
   clearRecentTools() {
     this.recentToolIds.value = []
-    this.persist({ type: 'clearRecent' })
+    this.persist()
   }
 
   updateSetting(key, value) {
     if (!isValidSetting(key, value)) return
     this.settings[key] = value
-    this.persist({ type: 'setSetting', key, value })
+    this.persist()
   }
 
   resetSettings() {
     Object.assign(this.settings, defaultSettings)
-    this.persist({ type: 'resetSettings' })
+    this.persist()
   }
 
   setSavedCurrencyPairs(pairs) {
-    const normalized = normalizeCurrencyPairs(pairs)
-    this.savedCurrencyPairs.value = normalized
-    this.persist({ type: 'replaceSavedItems', field: 'savedCurrencyPairs', value: normalized })
+    this.savedCurrencyPairs.value = normalizeCurrencyPairs(pairs)
+    this.persist()
   }
 
   setSavedWorldClockLocations(locations) {
-    const normalized = normalizeObjectList(locations).slice(0, 12)
-    this.savedWorldClockLocations.value = normalized
-    this.persist({ type: 'replaceSavedItems', field: 'savedWorldClockLocations', value: normalized })
+    this.savedWorldClockLocations.value = normalizeObjectList(locations).slice(0, 12)
+    this.persist()
   }
 
   setSavedWeatherLocations(locations) {
-    const normalized = normalizeObjectList(locations).slice(0, 12)
-    this.savedWeatherLocations.value = normalized
-    this.persist({ type: 'replaceSavedItems', field: 'savedWeatherLocations', value: normalized })
-  }
-
-  useRemotePersistence(save) {
-    this.remoteSave = save
-    this.remoteReady = false
-    this.pendingRemoteOperations = []
-    this.hydrate(createDefaultPreferences())
-  }
-
-  completeRemoteLoad(value) {
-    this.hydrate(value)
-    applyPreferenceOperations(this, this.pendingRemoteOperations)
-
-    this.remoteReady = true
-    if (this.pendingRemoteOperations.length) this.scheduleRemoteSave()
-  }
-
-  hydrate(value) {
-    const preferences = normalizePreferences(value)
-    this.hiddenIds.value = preferences.hiddenToolIds
-    this.recentToolIds.value = preferences.recentToolIds
-    this.savedCurrencyPairs.value = preferences.savedCurrencyPairs
-    this.savedWeatherLocations.value = preferences.savedWeatherLocations
-    this.savedWorldClockLocations.value = preferences.savedWorldClockLocations
-    Object.assign(this.settings, preferences.settings)
+    this.savedWeatherLocations.value = normalizeObjectList(locations).slice(0, 12)
+    this.persist()
   }
 
   snapshot() {
@@ -142,78 +123,16 @@ export class ToolboxPreferencesStore {
     }
   }
 
-  // Called before `useRemotePersistence` only during app bootstrap, where there
-  // is nothing worth keeping — the remote load replaces the state either way.
-  persist(operation = null) {
-    if (!this.remoteSave) return
-    if (operation) this.queueRemoteOperation(operation)
+  read() {
+    const preferences = normalizePreferences(parseJson(safeGet(this.session, PREFERENCES_STORAGE_KEY)))
+    const theme = safeGet(this.local, THEME_STORAGE_KEY)
+    if (isValidSetting('theme', theme)) preferences.settings.theme = theme
+    return preferences
   }
 
-  queueRemoteOperation(operation) {
-    this.pendingRemoteOperations = compactPreferenceOperations([
-      ...this.pendingRemoteOperations,
-      operation,
-    ])
-    this.scheduleRemoteSave()
-  }
-
-  scheduleRemoteSave() {
-    clearTimeout(this.remoteSaveTimer)
-    if (!this.remoteReady || !this.pendingRemoteOperations.length) return
-    this.syncError.value = ''
-    this.remoteSaveTimer = setTimeout(() => {
-      this.remoteSaveTimer = null
-      void this.flushRemoteSave()
-    }, REMOTE_SAVE_DELAY_MS)
-  }
-
-  async flushRemoteSave() {
-    clearTimeout(this.remoteSaveTimer)
-    this.remoteSaveTimer = null
-    if (
-      this.remoteSavePromise ||
-      !this.remoteSave ||
-      !this.remoteReady ||
-      !this.pendingRemoteOperations.length
-    ) {
-      return this.remoteSavePromise
-    }
-
-    const operations = this.pendingRemoteOperations
-    const payload = { version: 1, operations }
-    this.pendingRemoteOperations = []
-    this.isSaving.value = true
-    let failed = false
-
-    this.remoteSavePromise = this.remoteSave(payload)
-      .then((saved) => {
-        this.hydrate(saved)
-        applyPreferenceOperations(this, this.pendingRemoteOperations)
-        this.syncError.value = ''
-        return saved
-      })
-      .catch(() => {
-        failed = true
-        this.pendingRemoteOperations = compactPreferenceOperations([
-          ...operations,
-          ...this.pendingRemoteOperations,
-        ])
-        this.syncError.value =
-          'Your preferences could not be saved. Try again when you are online.'
-        return null
-      })
-      .finally(() => {
-        this.remoteSavePromise = null
-        this.isSaving.value = false
-        if (!failed && this.pendingRemoteOperations.length) this.scheduleRemoteSave()
-      })
-
-    return this.remoteSavePromise
-  }
-
-  retryRemoteSave() {
-    if (!this.remoteSave || !this.remoteReady || !this.pendingRemoteOperations.length) return null
-    return this.flushRemoteSave()
+  persist() {
+    safeSet(this.session, PREFERENCES_STORAGE_KEY, JSON.stringify(this.snapshot()))
+    safeSet(this.local, THEME_STORAGE_KEY, this.settings.theme)
   }
 }
 
@@ -236,19 +155,54 @@ export function createDefaultPreferences() {
 }
 
 export function normalizePreferences(value) {
-  const fallback = createDefaultPreferences()
   if (!value || typeof value !== 'object' || Array.isArray(value) || value.version !== 1) {
-    return fallback
+    return createDefaultPreferences()
   }
 
   return {
     version: 1,
     hiddenToolIds: normalizeToolIds(value.hiddenToolIds),
     recentToolIds: normalizeToolIds(value.recentToolIds).slice(0, MAX_RECENT_TOOLS),
-    savedCurrencyPairs: normalizeObjectList(value.savedCurrencyPairs),
+    savedCurrencyPairs: normalizeCurrencyPairs(value.savedCurrencyPairs),
     savedWeatherLocations: normalizeObjectList(value.savedWeatherLocations),
     savedWorldClockLocations: normalizeObjectList(value.savedWorldClockLocations),
     settings: normalizeSettings(value.settings),
+  }
+}
+
+// Storage throws rather than returning null when a browser blocks it (Safari private mode, a
+// blocked third-party context). Every access is guarded so a blocked visitor still gets a working
+// tool, just one that forgets on reload.
+function resolveStorage(kind) {
+  try {
+    return globalThis[kind] ?? null
+  } catch {
+    return null
+  }
+}
+
+function safeGet(storage, key) {
+  try {
+    return storage?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+function safeSet(storage, key, value) {
+  try {
+    storage?.setItem(key, value)
+  } catch {
+    // Out of quota or blocked. The in-memory state stays correct for this tab.
+  }
+}
+
+function parseJson(raw) {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
   }
 }
 
@@ -292,110 +246,4 @@ function normalizeSettings(value) {
 
 function isValidSetting(key, value) {
   return settingOptions[key]?.includes(value) ?? false
-}
-
-function applyPreferenceOperations(store, operations) {
-  for (const operation of operations) {
-    if (operation.type === 'setHidden') {
-      const hidden = store.hiddenIds.value
-      store.hiddenIds.value = operation.isHidden
-        ? [...new Set([...hidden, operation.toolId])]
-        : hidden.filter((toolId) => toolId !== operation.toolId)
-    } else if (operation.type === 'prependRecent') {
-      store.recentToolIds.value = [
-        operation.toolId,
-        ...store.recentToolIds.value.filter((toolId) => toolId !== operation.toolId),
-      ].slice(0, MAX_RECENT_TOOLS)
-    } else if (operation.type === 'clearRecent') {
-      store.recentToolIds.value = []
-    } else if (operation.type === 'setSetting') {
-      store.settings[operation.key] = operation.value
-    } else if (operation.type === 'resetSettings') {
-      Object.assign(store.settings, defaultSettings)
-    } else if (operation.type === 'replaceSavedItems') {
-      const target = preferenceFieldTarget(store, operation.field)
-      if (target) target.value = normalizeObjectList(operation.value)
-    }
-  }
-}
-
-function compactPreferenceOperations(operations) {
-  const hidden = compactToggleOperations(operations, 'setHidden', 'isHidden')
-
-  const lastRecentClear = findLastOperationIndex(operations, 'clearRecent')
-  const recentOperations = operations
-    .slice(lastRecentClear + 1)
-    .filter(({ type }) => type === 'prependRecent')
-  const recents = latestOperationsByKey(recentOperations, ({ toolId }) => toolId)
-  if (lastRecentClear >= 0) recents.unshift({ type: 'clearRecent' })
-
-  const lastSettingsReset = findLastOperationIndex(operations, 'resetSettings')
-  const settingOperations = operations
-    .slice(lastSettingsReset + 1)
-    .filter(({ type }) => type === 'setSetting')
-  const settings = latestOperationsByKey(settingOperations, ({ key }) => key)
-  if (lastSettingsReset >= 0) settings.unshift({ type: 'resetSettings' })
-
-  const savedItems = latestOperationsByKey(
-    operations.filter(({ type }) => type === 'replaceSavedItems'),
-    ({ field }) => field,
-  )
-
-  return [...hidden, ...recents, ...settings, ...savedItems]
-}
-
-function compactToggleOperations(operations, type, flag) {
-  const toggleOperations = operations.filter((operation) => operation.type === type)
-  const latestByTool = new Map()
-
-  toggleOperations.forEach((operation, index) => {
-    latestByTool.set(operation.toolId, { operation, index })
-  })
-
-  return [...latestByTool.values()]
-    .sort((left, right) => left.index - right.index)
-    .flatMap(({ operation, index }) => {
-      if (!operation[flag]) return [operation]
-
-      const earlierRemoval = findEarlierToggleRemoval(toggleOperations, index, operation.toolId, flag)
-      return earlierRemoval ? [earlierRemoval, operation] : [operation]
-    })
-}
-
-function findEarlierToggleRemoval(operations, endIndex, toolId, flag) {
-  for (let index = endIndex - 1; index >= 0; index -= 1) {
-    const operation = operations[index]
-    if (operation.toolId === toolId && !operation[flag]) return operation
-  }
-  return null
-}
-
-function latestOperationsByKey(operations, getKey) {
-  const seen = new Set()
-  const latest = []
-  for (let index = operations.length - 1; index >= 0; index -= 1) {
-    const operation = operations[index]
-    const key = getKey(operation)
-    if (seen.has(key)) continue
-    seen.add(key)
-    latest.unshift(operation)
-  }
-  return latest
-}
-
-function findLastOperationIndex(operations, type) {
-  for (let index = operations.length - 1; index >= 0; index -= 1) {
-    if (operations[index].type === type) return index
-  }
-  return -1
-}
-
-function preferenceFieldTarget(store, fieldName) {
-  const targets = {
-    recentToolIds: store.recentToolIds,
-    savedCurrencyPairs: store.savedCurrencyPairs,
-    savedWeatherLocations: store.savedWeatherLocations,
-    savedWorldClockLocations: store.savedWorldClockLocations,
-  }
-  return targets[fieldName]
 }

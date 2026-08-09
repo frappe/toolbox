@@ -32,31 +32,32 @@ Keep tool calculations in small pure functions when possible. Keep Frappe calls,
 
 The application does not use Pinia or Vuex. Shared preferences use the singleton `ToolboxPreferencesStore`.
 
-Guest preferences use versioned local storage under `toolbox:preferences:v1`. The store uses an in-memory fallback when storage is unavailable.
+Preferences use `sessionStorage` under `toolbox:preferences:v1`, so they last as long as the tab. The one exception is `theme`, which uses `localStorage` under `toolbox:theme:v1` so a returning visitor is not flashed a white page. The store falls back to memory when a browser blocks storage.
 
-Authenticated preferences sync semantic operations to one `Toolbox User Preference` record for each Frappe user. Do not replace this with blind full-state writes.
+Tool history uses `sessionStorage` too, and keeps the last 10 entries for each tool.
 
-Home uses the same preference store for favorites, recent tools, saved currency pairs, and saved World Clock locations.
+Nothing a visitor does is sent to the server. Do not add a preference, history, or draft that outlives the browser session.
 
 Use bounded whitelisted APIs for lookup data. Validate input on the server. Keep database queries indexed and limit all result sets.
 
 Use staged releases for PIN and IFSC data. Validate a release before activation. Preserve the active release if an import fails.
 
-## Authentication and Phase 2 ownership model
+## No accounts, no stored user data
 
-Toolbox is a single-owner, authenticated-only application. There is no guest, sharing, or multi-user access. The web entry `toolbox/www/toolbox.py` redirects `Guest` to the Frappe login, tool APIs are not `allow_guest`, and a client router guard (`frontend/src/utils/authGuard.js`) redirects on a lost session. Preferences sync only to the per-user server record.
+Toolbox is a free public website. There is no signup, no login, and no user record. Every visitor is a Guest and the page renders the same for all of them.
 
-Toolbox is becoming a free public site with no accounts, so the tools that stored personal records have been removed. Audio recordings are the last owner-private records, and they move to the browser next. `OTHER_IDEAS.md` records every removal and its reason. Read it before you propose a feature.
+The application stores nothing for a visitor. Five DocTypes remain, and all of them are read-only reference data: PIN, IFSC, HSN, Dictionary, and the release ledger that versions them.
 
-Audio recordings are private to their owner. Follow this foundation (`toolbox/permissions.py`):
+Follow these rules:
 
-- Every real, enabled user is auto-enrolled in the `Toolbox User` role (User `after_insert` hook plus `backfill_toolbox_user_role` on migrate). `Toolbox Manager` administers shared configuration and does not get routine access to personal content.
-- Personal DocTypes restrict access to the owner. Use `owner_query_conditions(doctype, user)` and `has_owner_permission(doc, user)` for permission hooks, or DocType `if_owner` permissions for the simple case. Administrators and System Managers keep the technical access inherent to running the site.
-- Prefer owner-enforcing whitelisted methods over raw DocType REST for CRUD, matching the existing bounded-API pattern.
-
-Reuse the shared Phase 2 primitives: `TagInput` (`components/inputs/TagInput.vue`) for tags, and `downloadTextFile` / `downloadJson` (`utils/fileExport.js`) for exports.
+- Do not add authentication, a role, a permission hook, or a DocType that holds visitor data. `OTHER_IDEAS.md` records the tools removed for exactly this reason. Read it before you propose a feature.
+- A public endpoint needs `@frappe.whitelist(allow_guest=True, methods=["GET"])` and `@rate_limit`. Keep it a read. Frappe's `rate_limit` defaults to `ip_based=True`, so limits apply per visitor rather than per account.
+- `toolbox/tests/test_guest_access.py` locks the public surface. It fails when a new whitelisted method becomes guest-reachable without being listed, which is the intended tripwire.
+- The boot payload carries no identity. Do not add `user`, `full_name`, or `is_logged_in` to it. A page that names its visitor invites code that branches on who they are.
 
 Toolbox runs no scheduled work. The 5-minute reminders cron went with the Reminders tool.
+
+Reuse the shared primitives: `TagInput` (`components/inputs/TagInput.vue`) for tags, and `downloadTextFile` / `downloadJson` (`utils/fileExport.js`) for exports.
 
 ## Styling and accessibility
 
@@ -242,15 +243,13 @@ Weather and Dictionary are complete tools, not placeholders. Weather calls a liv
 
 Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work the pivot in this order.
 
-1. Remove the authentication layer. Move preferences to `sessionStorage`, except `theme`. Cap history at 10 entries. Add `allow_guest` and rate limits to the reference-data endpoints.
+1. Rebase routes to the site root, and render per-route meta on the server for search engines.
 
-2. Rebase routes to the site root, and render per-route meta on the server for search engines.
+2. Split the tabbed tools into separate tools. Two levels only: category, then tool.
 
-3. Split the tabbed tools into separate tools. Two levels only: category, then tool.
+3. Reorganize the navigation and make All Tools compact.
 
-4. Reorganize the navigation and make All Tools compact.
-
-5. Add the data-sources page and the Frappe entry points.
+4. Add the data-sources page and the Frappe entry points.
 
 `~/Toolbox/NEXT_STEPS.md` holds the detail and the reasoning.
 
@@ -270,11 +269,11 @@ Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 59 tests.
+The isolated Frappe test site passed 93 tests.
 
-The frontend passed 594 tests across 77 files. The production Vite build passed.
+The frontend passed 584 tests across 77 files. The production Vite build passed.
 
-The full Playwright matrix passed 172 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium.
+The full Playwright matrix passed 171 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
 
 Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
 

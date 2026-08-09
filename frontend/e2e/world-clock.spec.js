@@ -3,7 +3,7 @@ import { resetToolboxPreferences, seedToolboxPreferences } from './support/prefe
 
 test.use({ allowOfflineNetworkErrors: true })
 
-// World Clock locations live in the shared Administrator preferences. Seed a fixed set so the
+// World Clock locations live in this context's own sessionStorage. Seed a fixed set so the
 // cards, the converter's zone select, and the copy output are deterministic across runs.
 const SEED_LOCATIONS = [
   { id: 'seed-kolkata', zone: 'Asia/Kolkata', label: 'Kolkata', favourite: false },

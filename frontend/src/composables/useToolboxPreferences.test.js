@@ -4,15 +4,28 @@ import { tools } from '@/data/toolRegistry'
 import {
   defaultSettings,
   MAX_RECENT_TOOLS,
+  PREFERENCES_STORAGE_KEY,
+  THEME_STORAGE_KEY,
   ToolboxPreferencesStore,
 } from './useToolboxPreferences'
 
-// The store starts from defaults and is filled by the per-user server record,
-// so these exercise the same normalization through `hydrate`.
-function storeWith(remoteValue) {
-  const store = new ToolboxPreferencesStore()
-  store.hydrate(remoteValue)
-  return store
+function fakeStorage(seed = {}) {
+  const data = new Map(Object.entries(seed))
+  return {
+    getItem: (key) => data.get(key) ?? null,
+    setItem: (key, value) => data.set(key, String(value)),
+    removeItem: (key) => data.delete(key),
+    data,
+  }
+}
+
+// The store reads what the browser kept for this tab, so these exercise normalization the way a
+// real reload does: through the stored JSON.
+function storeWith(storedValue) {
+  return new ToolboxPreferencesStore({
+    session: fakeStorage({ [PREFERENCES_STORAGE_KEY]: JSON.stringify(storedValue) }),
+    local: fakeStorage(),
+  })
 }
 
 describe('ToolboxPreferencesStore', () => {
@@ -37,7 +50,14 @@ describe('ToolboxPreferencesStore', () => {
     const stored = {
       version: 1,
       recentToolIds: [...tools.map((tool) => tool.id), 'calculator'],
-      savedCurrencyPairs: [{ from: 'INR', to: 'USD' }, null, 'bad'],
+      // Stored data is only as trustworthy as the browser it came from, so a pair is validated
+      // on the way in exactly as it is on the way out.
+      savedCurrencyPairs: [
+        { baseCurrency: 'USD', quoteCurrency: 'INR' },
+        { from: 'INR', to: 'USD' },
+        null,
+        'bad',
+      ],
       savedWeatherLocations: 'bad',
       savedWorldClockLocations: [{ zone: 'Asia/Kolkata' }],
       settings: { decimalPrecision: 4, timeFormat: 'invalid', unknown: true },
@@ -47,7 +67,7 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.recentToolIds.value).toEqual(
       tools.slice(0, MAX_RECENT_TOOLS).map((tool) => tool.id),
     )
-    expect(store.savedCurrencyPairs.value).toEqual([{ from: 'INR', to: 'USD' }])
+    expect(store.savedCurrencyPairs.value).toEqual([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
     expect(store.savedWeatherLocations.value).toEqual([])
     expect(store.savedWorldClockLocations.value).toEqual([{ zone: 'Asia/Kolkata' }])
     expect(store.settings.decimalPrecision).toBe(4)
@@ -124,10 +144,63 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.snapshot().savedWeatherLocations).toEqual(places.slice(0, 12))
   })
 
-  it('records changes made before the remote record is attached', () => {
-    const store = new ToolboxPreferencesStore()
+  it('tolerates a null options argument', () => {
+    // Several call sites pass an explicit null, which a default parameter does not cover.
+    expect(() => new ToolboxPreferencesStore(null)).not.toThrow()
+  })
+})
 
-    expect(() => store.toggleHidden('calculator')).not.toThrow()
-    expect(store.hiddenIds.value).toEqual(['calculator'])
+// Toolbox has no accounts and keeps nothing between visits. Everything a visitor does belongs in
+// sessionStorage; only the theme survives, so a returning dark-mode visitor is not flashed white.
+describe('ToolboxPreferencesStore storage split', () => {
+  it('writes everything except the theme to sessionStorage', () => {
+    const session = fakeStorage()
+    const local = fakeStorage()
+    const store = new ToolboxPreferencesStore({ session, local })
+
+    store.toggleHidden('weather')
+    store.recordRecent('calculator')
+
+    const stored = JSON.parse(session.getItem(PREFERENCES_STORAGE_KEY))
+    expect(stored.hiddenToolIds).toEqual(['weather'])
+    expect(stored.recentToolIds).toEqual(['calculator'])
+    expect(local.getItem(PREFERENCES_STORAGE_KEY)).toBeNull()
+  })
+
+  it('keeps the theme in localStorage and restores it on the next visit', () => {
+    const local = fakeStorage()
+    new ToolboxPreferencesStore({ session: fakeStorage(), local }).updateSetting('theme', 'dark')
+
+    expect(local.getItem(THEME_STORAGE_KEY)).toBe('dark')
+
+    // A new browser session: sessionStorage is empty, the theme still applies.
+    const returning = new ToolboxPreferencesStore({ session: fakeStorage(), local })
+    expect(returning.settings.theme).toBe('dark')
+    expect(returning.hiddenIds.value).toEqual([])
+    expect(returning.recentToolIds.value).toEqual([])
+  })
+
+  it('ignores a tampered theme and falls back to the default', () => {
+    const store = new ToolboxPreferencesStore({
+      session: fakeStorage(),
+      local: fakeStorage({ [THEME_STORAGE_KEY]: 'sepia' }),
+    })
+
+    expect(store.settings.theme).toBe('system')
+  })
+
+  it('works when the browser blocks storage entirely', () => {
+    const blocked = {
+      getItem: () => {
+        throw new Error('denied')
+      },
+      setItem: () => {
+        throw new Error('denied')
+      },
+    }
+    const store = new ToolboxPreferencesStore({ session: blocked, local: blocked })
+
+    expect(() => store.toggleHidden('weather')).not.toThrow()
+    expect(store.isHidden('weather')).toBe(true)
   })
 })

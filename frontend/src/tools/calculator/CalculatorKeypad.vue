@@ -5,16 +5,21 @@
         Scientific
       </h2>
       <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        <!--
+          The visible glyph and the spoken name differ, so the glyph goes in the default slot.
+          A `label` prop would win over `aria-label` and every key would announce its glyph (#144).
+        -->
         <Button
           v-for="key in scientificKeys"
           :key="key.id"
           class="h-11 w-full font-medium"
           variant="subtle"
-          :label="key.label"
           :aria-label="key.ariaLabel"
           :data-calculator-key="key.id"
           @click="emit('insert', key)"
-        />
+        >
+          {{ key.label }}
+        </Button>
       </div>
     </section>
 
@@ -29,11 +34,12 @@
           class="h-11 w-full text-base font-medium"
           :variant="key.variant"
           :theme="key.theme || 'gray'"
-          :label="key.label"
           :aria-label="key.ariaLabel"
           :data-calculator-key="key.id"
           @click="activate(key)"
-        />
+        >
+          {{ key.label }}
+        </Button>
       </div>
     </section>
   </div>

@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke runs the timer, stopwatch laps, and date countdown', async ({ page }) => {
-  await page.goto('/toolbox/timer')
+  await page.goto('/timer')
   await page.getByLabel('Minutes').fill('1')
   await page.getByRole('button', { name: 'Set timer' }).click()
   await page.getByRole('button', { name: 'Start', exact: true }).click()

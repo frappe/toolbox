@@ -1,3 +1,5 @@
+from toolbox import routes as toolbox_routes
+
 app_name = "toolbox"
 app_title = "Toolbox"
 app_publisher = "Frappe Technologies Pvt Ltd"
@@ -7,29 +9,24 @@ app_license = "agpl-3.0"
 
 app_icon_url = "/assets/toolbox/toolbox-logo.svg"
 app_icon_title = "Toolbox"
-app_icon_route = "/toolbox"
+app_icon_route = "/"
 
 add_to_apps_screen = [
 	{
 		"name": "toolbox",
 		"logo": "/assets/toolbox/toolbox-logo.svg",
 		"title": "Toolbox",
-		"route": "/toolbox",
+		"route": "/",
 	}
 ]
 
-website_route_rules = [
-	{"from_route": "/toolbox/<path:app_path>", "to_route": "toolbox"},
-]
-
-website_redirects = [
-	{
-		"source": "/toolbox",
-		"target": "/toolbox/all-tools",
-		"redirect_http_status": 308,
-		"forward_query_parameters": True,
-	}
-]
+# Toolbox owns the whole site, so its tools sit directly under `/`. See toolbox/routes.py for why
+# the rules are an explicit list rather than a catch-all, and why `/` is a hook instead of a rule.
+website_route_rules = toolbox_routes.website_route_rules()
+website_redirects = toolbox_routes.website_redirects()
+# `/` never reaches the route map: resolve_path turns an empty path into `index` and asks
+# get_home_page() instead. This hook is a literal page name, and it is what puts the app there.
+website_user_home_page = toolbox_routes.WEB_PAGE
 
 # Send non-GET requests for this app's endpoints as native `application/json`
 # bodies instead of form-encoded, per-key JSON-stringified values.

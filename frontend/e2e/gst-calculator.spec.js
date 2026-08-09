@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke adds, removes, and splits GST', async ({ page }) => {
-  await page.goto('/toolbox/gst-calculator')
+  await page.goto('/gst-calculator')
 
   await page.getByRole('textbox', { name: 'Base amount' }).fill('1000')
   const results = page.getByRole('region', { name: 'Result' })
@@ -20,7 +20,7 @@ test('@smoke adds, removes, and splits GST', async ({ page }) => {
 })
 
 test('accepts a validated HSN rate handoff', async ({ page }) => {
-  await page.goto('/toolbox/gst-calculator?rate=7.5')
+  await page.goto('/gst-calculator?rate=7.5')
 
   await expect(page.getByRole('textbox', { name: 'Custom rate' })).toHaveValue('7.5')
   await expect(page.getByText('Rate supplied by HSN lookup.')).toBeVisible()

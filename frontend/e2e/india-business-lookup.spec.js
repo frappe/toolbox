@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures'
 
-const route = '/toolbox/india-business-lookup'
+const route = '/india-business-lookup'
 
 test.use({ allowOfflineNetworkErrors: true })
 

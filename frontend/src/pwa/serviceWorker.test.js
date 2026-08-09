@@ -31,18 +31,35 @@ describe('Toolbox service worker', () => {
     expect(harness.self.skipWaiting).toHaveBeenCalledOnce()
   })
 
-  it('serves the current cached shell for offline Toolbox navigation', async () => {
+  it('serves the current cached shell for offline app navigation', async () => {
     await harness.dispatchExtendable('install')
     harness.server.failRequests = true
 
     const response = await harness.dispatchFetch({
       method: 'GET',
       mode: 'navigate',
-      url: 'https://toolbox.localhost/toolbox/calculator',
+      url: 'https://toolbox.localhost/calculator',
     })
 
     expect(response.status).toBe(200)
     expect(await response.text()).toContain('<div id="app"></div>')
+  })
+
+  // At the site root the worker sees every navigation on the origin, including Frappe's own
+  // pages. Handing /app or /login the Toolbox shell would break the desk and the login form,
+  // online as well as offline. The worker matches an exact route set for this reason.
+  it('ignores navigation to a path the app does not own', async () => {
+    await harness.dispatchExtendable('install')
+    harness.server.failRequests = true
+
+    for (const path of ['/app', '/login', '/some-other-page']) {
+      const response = await harness.dispatchFetch({
+        method: 'GET',
+        mode: 'navigate',
+        url: `https://toolbox.localhost${path}`,
+      })
+      expect(response, path).toBeUndefined()
+    }
   })
 
   it('keeps an older lazy chunk available after the next generation activates', async () => {

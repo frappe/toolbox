@@ -12,13 +12,13 @@ const SEED_LOCATIONS = [
 ]
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/toolbox/all-tools')
+  await page.goto('/')
   await resetToolboxPreferences(page)
   await seedToolboxPreferences(page, { savedWorldClockLocations: SEED_LOCATIONS })
 })
 
 test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page }) => {
-  await page.goto('/toolbox/world-clock')
+  await page.goto('/world-clock')
   await expect(page.getByRole('heading', { name: 'World Clock', level: 1 })).toBeVisible()
 
   const locations = page.getByRole('region', { name: 'Locations' })
@@ -46,7 +46,7 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
 })
 
 test('adds a time zone with the keyboard alone', async ({ page }) => {
-  await page.goto('/toolbox/world-clock')
+  await page.goto('/world-clock')
 
   const search = page.getByRole('combobox', { name: 'Add a city or time zone' })
   await search.fill('Tokyo')
@@ -66,7 +66,7 @@ test('re-times every location with the converter and copies the meeting times', 
   context,
   page,
 }) => {
-  await page.goto('/toolbox/world-clock')
+  await page.goto('/world-clock')
 
   const kolkata = page
     .getByRole('region', { name: 'Locations' })
@@ -94,7 +94,7 @@ test('re-times every location with the converter and copies the meeting times', 
 
 test('launches directly and remains useful offline', async ({ browserName, context, page }) => {
   test.skip(browserName === 'webkit', 'WebKit headless cannot drive service-worker offline mode')
-  await page.goto('/toolbox/world-clock')
+  await page.goto('/world-clock')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)

@@ -25,7 +25,13 @@ export function createWorkerHarness({
   const fetch = createFetch(server)
 
   const template = fs.readFileSync(WORKER_TEMPLATE_PATH, 'utf8')
-  const workerSource = renderServiceWorker(template, { releaseId, createdAt })
+  // The real build injects these from the tool registry. The harness pins a small set so the
+  // navigation tests stay readable, and so a registry change cannot silently alter them.
+  const workerSource = renderServiceWorker(
+    template,
+    { releaseId, createdAt },
+    ['/', '/settings', '/calculator', '/world-clock'],
+  )
   vm.runInNewContext(workerSource, {
     Headers,
     Promise,

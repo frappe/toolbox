@@ -4,12 +4,12 @@ import { currencyApiPattern, mockCurrencyRates } from './currency-fixture'
 test.use({ allowOfflineNetworkErrors: true })
 
 for (const [path, heading] of [
-  ['/toolbox/calculator', 'Calculator'],
-  ['/toolbox/unit-converter', 'Unit Converter'],
-  ['/toolbox/gst-calculator', 'GST Calculator'],
-  ['/toolbox/financial-calculators', 'Financial Calculators'],
-  ['/toolbox/health-calculators', 'Health & Fitness Calculators'],
-  ['/toolbox/timer', 'Timer, Stopwatch & Countdown'],
+  ['/calculator', 'Calculator'],
+  ['/unit-converter', 'Unit Converter'],
+  ['/gst-calculator', 'GST Calculator'],
+  ['/financial-calculators', 'Financial Calculators'],
+  ['/health-calculators', 'Health & Fitness Calculators'],
+  ['/timer', 'Timer, Stopwatch & Countdown'],
 ]) {
   test(`launches ${heading} offline after installation`, async ({ context, page }) => {
     await page.goto(path)
@@ -30,7 +30,7 @@ for (const [path, heading] of [
 }
 
 test('@smoke keeps Calculator functional while offline', async ({ context, page }) => {
-  await page.goto('/toolbox/calculator')
+  await page.goto('/calculator')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect
@@ -51,7 +51,7 @@ test('@smoke keeps Calculator functional while offline', async ({ context, page 
 
 test('uses the last Currency reference-rate snapshot offline', async ({ context, page }) => {
   await mockCurrencyRates(page)
-  await page.goto('/toolbox/currency-converter')
+  await page.goto('/currency-converter')
   const destination = page.getByRole('spinbutton', { name: 'Destination amount', exact: true })
   await expect(destination).toHaveValue('12') // 1000 INR → USD at the mocked rate
   await page.evaluate(() => navigator.serviceWorker.ready)
@@ -69,7 +69,7 @@ test('uses the last Currency reference-rate snapshot offline', async ({ context,
 })
 
 test('recovers an active Timer while offline', async ({ context, page }) => {
-  await page.goto('/toolbox/timer')
+  await page.goto('/timer')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.getByLabel('Minutes').fill('1')
   await page.getByRole('button', { name: 'Set timer' }).click()
@@ -87,7 +87,7 @@ test('recovers an active Timer while offline', async ({ context, page }) => {
 })
 
 test('keeps Financial Calculators functional while offline', async ({ context, page }) => {
-  await page.goto('/toolbox/financial-calculators')
+  await page.goto('/financial-calculators')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect
@@ -110,7 +110,7 @@ test('keeps Financial Calculators functional while offline', async ({ context, p
 })
 
 test('keeps Health Calculators functional while offline', async ({ context, page }) => {
-  await page.goto('/toolbox/health-calculators')
+  await page.goto('/health-calculators')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)

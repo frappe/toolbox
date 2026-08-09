@@ -11,10 +11,11 @@ const MANIFEST_PATH = path.resolve(
 describe('Toolbox web manifest', () => {
   const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'))
 
-  it('keeps installation inside the Toolbox route', () => {
-    expect(manifest.id).toBe('/toolbox/')
-    expect(manifest.start_url).toBe('/toolbox/all-tools')
-    expect(manifest.scope).toBe('/toolbox/')
+  // Toolbox owns the whole site, so an installed copy owns the whole origin.
+  it('installs at the site root', () => {
+    expect(manifest.id).toBe('/')
+    expect(manifest.start_url).toBe('/')
+    expect(manifest.scope).toBe('/')
     expect(manifest.display).toBe('standalone')
   })
 

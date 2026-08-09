@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke calculates an EMI and exposes the full amortization schedule', async ({ page }) => {
-  await page.goto('/toolbox/financial-calculators')
+  await page.goto('/financial-calculators')
 
   await page.getByRole('spinbutton', { name: 'Principal' }).fill('100000')
   await page.getByRole('spinbutton', { name: 'Annual interest rate' }).fill('12')
@@ -20,7 +20,7 @@ test('@smoke calculates an EMI and exposes the full amortization schedule', asyn
 test('calculates investment growth and rejects an impossible break-even margin', async ({
   page,
 }) => {
-  await page.goto('/toolbox/financial-calculators')
+  await page.goto('/financial-calculators')
 
   await page.getByRole('radio', { name: 'CAGR' }).click()
   await page.getByRole('spinbutton', { name: 'Starting value' }).fill('100')

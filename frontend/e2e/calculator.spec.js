@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke calculates a typed scientific expression and stores history', async ({ page }) => {
-  await page.goto('/toolbox/calculator')
+  await page.goto('/calculator')
 
   const expression = page.getByRole('textbox', { name: 'Expression' })
   await expression.fill('sqrt(81) + sin(30)')
@@ -17,7 +17,7 @@ test('@smoke calculates a typed scientific expression and stores history', async
 })
 
 test('shows a safe domain error without breaking the calculator', async ({ page }) => {
-  await page.goto('/toolbox/calculator')
+  await page.goto('/calculator')
 
   const expression = page.getByRole('textbox', { name: 'Expression' })
   await expression.fill('sqrt(-1)')
@@ -38,7 +38,7 @@ test('supports calculation and keypad use with keyboard navigation only', async 
   // the expression input never lands. Chromium exercises the keyboard path; axe a11y checks run
   // on every engine (accessibility.spec).
   test.skip(browserName !== 'chromium', 'Tab-order navigation differs by engine; covered on Chromium')
-  await page.goto('/toolbox/calculator')
+  await page.goto('/calculator')
 
   // The angle strip is a TabButtons radiogroup: Tab reaches the checked option,
   // ArrowRight moves the roving focus, and Space activates.

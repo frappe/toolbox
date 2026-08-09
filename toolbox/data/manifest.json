@@ -1,5 +1,15 @@
 {
   "datasets": {
+    "City": {
+      "compression": "gzip",
+      "format": "jsonl",
+      "path": "cities15000.jsonl.gz",
+      "sha256": "4d49f05c5a55ac410b141b076291f91bac6dbd4c041ffbf6bd3697920054f643",
+      "size": 950282,
+      "sourceUpdatedAt": "2026-08-08",
+      "sourceUrl": "https://download.geonames.org/export/dump/cities15000.zip",
+      "version": "2026-08-08"
+    },
     "Dictionary": {
       "compression": "gzip",
       "format": "jsonl",

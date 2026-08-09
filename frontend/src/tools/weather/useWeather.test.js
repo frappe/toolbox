@@ -8,12 +8,12 @@ vi.mock('./api', () => ({ searchLocations: vi.fn(), getForecast: vi.fn() }))
 
 const place = { id: 1273294, name: 'Paris', latitude: 48.85, longitude: 2.35, country: 'France', countryCode: 'FR', admin1: 'Île-de-France', timezone: 'Europe/Paris' }
 const forecast = {
-  schemaVersion: 1, latitude: 48.85, longitude: 2.35, timezone: 'Europe/Paris', timezoneAbbreviation: 'CEST', utcOffsetSeconds: 7200, elevation: 42,
+  schemaVersion: 1, latitude: 48.85, longitude: 2.35, timezone: 'Europe/Paris',
   units: { temperature: '°C', apparentTemperature: '°C', precipitation: 'mm', windSpeed: 'km/h', windDirection: '°', relativeHumidity: '%' },
   current: { time: '2026-08-03T10:00', temperature: 21.4, apparentTemperature: 20.1, weatherCode: 2, relativeHumidity: 55, windSpeed: 12, windDirection: 200, precipitation: 0 },
   hourly: [{ time: '2026-08-03T10:00', temperature: 21.4, weatherCode: 2, precipitation: 0 }],
   daily: [{ date: '2026-08-03', temperatureMax: 24.5, temperatureMin: 15.2, weatherCode: 2, sunrise: '2026-08-03T06:20', sunset: '2026-08-03T21:30', precipitationProbabilityMax: 10 }],
-  source: { name: 'Open-Meteo', url: 'https://open-meteo.com/', license_name: 'CC BY 4.0', license_url: 'https://open-meteo.com/en/license', attribution: 'Weather data by Open-Meteo.com' },
+  source: { name: 'MET Norway', url: 'https://www.met.no/en', license_name: 'CC BY 4.0', license_url: 'https://creativecommons.org/licenses/by/4.0/', attribution: 'Weather data from MET Norway' },
   providerCheckedAt: '2026-08-03T10:01:00Z', cacheStatus: 'live', forecastNotice: 'Weather forecasts are for general information only and may be delayed or inaccurate.',
 }
 

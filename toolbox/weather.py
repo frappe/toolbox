@@ -11,24 +11,40 @@ from typing import Callable
 import frappe
 from frappe import _
 from frappe.exceptions import ServiceUnavailableError
+from frappe.query_builder import Order
 from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
 
-from toolbox.weather_provider import OpenMeteoProvider, WeatherProviderError
+from toolbox.city_data import CITY_DOCTYPE, search_name
+from toolbox.city_data import DATASET_TYPE as CITY_DATASET_TYPE
+from toolbox.india_business_data import RELEASE_DOCTYPE
+from toolbox.weather_forecast import WeatherProviderError
+from toolbox.weather_provider import MetNoProvider
 
 FORECAST_CACHE_KEY = "weather:forecast:v1:"
 FORECAST_LOCK_KEY = "weather:forecast:refresh-lock:v1:"
-GEOCODE_CACHE_KEY = "weather:geocode:v1:"
 FORECAST_FRESH_SECONDS = 20 * 60
 FORECAST_STALE_SECONDS = 6 * 60 * 60
-GEOCODE_TTL_SECONDS = 30 * 24 * 60 * 60
 QUERY_MIN_LENGTH = 2
 QUERY_MAX_LENGTH = 80
+MAX_LOCATION_RESULTS = 10
 FORECAST_NOTICE = "Weather forecasts are for general information only and may be delayed or inaccurate."
+CITY_FIELDS = (
+	"geoname_id",
+	"city_name",
+	"latitude",
+	"longitude",
+	"country",
+	"country_code",
+	"admin1",
+	"timezone",
+	"population",
+)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=30, seconds=60)
+@frappe.read_only()
 def search_locations(query: str) -> dict[str, object]:
 	"""Return matching places for a name. User input is validated and never trusted downstream."""
 	return LocationSearchService().search(query)
@@ -43,30 +59,50 @@ def get_forecast(latitude: float, longitude: float, timezone: str | None = None)
 
 
 class LocationSearchService:
-	def __init__(
-		self,
-		provider: OpenMeteoProvider | None = None,
-		cache: object | None = None,
-	) -> None:
-		self.provider = provider or OpenMeteoProvider()
-		self.cache = cache or frappe.cache
+	"""City search over the bundled GeoNames release.
+
+	The tool used to geocode through a third party. It now reads local reference data, so a
+	search costs one indexed query, works offline, and sends nothing about a visitor anywhere.
+	"""
+
+	def __init__(self, limit: int = MAX_LOCATION_RESULTS) -> None:
+		self.limit = limit
 
 	def search(self, query: str) -> dict[str, object]:
-		name = _validate_query(query)
-		cache_key = f"{GEOCODE_CACHE_KEY}{name.casefold()}"
-		cached = self.cache.get_value(cache_key, expires=True, use_local_cache=False)
-		if cached:
-			return deepcopy(cached)
+		term = search_name(_validate_query(query))
+		release = _active_release()
+		if not release:
+			return {"schemaVersion": 1, "results": [], "source": None}
 
-		try:
-			result = self.provider.geocode(name)
-		except WeatherProviderError:
-			raise ServiceUnavailableError(
-				_("Location search is temporarily unavailable. Please try again later.")
-			) from None
+		rows = self._matches(term, release.name)
+		return {
+			"schemaVersion": 1,
+			"results": [_normalize_location(row) for row in rows],
+			"source": _source(release),
+		}
 
-		self.cache.set_value(cache_key, result, expires_in_sec=GEOCODE_TTL_SECONDS)
-		return deepcopy(result)
+	def _matches(self, term: str, release_name: str) -> list[dict[str, object]]:
+		"""Names that start with the term, and only if there are none, names that contain it.
+
+		A leading wildcard cannot use an index, so the second pass reads every row of the
+		release: half a millisecond becomes sixty. Running it only on an empty first pass keeps
+		that cost off the common path while "vegas" still reaches Las Vegas.
+		"""
+		rows = self._query(term, release_name, prefix=True)
+		return rows or self._query(term, release_name, prefix=False)
+
+	def _query(self, term: str, release_name: str, prefix: bool) -> list[dict[str, object]]:
+		record = frappe.qb.DocType(CITY_DOCTYPE)
+		pattern = f"{_escape(term)}%" if prefix else f"%{_escape(term)}%"
+		return (
+			frappe.qb.from_(record)
+			.select(*(getattr(record, field) for field in CITY_FIELDS))
+			.where(record.dataset_release == release_name)
+			.where(record.search_name.like(pattern))
+			.orderby(record.population, order=Order.desc)
+			.limit(self.limit)
+			.run(as_dict=True)
+		)
 
 
 class WeatherForecastService:
@@ -75,18 +111,21 @@ class WeatherForecastService:
 		latitude: float,
 		longitude: float,
 		tz: str | None = None,
-		provider: OpenMeteoProvider | None = None,
+		provider: MetNoProvider | None = None,
 		cache: object | None = None,
 		clock: Callable[[], datetime] | None = None,
 	) -> None:
 		self.latitude = round(float(latitude), 2)
 		self.longitude = round(float(longitude), 2)
-		self.tz = str(tz).strip() if tz else "auto"
-		self.provider = provider or OpenMeteoProvider()
+		self.tz = str(tz).strip() if tz else ""
+		self.provider = provider or MetNoProvider()
 		self.cache = cache or frappe.cache
 		self.clock = clock or (lambda: datetime.now(timezone.utc))
-		self.cache_key = f"{FORECAST_CACHE_KEY}{self.latitude}:{self.longitude}"
-		self.lock_key = f"{FORECAST_LOCK_KEY}{self.latitude}:{self.longitude}"
+		# Every published time is the place's local wall clock, so the zone is part of the
+		# identity of a cached forecast, not just of the request that produced it.
+		place = f"{self.latitude}:{self.longitude}:{self.tz}"
+		self.cache_key = f"{FORECAST_CACHE_KEY}{place}"
+		self.lock_key = f"{FORECAST_LOCK_KEY}{place}"
 
 	def get(self) -> dict[str, object]:
 		cached = self._get_cached()
@@ -171,3 +210,41 @@ def _validate_query(query: str) -> str:
 	if len(text) < QUERY_MIN_LENGTH or len(text) > QUERY_MAX_LENGTH:
 		frappe.throw(_("Enter between 2 and 80 characters."))
 	return text
+
+
+def _normalize_location(row: dict[str, object]) -> dict[str, object]:
+	"""The shape the Weather tool's frontend has always received for a place."""
+	return {
+		"id": row["geoname_id"],
+		"name": row["city_name"],
+		"latitude": row["latitude"],
+		"longitude": row["longitude"],
+		"country": row["country"] or None,
+		"countryCode": row["country_code"] or None,
+		"admin1": row["admin1"] or None,
+		"timezone": row["timezone"] or None,
+		"population": row["population"],
+	}
+
+
+def _source(release) -> dict[str, str]:
+	return {
+		"name": release.source_name,
+		"url": release.source_url,
+		"license_name": release.license_name,
+		"license_url": release.license_url,
+		"attribution": release.attribution,
+	}
+
+
+def _active_release():
+	return frappe.db.get_value(
+		RELEASE_DOCTYPE,
+		{"dataset_type": CITY_DATASET_TYPE, "status": "Active"},
+		["name", "version", "source_name", "source_url", "license_name", "license_url", "attribution"],
+		as_dict=True,
+	)
+
+
+def _escape(value: str) -> str:
+	return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")

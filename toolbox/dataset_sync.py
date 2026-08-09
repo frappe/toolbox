@@ -4,10 +4,14 @@
 """Fetch-once-at-install dataset delivery.
 
 The app ships a committed manifest (toolbox/data/manifest.json) pinning, per dataset, a
-version and a checksummed download URL. On migrate we import any dataset whose pinned
-version differs from what is active on this site. A fresh install self-provisions; an app
-update that bumps a dataset pulls the new release. There are no runtime or scheduled
-network calls — only this one-time-per-version fetch of public reference data.
+version and a checksummed source. On migrate we import any dataset whose pinned version
+differs from what is active on this site. A fresh install self-provisions; an app update
+that bumps a dataset pulls the new release. There are no runtime or scheduled network
+calls — only this one-time-per-version fetch of public reference data.
+
+A dataset entry names either a `url` to download or a `path` bundled inside the app. The
+city dataset is bundled because it is small and static, so Weather geocodes offline from
+the moment the app is installed.
 
 Design guarantees:
 - Idempotent: an unchanged dataset (pinned version == active version) is skipped, so a
@@ -26,7 +30,7 @@ from pathlib import Path
 
 import frappe
 
-from toolbox.dataset_distribution import download_asset
+from toolbox.dataset_distribution import copy_bundled_asset, download_asset
 from toolbox.india_business_data import RELEASE_DOCTYPE
 
 # Dataset type -> import entry point. Each takes (path, version, source_updated_at) and
@@ -36,6 +40,7 @@ IMPORT_METHODS = {
 	"PIN": "toolbox.india_business_data.import_pin_csv",
 	"IFSC": "toolbox.india_business_data.import_ifsc_csv",
 	"HSN": "toolbox.hsn_data.import_hsn_jsonl",
+	"City": "toolbox.city_data.import_city_jsonl",
 }
 
 
@@ -103,8 +108,18 @@ def _install(dataset_type: str, entry: dict, version: str) -> None:
 	import_method = frappe.get_attr(IMPORT_METHODS[dataset_type])
 	with tempfile.TemporaryDirectory(prefix="toolbox-dataset-") as directory:
 		asset = Path(directory) / "asset"
-		download_asset(str(entry.get("url") or ""), str(entry.get("sha256") or ""), asset)
+		_fetch_asset(entry, asset)
 		import_method(str(_decompress(asset, entry)), version, source_updated_at)
+
+
+def _fetch_asset(entry: dict, asset: Path) -> None:
+	"""Take the dataset from wherever the manifest pins it: bundled in the app, or a URL."""
+	checksum = str(entry.get("sha256") or "")
+	bundled = str(entry.get("path") or "")
+	if bundled:
+		copy_bundled_asset(bundled, checksum, asset)
+	else:
+		download_asset(str(entry.get("url") or ""), checksum, asset)
 
 
 def _decompress(asset: Path, entry: dict) -> Path:

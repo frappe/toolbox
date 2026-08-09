@@ -11,7 +11,13 @@ import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from toolbox import dataset_sync
-from toolbox.dataset_distribution import DatasetDistributionError, _validate_url, download_asset
+from toolbox.dataset_distribution import (
+	DatasetDistributionError,
+	_bundled_path,
+	_validate_url,
+	copy_bundled_asset,
+	download_asset,
+)
 from toolbox.india_business_data import PIN_DOCTYPE, RELEASE_DOCTYPE
 
 SMALL_PIN_CSV = (
@@ -75,6 +81,35 @@ class TestDatasetSyncUnit(UnitTestCase):
 		for bad in ("http://example.com/a.gz", "ftp://example.com/a.gz", "file:///etc/passwd", ""):
 			with self.subTest(url=bad), self.assertRaises(DatasetDistributionError):
 				_validate_url(bad)
+
+	def test_every_bundled_dataset_matches_its_manifest_checksum(self) -> None:
+		"""A dataset rebuilt without updating the manifest would fail on a visitor's install."""
+		manifest = dataset_sync.load_manifest()
+		bundled = {name: entry for name, entry in manifest["datasets"].items() if entry.get("path")}
+		self.assertTrue(bundled, "the manifest should pin at least one bundled dataset")
+
+		for name, entry in bundled.items():
+			with self.subTest(dataset=name), TemporaryDirectory() as directory:
+				asset = Path(directory) / "asset"
+				copy_bundled_asset(entry["path"], entry["sha256"], asset)
+				self.assertEqual(asset.stat().st_size, entry["size"])
+
+	def test_a_bundled_path_cannot_escape_the_app_s_data_directory(self) -> None:
+		for name in ("../hooks.py", "/etc/passwd", "nested/file.gz", "", "no-such-file.gz"):
+			with self.subTest(path=name), self.assertRaises(DatasetDistributionError):
+				_bundled_path(name)
+
+	def test_fetch_asset_prefers_a_bundled_path_over_a_download(self) -> None:
+		with (
+			patch.object(dataset_sync, "copy_bundled_asset") as copy,
+			patch.object(dataset_sync, "download_asset") as download,
+		):
+			dataset_sync._fetch_asset({"path": "cities.jsonl.gz", "sha256": "abc"}, Path("/tmp/asset"))
+			copy.assert_called_once()
+			download.assert_not_called()
+
+			dataset_sync._fetch_asset({"url": "https://example.com/a.gz", "sha256": "abc"}, Path("/tmp/asset"))
+			download.assert_called_once()
 
 	def test_decompress_gzip_roundtrip(self) -> None:
 		with TemporaryDirectory() as directory:

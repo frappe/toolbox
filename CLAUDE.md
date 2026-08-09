@@ -235,9 +235,9 @@ These 15 utilities are operational:
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 
-All four datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982. Each one ships as a checksummed release through `toolbox/data/manifest.json`.
+All five datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982, City 34,080. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The city dataset is the one bundled in the repository rather than downloaded, because it is small and static.
 
-Weather and Dictionary are complete tools, not placeholders. Weather calls a live provider. Dictionary reads the local WordNet 3.1 dataset.
+Weather and Dictionary are complete tools, not placeholders. Weather forecasts come from MET Norway and it geocodes from the local city dataset. Dictionary reads the local WordNet 3.1 dataset.
 
 ## Active development priority
 
@@ -255,25 +255,23 @@ Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work
 
 ## Next development steps
 
-1. Move Weather to the MET Norway provider. The Open-Meteo free tier permits non-commercial use only. Replace its geocoder with a bundled GeoNames city dataset.
+1. Add synonyms and antonyms as sections inside Dictionary. Synonyms need no new data. 110,635 entries already carry them.
 
-2. Move Audio Recorder to browser-only capture. Cap a recording at 10 minutes or 100 MB.
+2. Add administrator import and release-status controls for the datasets.
 
-3. Add synonyms and antonyms as sections inside Dictionary. Synonyms need no new data. 110,635 entries already carry them.
+3. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
 
-4. Add administrator import and release-status controls for the datasets.
+4. Let city search find a place by its local name. GeoNames ships the English name only, so "München" finds nothing. `OTHER_IDEAS.md` records the measured cost.
 
-5. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
-
-6. Run `yarn verify` and the full browser matrix before a release.
+5. Run `yarn verify` and the full browser matrix before a release.
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 93 tests.
+The isolated Frappe test site passed 125 tests.
 
-The frontend passed 584 tests across 77 files. The production Vite build passed.
+The frontend passed 596 tests across 79 files. The production Vite build passed.
 
-The full Playwright matrix passed 171 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
+The full Playwright matrix passed 177 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
 
 Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
 

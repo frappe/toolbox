@@ -3,12 +3,12 @@ import { loadForecastSnapshot, saveForecastSnapshot, validateForecastSnapshot, v
 
 const place = { id: 1273294, name: 'Paris', latitude: 48.85, longitude: 2.35, country: 'France', countryCode: 'FR', admin1: 'Île-de-France', timezone: 'Europe/Paris' }
 const data = {
-  schemaVersion: 1, latitude: 48.85, longitude: 2.35, timezone: 'Europe/Paris', timezoneAbbreviation: 'CEST', utcOffsetSeconds: 7200, elevation: 42,
+  schemaVersion: 1, latitude: 48.85, longitude: 2.35, timezone: 'Europe/Paris',
   units: { temperature: '°C', apparentTemperature: '°C', precipitation: 'mm', windSpeed: 'km/h', windDirection: '°', relativeHumidity: '%' },
   current: { time: '2026-08-03T10:00', temperature: 21.4, apparentTemperature: 20.1, weatherCode: 2, relativeHumidity: 55, windSpeed: 12, windDirection: 200, precipitation: 0 },
   hourly: [{ time: '2026-08-03T10:00', temperature: 21.4, weatherCode: 2, precipitation: 0 }, { time: '2026-08-03T11:00', temperature: 22.1, weatherCode: 3, precipitation: null }],
   daily: [{ date: '2026-08-03', temperatureMax: 24.5, temperatureMin: 15.2, weatherCode: 2, sunrise: '2026-08-03T06:20', sunset: '2026-08-03T21:30', precipitationProbabilityMax: 10 }],
-  source: { name: 'Open-Meteo', url: 'https://open-meteo.com/', license_name: 'CC BY 4.0', license_url: 'https://open-meteo.com/en/license', attribution: 'Weather data by Open-Meteo.com' },
+  source: { name: 'MET Norway', url: 'https://www.met.no/en', license_name: 'CC BY 4.0', license_url: 'https://creativecommons.org/licenses/by/4.0/', attribution: 'Weather data from MET Norway' },
   providerCheckedAt: '2026-08-03T10:01:00Z', cacheStatus: 'live', forecastNotice: 'Weather forecasts are for general information only and may be delayed or inaccurate.',
 }
 
@@ -22,6 +22,12 @@ describe('offline forecast snapshots', () => {
   it('accepts nullable optional readings from the provider', () => {
     const nulled = { ...data, current: { ...data.current, relativeHumidity: null, windDirection: null, precipitation: null }, daily: [{ ...data.daily[0], precipitationProbabilityMax: null }] }
     expect(validForecastData(nulled)).toBe(true)
+  })
+
+  it('accepts a polar day with no sunrise or sunset', () => {
+    const polar = { ...data, daily: [{ ...data.daily[0], sunrise: null, sunset: null }] }
+    expect(validForecastData(polar)).toBe(true)
+    expect(validForecastData({ ...data, daily: [{ ...data.daily[0], sunrise: 'noon-ish' }] })).toBe(false)
   })
 
   it('rejects malformed, stale-schema, or unsafe forecast data', () => {

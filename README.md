@@ -42,7 +42,8 @@ the source's own "last updated" date. Sources and their licenses:
 | HSN & SAC codes | CBIC classification, via [India Compliance](https://github.com/resilient-tech/india-compliance) | GPL-3.0 |
 | Dictionary | [Princeton WordNet 3.1](https://wordnet.princeton.edu/) | WordNet License |
 | Currency rates | [European Central Bank](https://www.ecb.europa.eu/stats/eurofxref/) | Reference rates, for information only |
-| Weather | [Open-Meteo](https://open-meteo.com/) | CC BY 4.0 (free tier is non-commercial) |
+| Weather forecasts | [MET Norway](https://api.met.no/) Locationforecast 2.0 and Sunrise 3.0 | CC BY 4.0 |
+| Cities | [GeoNames](https://download.geonames.org/export/dump/) `cities15000` | CC BY 4.0 |
 | India map outline | [geoBoundaries](https://www.geoboundaries.org/) ADM1 | CC BY 2.5 IN |
 
 ## Installation

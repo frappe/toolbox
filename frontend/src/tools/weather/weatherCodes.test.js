@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { describeWeatherCode, windCompass } from './weatherCodes'
 
-const KNOWN_CODES = [0, 1, 2, 3, 45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77, 80, 81, 82, 85, 86, 95, 96, 99]
+const KNOWN_CODES = [0, 1, 2, 3, 45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 68, 69, 71, 73, 75, 77, 80, 81, 82, 83, 84, 85, 86, 95, 96, 99]
 
 describe('weather code descriptions', () => {
   it('maps representative codes to a stable label and lucide icon', () => {
@@ -13,6 +13,13 @@ describe('weather code descriptions', () => {
     expect(describeWeatherCode(75)).toEqual({ label: 'Heavy snowfall', icon: 'lucide-cloud-snow' })
     expect(describeWeatherCode(95)).toEqual({ label: 'Thunderstorm', icon: 'lucide-cloud-lightning' })
     expect(describeWeatherCode(96)).toEqual({ label: 'Thunderstorm with slight hail', icon: 'lucide-cloud-lightning' })
+  })
+
+  it('describes the sleet codes MET Norway reports', () => {
+    expect(describeWeatherCode(68)).toEqual({ label: 'Slight sleet', icon: 'lucide-cloud-hail' })
+    expect(describeWeatherCode(69)).toEqual({ label: 'Heavy sleet', icon: 'lucide-cloud-hail' })
+    expect(describeWeatherCode(83)).toEqual({ label: 'Slight sleet showers', icon: 'lucide-cloud-hail' })
+    expect(describeWeatherCode(84)).toEqual({ label: 'Heavy sleet showers', icon: 'lucide-cloud-hail' })
   })
 
   it('covers every documented code with a real lucide icon', () => {

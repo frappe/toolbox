@@ -1,17 +1,21 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU Affero General Public License v3
 
-"""Download layer for the fetch-once-at-install dataset delivery.
+"""Asset layer for the fetch-once-at-install dataset delivery.
 
-The app ships a committed manifest (toolbox/data/manifest.json) that pins, per dataset,
-a version and a download URL with a SHA-256. This module downloads one asset defensively:
-HTTPS only, size-capped, streamed, and integrity-checked against the manifest checksum
-before anything imports it. No user or site data is ever sent — only a GET for public data.
+The app ships a committed manifest (toolbox/data/manifest.json) that pins, per dataset, a
+version and a SHA-256. Large datasets name a download URL; small static ones name a file
+bundled inside the app. Either way the asset is integrity-checked against the manifest
+checksum before anything imports it.
+
+A download is defensive: HTTPS only, size-capped, and streamed. No user or site data is
+ever sent — only a GET for public data.
 """
 
 from __future__ import annotations
 
 import hashlib
+import shutil
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -33,9 +37,7 @@ class DatasetDistributionError(frappe.ValidationError):
 
 def download_asset(url: str, expected_sha256: str, dest: Path) -> None:
 	"""Stream a dataset asset to `dest`, then verify it against the manifest SHA-256."""
-	expected = (expected_sha256 or "").strip().lower()
-	if not expected:
-		raise DatasetDistributionError(_("The dataset entry has no checksum to verify against."))
+	expected = _expected_checksum(expected_sha256)
 	_validate_url(url)
 	digest = hashlib.sha256()
 	written = 0
@@ -57,6 +59,42 @@ def download_asset(url: str, expected_sha256: str, dest: Path) -> None:
 		raise DatasetDistributionError(_("The dataset download failed.")) from error
 	if digest.hexdigest() != expected:
 		raise DatasetDistributionError(_("The dataset download failed its integrity check."))
+
+
+def copy_bundled_asset(file_name: str, expected_sha256: str, dest: Path) -> None:
+	"""Copy a dataset shipped inside the app to `dest`, then verify its SHA-256.
+
+	The asset is copied out rather than read in place so that decompression and import write
+	to a temporary directory, never into the installed app.
+	"""
+	expected = _expected_checksum(expected_sha256)
+	shutil.copyfile(_bundled_path(file_name), dest)
+	if _file_sha256(dest) != expected:
+		raise DatasetDistributionError(_("The bundled dataset failed its integrity check."))
+
+
+def _bundled_path(file_name: str) -> Path:
+	"""Resolve a manifest file name inside the app's data directory and nowhere else."""
+	root = Path(frappe.get_app_path("toolbox", "data")).resolve()
+	candidate = (root / (file_name or "")).resolve()
+	if candidate.parent != root or not candidate.is_file():
+		raise DatasetDistributionError(_("The bundled dataset is missing."))
+	return candidate
+
+
+def _file_sha256(path: Path) -> str:
+	digest = hashlib.sha256()
+	with path.open("rb") as source:
+		for chunk in iter(lambda: source.read(CHUNK_SIZE), b""):
+			digest.update(chunk)
+	return digest.hexdigest()
+
+
+def _expected_checksum(value: str) -> str:
+	checksum = (value or "").strip().lower()
+	if not checksum:
+		raise DatasetDistributionError(_("The dataset entry has no checksum to verify against."))
+	return checksum
 
 
 def _validate_url(url: str) -> None:

@@ -24,4 +24,4 @@ Run every desktop, mobile, offline, authenticated, and accessibility scenario:
 yarn test:e2e
 ```
 
-Use `TOOLBOX_E2E_BASE_URL`, `TOOLBOX_E2E_USERNAME`, and `TOOLBOX_E2E_PASSWORD` to override the local defaults. Failed tests retain a screenshot, video, and Playwright trace under `test-results/e2e`.
+Use `TOOLBOX_E2E_BASE_URL` to override the local default. Toolbox has no accounts, so the suite signs in to nothing and every browser context starts empty. Failed tests retain a screenshot, video, and Playwright trace under `test-results/e2e`.

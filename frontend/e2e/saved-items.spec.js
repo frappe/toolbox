@@ -12,11 +12,11 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-test('re-opens a saved currency pair from the account', async ({ page }) => {
+test('re-opens a saved currency pair from the browser', async ({ page }) => {
   await mockCurrencyRates(page)
   await page.goto('/toolbox/currency-converter')
 
-  // The seeded pair loads from the account as a chip and reloads that conversion on click.
+  // The seeded pair loads from sessionStorage as a chip and reloads that conversion on click.
   await page.getByRole('button', { name: 'USD → INR' }).click()
   await expect(
     page.getByRole('spinbutton', { name: 'Destination amount', exact: true }),

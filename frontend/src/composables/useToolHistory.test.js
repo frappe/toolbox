@@ -17,7 +17,7 @@ describe('useToolHistory', () => {
     })
 
     const stored = JSON.parse(
-      globalThis.localStorage.getItem(toolHistoryStorageKey('currency-converter')),
+      globalThis.sessionStorage.getItem(toolHistoryStorageKey('currency-converter')),
     )
     expect(stored).toEqual([entry])
     expect(entry).toMatchObject({
@@ -54,7 +54,7 @@ describe('useToolHistory', () => {
     }
 
     expect(history.entries.value).toHaveLength(MAX_TOOL_HISTORY_ENTRIES)
-    expect(history.entries.value[0].label).toBe('entry 54')
+    expect(history.entries.value[0].label).toBe(`entry ${MAX_TOOL_HISTORY_ENTRIES + 4}`)
     expect(history.entries.value.at(-1).label).toBe('entry 5')
   })
 
@@ -70,7 +70,7 @@ describe('useToolHistory', () => {
 
     history.clear()
     expect(history.entries.value).toEqual([])
-    expect(globalThis.localStorage.getItem(toolHistoryStorageKey('financial-calculators'))).toBe(
+    expect(globalThis.sessionStorage.getItem(toolHistoryStorageKey('financial-calculators'))).toBe(
       '[]',
     )
   })
@@ -89,7 +89,7 @@ describe('useToolHistory', () => {
   })
 
   it('ignores malformed stored history', () => {
-    globalThis.localStorage.setItem(
+    globalThis.sessionStorage.setItem(
       toolHistoryStorageKey('currency-converter'),
       JSON.stringify([
         { id: 'ok', label: '1 USD → INR', value: '83 INR', timestamp: 5 },
@@ -102,6 +102,19 @@ describe('useToolHistory', () => {
     expect(history.entries.value).toEqual([
       { id: 'ok', label: '1 USD → INR', value: '83 INR', timestamp: 5 },
     ])
+  })
+
+  // Toolbox remembers nothing between visits. A calculation log is the most revealing thing a
+  // visitor leaves behind, so it must not reach localStorage, which survives the browser session.
+  it('writes history to sessionStorage and never to localStorage', () => {
+    const key = toolHistoryStorageKey('calculator')
+    globalThis.localStorage.removeItem(key)
+
+    const history = useToolHistory('calculator')
+    history.add({ label: '2 + 2', value: '4' })
+
+    expect(globalThis.sessionStorage.getItem(key)).toContain('2 + 2')
+    expect(globalThis.localStorage.getItem(key)).toBeNull()
   })
 
   it('continues in memory when storage writes fail', () => {

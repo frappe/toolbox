@@ -107,7 +107,9 @@ defineProps({
   entries: { type: Array, required: true },
   copiedEntryId: { type: String, default: '' },
   title: { type: String, default: 'History' },
-  note: { type: String, default: 'Saved only in this browser.' },
+  // History is sessionStorage-only and capped, so the note must not promise it will still be
+  // here tomorrow.
+  note: { type: String, default: 'Last 10, kept until you close this browser.' },
   listLabel: { type: String, default: 'History entries' },
   actionsLabel: { type: String, default: 'History entry actions' },
   clearLabel: { type: String, default: 'Clear history' },

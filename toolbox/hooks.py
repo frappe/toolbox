@@ -142,8 +142,6 @@ use_json_request_body = True
 # One-time-per-version fetch of public data; no runtime or scheduled network calls.
 after_migrate = [
 	"toolbox.dataset_sync.after_migrate",
-	# Create the Toolbox roles and enrol existing users so personal Phase 2 records work.
-	"toolbox.permissions.backfill_toolbox_user_role",
 ]
 
 # Uninstallation
@@ -184,13 +182,10 @@ after_migrate = [
 # -----------
 # Permissions evaluated in scripted ways
 
-permission_query_conditions = {
-	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
-}
-
-has_permission = {
-	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
-}
+#
+# Toolbox owns no per-user records, so nothing needs a scripted permission rule. The four
+# remaining DocTypes are read-only reference data (PIN, IFSC, HSN, Dictionary) plus their
+# release ledger.
 
 # Document Events
 # ---------------
@@ -204,13 +199,7 @@ has_permission = {
 # 	}
 # }
 
-doc_events = {
-	"User": {
-		# Enrol every real, enabled user as a Toolbox User so their personal records work.
-		# Users enabled later are picked up by backfill_toolbox_user_role on the next migrate.
-		"after_insert": "toolbox.permissions.assign_toolbox_user_role",
-	}
-}
+# Toolbox hooks no document events. It creates no records of its own for a visitor.
 
 # Scheduled Tasks
 # ---------------
@@ -267,13 +256,9 @@ doc_events = {
 
 # User Data Protection
 # --------------------
-
-user_data_fields = [
-	{
-		"doctype": "Toolbox User Preference",
-		"filter_by": "user",
-	}
-]
+#
+# Nothing to declare. Toolbox holds no personal data: no accounts, no uploads, and every
+# preference stays in the visitor's own browser.
 
 # Authentication and authorization
 # --------------------------------

@@ -19,14 +19,14 @@ from toolbox.india_business_data import RELEASE_DOCTYPE
 MAX_RESULTS = 25
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def get_dataset_status() -> dict[str, object]:
 	return {"schemaVersion": 1, "hsn": _active_metadata()}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def search_hsn(query: str, limit: int = 20) -> dict[str, object]:

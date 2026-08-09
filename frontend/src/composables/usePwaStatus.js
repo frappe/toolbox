@@ -1,7 +1,6 @@
 import { readonly, ref } from 'vue'
 
 import { ToolboxServiceWorkerManager } from '@/pwa/serviceWorkerRegistration'
-import { retryToolboxPreferenceSync } from '@/composables/toolboxPreferenceSync'
 
 const isOffline = ref(typeof navigator !== 'undefined' ? !navigator.onLine : false)
 const updateReady = ref(false)
@@ -53,7 +52,7 @@ function applyUpdate() {
 function handleOnline() {
   isOffline.value = false
   manager?.checkForUpdate()
-  void retryToolboxPreferenceSync()
+  // Nothing to re-sync on reconnect: preferences never leave the browser.
 }
 
 function handleOffline() {

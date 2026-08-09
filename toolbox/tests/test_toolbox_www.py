@@ -7,22 +7,28 @@ from frappe.tests import UnitTestCase
 from toolbox.www.toolbox import get_context
 
 
-class TestToolboxWebGate(UnitTestCase):
-	"""The Toolbox web entry is authenticated-only: guests are redirected to login."""
+class TestToolboxWebEntry(UnitTestCase):
+	"""The Toolbox web entry is open to everyone and identifies nobody."""
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.local.flags.redirect_location = None
 
-	def test_guest_is_redirected_to_login(self):
+	def test_guest_receives_the_app(self):
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.Redirect):
-			get_context()
-		self.assertTrue(frappe.local.flags.redirect_location.startswith("/login?redirect-to="))
-
-	def test_authenticated_user_receives_boot(self):
-		frappe.set_user("Administrator")
 		context = get_context()
-		self.assertTrue(context.boot["is_logged_in"])
-		self.assertEqual(context.boot["user"], "Administrator")
 		self.assertIn("csrf_token", context.boot)
+		self.assertEqual(context.no_cache, 1)
+
+	def test_boot_carries_no_identity(self):
+		"""A page that names its visitor invites code that branches on who they are."""
+		frappe.set_user("Guest")
+		guest_boot = get_context().boot
+
+		frappe.set_user("Administrator")
+		admin_boot = get_context().boot
+
+		for key in ("user", "full_name", "is_logged_in"):
+			self.assertNotIn(key, guest_boot)
+			self.assertNotIn(key, admin_boot)
+
+		self.assertEqual(set(guest_boot), set(admin_boot))

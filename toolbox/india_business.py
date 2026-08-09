@@ -28,7 +28,7 @@ CITY_ALIASES = {
 }
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def get_dataset_status() -> dict[str, object]:
@@ -39,7 +39,7 @@ def get_dataset_status() -> dict[str, object]:
 	}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def search_pin(query: str, limit: int = 10) -> dict[str, object]:
@@ -62,7 +62,7 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 	return _search_payload(release, rows)
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=100, seconds=60)
 @frappe.read_only()
 def search_ifsc(query: str, limit: int = 10) -> dict[str, object]:

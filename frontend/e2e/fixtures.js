@@ -14,8 +14,7 @@ const isOfflineFailure = (text) => OFFLINE_FAILURE_SIGNATURES.some((signature) =
 
 export const test = base.extend({
   allowOfflineNetworkErrors: [false, { option: true }],
-  allowFrappeLoginRedirectAbort: [false, { option: true }],
-  page: async ({ page, allowOfflineNetworkErrors, allowFrappeLoginRedirectAbort }, use) => {
+  page: async ({ page, allowOfflineNetworkErrors }, use) => {
     const browserErrors = []
 
     page.on('pageerror', (error) => {
@@ -37,11 +36,7 @@ export const test = base.extend({
       const failure = request.failure()?.errorText || 'unknown failure'
       const expectedOfflineError = allowOfflineNetworkErrors && isOfflineFailure(failure)
       const expectedRealtimeNoise = request.url().includes(':9000/socket.io/')
-      const expectedLoginRedirectAbort =
-        allowFrappeLoginRedirectAbort &&
-        failure.includes('ERR_ABORTED') &&
-        new URL(request.url()).pathname === '/desk'
-      if (!expectedOfflineError && !expectedRealtimeNoise && !expectedLoginRedirectAbort) {
+      if (!expectedOfflineError && !expectedRealtimeNoise) {
         browserErrors.push(`request failed: ${request.url()} (${failure})`)
       }
     })

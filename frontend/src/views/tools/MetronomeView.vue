@@ -30,6 +30,7 @@
         <p class="text-sm text-ink-gray-6">BPM · <span class="font-medium text-ink-gray-8">{{ term }}</span></p>
       </div>
 
+      <!-- Slider's model is an array; a scalar falls back to `[min]` and pins the thumb (#143). -->
       <div class="mt-5 flex items-center justify-center gap-3">
         <Button variant="outline" icon="lucide-minus" aria-label="Decrease tempo" @click="nudge(-1)" />
         <Slider
@@ -38,8 +39,8 @@
           :max="MAX_BPM"
           :step="1"
           aria-label="Tempo in BPM"
-          :model-value="bpm"
-          @update:model-value="updateBpm"
+          :model-value="[bpm]"
+          @update:model-value="updateBpm($event[0])"
         />
         <Button variant="outline" icon="lucide-plus" aria-label="Increase tempo" @click="nudge(1)" />
       </div>
@@ -71,8 +72,8 @@
           :max="1"
           :step="0.01"
           aria-label="Volume"
-          :model-value="volume"
-          @update:model-value="updateVolume"
+          :model-value="[volume]"
+          @update:model-value="updateVolume($event[0])"
         />
       </div>
 

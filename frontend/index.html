@@ -13,11 +13,11 @@
     <script>
       // Resolve the saved theme before first paint so dark users never see a
       // light flash. useTheme() re-applies and keeps this reactive after boot.
-      // Storage key mirrors PREFERENCES_STORAGE_KEY in useToolboxPreferences.js.
+      // The key mirrors THEME_STORAGE_KEY in useToolboxPreferences.js. Theme is the only
+      // preference in localStorage; everything else is sessionStorage and is gone by now.
       ;(function () {
         try {
-          var stored = JSON.parse(localStorage.getItem('toolbox:preferences:v1') || '{}')
-          var theme = (stored.settings && stored.settings.theme) || 'system'
+          var theme = localStorage.getItem('toolbox:theme:v1') || 'system'
           if (theme !== 'light' && theme !== 'dark') {
             theme =
               window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches

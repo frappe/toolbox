@@ -113,15 +113,27 @@ usable APIs charge. A cheap permissive option would change the answer.
 
 ### Weather without a license problem
 
-Solved, and recorded here because the reasoning matters. Open-Meteo publishes its data under
+Done, and recorded here because the reasoning matters. Open-Meteo publishes its data under
 CC BY 4.0, which permits commercial use. The restriction sits in the free-tier service terms, which
 allow non-commercial use only.
 
 MET Norway Locationforecast 2.0 serves the same CC BY 4.0 data with no such service term. It needs
-an identifying `User-Agent` with a contact address, and stays under 20 requests per second.
+an identifying `User-Agent` with a contact address, and stays under 20 requests per second. Weather
+uses it now, with MET's Sunrise 3.0 for sunrise and sunset.
 
 Self-hosting Open-Meteo is also legal, because the server is AGPLv3 with Docker images. It needs
 continuous ingest of multi-gigabyte model data. That is too much operations work for one tool.
+
+### City names in a language other than English
+
+Deferred when Weather moved to MET Norway. The bundled GeoNames dataset ships one name for each
+city, and GeoNames chooses the common English form: Munich, Rome, Cologne. A visitor who types
+"München" or "Roma" finds nothing.
+
+GeoNames also publishes alternate names. Taking the Latin-script ones for cities above 200,000
+people, capped at six each, adds about 77 KB to a 950 KB dataset. The open question is where they
+live, because a name held in one column can only be matched with a leading wildcard, which no index
+can serve.
 
 ### Administrator controls for datasets
 

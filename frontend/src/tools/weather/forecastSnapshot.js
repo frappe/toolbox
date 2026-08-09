@@ -1,5 +1,5 @@
 export const WEATHER_FORECAST_SNAPSHOT_KEY = 'toolbox:weather-forecast:v1'
-const WEATHER_ATTRIBUTION = 'Weather data by Open-Meteo.com'
+const WEATHER_ATTRIBUTION = 'Weather data from MET Norway'
 
 export function loadForecastSnapshot(storage = globalThis.localStorage) {
   try { return validateForecastSnapshot(JSON.parse(storage?.getItem(WEATHER_FORECAST_SNAPSHOT_KEY))) } catch { return null }
@@ -44,10 +44,12 @@ function validHourly(value) {
   return isObject(value) && validIso(value.time) && validNumber(value.temperature) && validCode(value.weatherCode) && validOptionalNumber(value.precipitation)
 }
 
+// Sunrise and sunset are absent above the polar circles, where the sun neither rises nor sets
+// that day. That is data, not a gap, so it must not reject the whole forecast.
 function validDaily(value) {
   if (!isObject(value)) return false
   return validDate(value.date) && validNumber(value.temperatureMax) && validNumber(value.temperatureMin) && validCode(value.weatherCode)
-    && validIso(value.sunrise) && validIso(value.sunset) && validOptionalNumber(value.precipitationProbabilityMax)
+    && validOptionalIso(value.sunrise) && validOptionalIso(value.sunset) && validOptionalNumber(value.precipitationProbabilityMax)
 }
 
 function validSource(value) {
@@ -64,4 +66,5 @@ function validOptionalNumber(value) { return value === null || Number.isFinite(v
 function validCode(value) { return Number.isInteger(value) && value >= 0 && value <= 99 }
 function validCoordinate(value, max) { return Number.isFinite(value) && value >= -max && value <= max }
 function validIso(value) { return typeof value === 'string' && Number.isFinite(Date.parse(value)) }
+function validOptionalIso(value) { return value === null || value === undefined || validIso(value) }
 function validDate(value) { return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().startsWith(value) }

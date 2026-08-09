@@ -7,3 +7,4 @@
 toolbox.patches.v1_0.add_india_business_indexes
 toolbox.patches.v1_0.add_dictionary_indexes
 toolbox.patches.v1_0.remove_account_tool_doctypes
+toolbox.patches.v1_0.remove_audio_asset_doctype

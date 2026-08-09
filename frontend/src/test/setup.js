@@ -419,16 +419,49 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
-  // Renders its trigger (default/trigger slot) so a wrapping Button still shows.
-  // The menu options open on demand in the real component; tests only need the trigger.
+  // Mirrors the observable surface of frappe-ui Dropdown: a trigger (the `#trigger`
+  // slot, else the default slot), and — once opened — a `role="menu"` of
+  // `role="menuitem"` rows that run each option's `onClick`. The menu really is
+  // absent until the trigger is clicked, so keep it behind `open` rather than
+  // rendering it always: the real component does not show it either.
   const Dropdown = defineComponent({
     name: 'Dropdown',
     inheritAttrs: false,
     props: {
       options: { type: Array, default: () => [] },
     },
-    setup(_, { attrs, slots }) {
-      return () => h('div', { ...attrs, 'data-component': 'Dropdown' }, slots.default?.() || slots.trigger?.())
+    setup(props, { attrs, slots }) {
+      const open = ref(false)
+
+      // `condition` decides whether an option exists at all, as in Menu/utils.ts.
+      const visible = () => props.options.filter((option) => !option.condition || option.condition())
+
+      return () =>
+        h('div', { ...attrs, 'data-component': 'Dropdown' }, [
+          h('div', { onClick: () => (open.value = !open.value) }, slots.trigger?.() ?? slots.default?.()),
+          open.value
+            ? h(
+                'div',
+                { role: 'menu' },
+                visible().map((option) =>
+                  h(
+                    'button',
+                    {
+                      key: String(option.label),
+                      type: 'button',
+                      role: 'menuitem',
+                      disabled: option.disabled || undefined,
+                      onClick: () => {
+                        option.onClick?.()
+                        open.value = false
+                      },
+                    },
+                    option.label,
+                  ),
+                ),
+              )
+            : null,
+        ])
     },
   })
 

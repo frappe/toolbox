@@ -19,10 +19,10 @@ describe('generated routes', () => {
   it('keeps the static routes and sends unknown paths to All Tools', () => {
     const routes = router.getRoutes()
 
-    expect(routes.find((route) => route.path === '/')?.redirect).toBe('/all-tools')
-    expect(routes.find((route) => route.name === 'AllTools')?.path).toBe('/all-tools')
+    expect(routes.find((route) => route.path === '/')?.name).toBe('AllTools')
+    expect(routes.find((route) => route.path === '/all-tools')?.redirect).toBe('/')
     expect(routes.find((route) => route.name === 'Settings')?.path).toBe('/settings')
-    expect(routes.find((route) => route.path === '/:pathMatch(.*)*')?.redirect).toBe('/all-tools')
+    expect(routes.find((route) => route.path === '/:pathMatch(.*)*')?.redirect).toBe('/')
   })
 
   it('uses unique names and paths across all resolved routes', () => {

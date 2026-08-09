@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke converts in both directions and swaps units', async ({ page }) => {
-  await page.goto('/toolbox/unit-converter')
+  await page.goto('/unit-converter')
 
   const fromValue = page.getByRole('textbox', { name: 'From value' })
   const toValue = page.getByRole('textbox', { name: 'To value' })

@@ -4,6 +4,7 @@ import path from 'node:path'
 
 const RELEASE_ID_PLACEHOLDER = '__TOOLBOX_RELEASE_ID__'
 const RELEASE_TIME_PLACEHOLDER = '__TOOLBOX_RELEASE_CREATED_AT__'
+const APP_ROUTES_PLACEHOLDER = '__TOOLBOX_APP_ROUTES__'
 const TEMPLATE_PATH = path.resolve(import.meta.dirname, '../pwa/service-worker.template.js')
 const WORKER_OUTPUT_PATH = path.resolve(import.meta.dirname, '../../toolbox/www/toolbox-sw.js')
 
@@ -23,10 +24,12 @@ export function toolboxPwaBuild() {
         source: `${JSON.stringify(releaseInfo, null, 2)}\n`,
       })
     },
-    writeBundle(outputOptions) {
+    async writeBundle(outputOptions) {
       validateBundleManifest(outputOptions.dir)
       const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-      const workerSource = wrapForFrappe(renderServiceWorker(template, releaseInfo))
+      const workerSource = wrapForFrappe(
+        renderServiceWorker(template, releaseInfo, await readAppRoutes()),
+      )
       fs.writeFileSync(WORKER_OUTPUT_PATH, workerSource)
     },
   }
@@ -49,11 +52,25 @@ export function createReleaseInfo({ now = new Date(), randomSuffix } = {}) {
   }
 }
 
-export function renderServiceWorker(template, releaseInfo) {
+// The tool registry is the single source of truth for what the app serves. Reading it here keeps
+// the worker's route set exact, which matters at the site root: a prefix test would let the worker
+// claim Frappe's own /app and /login pages.
+export async function readAppRoutes() {
+  const { tools } = await import('../src/data/toolRegistry.js')
+  return ['/', '/settings', ...tools.map((tool) => tool.route)]
+}
+
+export function renderServiceWorker(template, releaseInfo, appRoutes) {
   validateReleaseInfo(releaseInfo)
+  validateAppRoutes(appRoutes)
   const withReleaseId = replacePlaceholder(template, RELEASE_ID_PLACEHOLDER, releaseInfo.releaseId)
-  const workerSource = replacePlaceholder(
+  const withRoutes = replacePlaceholder(
     withReleaseId,
+    APP_ROUTES_PLACEHOLDER,
+    JSON.stringify(appRoutes),
+  )
+  const workerSource = replacePlaceholder(
+    withRoutes,
     RELEASE_TIME_PLACEHOLDER,
     String(releaseInfo.createdAt),
   )
@@ -74,6 +91,16 @@ function replacePlaceholder(source, placeholder, value) {
     throw new Error(`Expected one ${placeholder} placeholder, found ${occurrences}`)
   }
   return source.replace(placeholder, value)
+}
+
+function validateAppRoutes(appRoutes) {
+  if (!Array.isArray(appRoutes) || !appRoutes.length) {
+    throw new TypeError('The service worker needs at least one application route')
+  }
+  const invalid = appRoutes.filter((route) => typeof route !== 'string' || !route.startsWith('/'))
+  if (invalid.length) {
+    throw new TypeError(`Application routes must be absolute paths: ${invalid.join(', ')}`)
+  }
 }
 
 function validateReleaseInfo(releaseInfo) {

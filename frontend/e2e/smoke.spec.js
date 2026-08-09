@@ -2,22 +2,45 @@ import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
 import { mockHsnAvailable } from './hsn-fixture'
 
-test('@smoke redirects the app root to the canonical All Tools route', async ({ page }) => {
-  await page.goto('/toolbox/')
+test('@smoke serves All Tools at the site root', async ({ page }) => {
+  await page.goto('/')
 
-  await expect(page).toHaveURL(/\/toolbox\/all-tools$/)
+  await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('heading', { name: 'All tools' })).toBeVisible()
 })
 
+test('@smoke permanently redirects the old /toolbox links', async ({ request }) => {
+  for (const [source, target] of [
+    ['/toolbox', '/'],
+    ['/toolbox/all-tools', '/'],
+    ['/all-tools', '/'],
+    ['/toolbox/calculator', '/calculator'],
+  ]) {
+    const response = await request.get(source, { maxRedirects: 0 })
+    expect(response.status(), source).toBe(308)
+    expect(new URL(response.headers().location, 'http://x').pathname, source).toBe(target)
+  }
+})
+
+test('@smoke leaves Frappe\'s own pages alone', async ({ request }) => {
+  // The route rules are an explicit list precisely so these keep working. A catch-all at the
+  // root would hand them the Toolbox shell.
+  for (const path of ['/login', '/app']) {
+    const response = await request.get(path)
+    expect(response.status(), path).toBeLessThan(400)
+    expect(await response.text(), path).not.toContain('toolbox-sw.js')
+  }
+})
+
 for (const [path, heading] of [
-  ['/toolbox/calculator', 'Calculator'],
-  ['/toolbox/currency-converter', 'Currency Converter'],
-  ['/toolbox/unit-converter', 'Unit Converter'],
-  ['/toolbox/gst-calculator', 'GST Calculator'],
-  ['/toolbox/financial-calculators', 'Financial Calculators'],
-  ['/toolbox/health-calculators', 'Health & Fitness Calculators'],
-  ['/toolbox/hsn-sac-lookup', 'HSN & SAC Lookup'],
-  ['/toolbox/timer', 'Timer, Stopwatch & Countdown'],
+  ['/calculator', 'Calculator'],
+  ['/currency-converter', 'Currency Converter'],
+  ['/unit-converter', 'Unit Converter'],
+  ['/gst-calculator', 'GST Calculator'],
+  ['/financial-calculators', 'Financial Calculators'],
+  ['/health-calculators', 'Health & Fitness Calculators'],
+  ['/hsn-sac-lookup', 'HSN & SAC Lookup'],
+  ['/timer', 'Timer, Stopwatch & Countdown'],
 ]) {
   test(`@smoke opens ${heading} directly`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)
@@ -33,8 +56,8 @@ test('@smoke serves a valid manifest, release, and service worker', async ({ req
   expect(manifestResponse.ok()).toBe(true)
   expect(manifestResponse.headers()['content-type']).toContain('application/manifest+json')
   expect(await manifestResponse.json()).toMatchObject({
-    start_url: '/toolbox/all-tools',
-    scope: '/toolbox/',
+    start_url: '/',
+    scope: '/',
   })
 
   const releaseResponse = await request.get('/assets/toolbox/frontend/release.json')
@@ -50,22 +73,22 @@ test('@smoke serves a valid manifest, release, and service worker', async ({ req
   expect(await workerResponse.text()).toContain("const SHELL_CACHE_PREFIX = 'toolbox-shell-'")
 })
 
-test('@smoke installs the service worker at the Toolbox scope', async ({ browserName, page }) => {
+test('@smoke installs the service worker at the site root', async ({ browserName, page }) => {
   // The WebKit project blocks the service worker (it cannot drive SW/offline headless); service
   // worker installation is covered on Chromium and Firefox.
   test.skip(browserName === 'webkit', 'The WebKit project runs with the service worker blocked')
-  await page.goto('/toolbox/all-tools')
+  await page.goto('/')
 
   const scope = await page.evaluate(async () => {
     const activeRegistration = await navigator.serviceWorker.ready
     return new URL(activeRegistration.scope).pathname
   })
 
-  expect(scope).toBe('/toolbox/')
+  expect(scope).toBe('/')
   await expect
     .poll(() =>
       page.evaluate(async () => {
-        const registration = await navigator.serviceWorker.getRegistration('/toolbox/')
+        const registration = await navigator.serviceWorker.getRegistration('/')
         return registration?.active?.state
       }),
     )

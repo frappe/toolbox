@@ -3,17 +3,17 @@ import { mockCurrencyRates } from './currency-fixture'
 import { mockHsnAvailable } from './hsn-fixture'
 
 for (const [path, heading] of [
-  ['/toolbox/all-tools', 'All tools'],
-  ['/toolbox/calculator', 'Calculator'],
-  ['/toolbox/currency-converter', 'Currency Converter'],
-  ['/toolbox/unit-converter', 'Unit Converter'],
-  ['/toolbox/gst-calculator', 'GST Calculator'],
-  ['/toolbox/financial-calculators', 'Financial Calculators'],
-  ['/toolbox/health-calculators', 'Health & Fitness Calculators'],
-  ['/toolbox/timer', 'Timer, Stopwatch & Countdown'],
-  ['/toolbox/hsn-sac-lookup', 'HSN & SAC Lookup'],
-  ['/toolbox/india-business-lookup', 'India Business Lookup'],
-  ['/toolbox/world-clock', 'World Clock'],
+  ['/', 'All tools'],
+  ['/calculator', 'Calculator'],
+  ['/currency-converter', 'Currency Converter'],
+  ['/unit-converter', 'Unit Converter'],
+  ['/gst-calculator', 'GST Calculator'],
+  ['/financial-calculators', 'Financial Calculators'],
+  ['/health-calculators', 'Health & Fitness Calculators'],
+  ['/timer', 'Timer, Stopwatch & Countdown'],
+  ['/hsn-sac-lookup', 'HSN & SAC Lookup'],
+  ['/india-business-lookup', 'India Business Lookup'],
+  ['/world-clock', 'World Clock'],
 ]) {
   test(`${heading} fits the mobile viewport`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)

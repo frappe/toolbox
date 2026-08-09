@@ -9,7 +9,10 @@ const PROVIDER_CACHE_PREFIX = 'toolbox-provider-'
 const OFFLINE_SHELL_SOURCE_URL = '/assets/toolbox/frontend/index.html'
 const OFFLINE_SHELL_CACHE_KEY = '/toolbox-offline-shell'
 const BUNDLE_MANIFEST_URL = '/assets/toolbox/frontend/manifest.json'
-const TOOLBOX_ROUTE_PREFIX = '/toolbox'
+// Every path the client app owns, injected at build time from the tool registry so this list
+// cannot drift from the routes the app actually serves. At the site root the worker has to know
+// them exactly: a prefix test would claim Frappe's own /app and /login pages as well.
+const TOOLBOX_ROUTES = new Set(__TOOLBOX_APP_ROUTES__)
 
 const CORE_ASSET_URLS = [
   '/assets/toolbox/pwa/manifest.webmanifest',
@@ -300,7 +303,9 @@ function removeJinjaBootScript(html) {
 }
 
 function isToolboxRoute(pathname) {
-  return pathname === TOOLBOX_ROUTE_PREFIX || pathname.startsWith(`${TOOLBOX_ROUTE_PREFIX}/`)
+  // Trailing slashes are equivalent for a navigation, but '/' itself must stay '/'.
+  const normalised = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  return TOOLBOX_ROUTES.has(normalised)
 }
 
 function isCacheable(response) {

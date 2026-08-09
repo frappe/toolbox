@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('@smoke calculates BMI, BMR, maintenance calories, and pace', async ({ page }) => {
-  await page.goto('/toolbox/health-calculators')
+  await page.goto('/health-calculators')
   const result = page.getByRole('region', { name: 'Result' })
   await expect(result.getByRole('status', { name: 'Primary health result' })).toHaveText('22.9')
   await expect(result).toContainText('Healthy weight')
@@ -19,7 +19,7 @@ test('@smoke calculates BMI, BMR, maintenance calories, and pace', async ({ page
 })
 
 test('keeps equivalent metric and imperial BMI estimates', async ({ page }) => {
-  await page.goto('/toolbox/health-calculators')
+  await page.goto('/health-calculators')
   const output = page.getByRole('status', { name: 'Primary health result' })
   const metricBmi = await output.textContent()
   // frappe-ui Select is a reka listbox, not a native <select>.
@@ -30,7 +30,7 @@ test('keeps equivalent metric and imperial BMI estimates', async ({ page }) => {
 })
 
 test('calculates each missing pace value and validates clock input', async ({ page }) => {
-  await page.goto('/toolbox/health-calculators')
+  await page.goto('/health-calculators')
   await page.getByRole('radio', { name: 'Pace' }).click()
   await page.locator('#pace-solveFor').click()
   await page.getByRole('option', { name: 'Distance' }).click()

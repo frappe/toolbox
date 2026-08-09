@@ -5,7 +5,7 @@ import { resetToolboxPreferences } from './support/preferences'
 // Saving a pair writes to this context's own sessionStorage; start each test from a clean
 // slate so the saved-pair assertions do not depend on a prior run's state.
 test.beforeEach(async ({ page }) => {
-  await page.goto('/toolbox/all-tools')
+  await page.goto('/')
   await resetToolboxPreferences(page)
 })
 
@@ -13,7 +13,7 @@ test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page
   let requests = 0
   await mockCurrencyRates(page)
   page.on('request', (request) => { if (request.url().includes('toolbox.currency.get_reference_rates')) requests += 1 })
-  await page.goto('/toolbox/currency-converter')
+  await page.goto('/currency-converter')
 
   // Two-way input model: editing one box derives the other from the dated reference rate.
   const source = page.getByRole('spinbutton', { name: 'Source amount', exact: true })
@@ -38,7 +38,7 @@ test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page
 
 test('labels stale server cache honestly', async ({ page }) => {
   await mockCurrencyRates(page, { cacheStatus: 'stale' })
-  await page.goto('/toolbox/currency-converter')
+  await page.goto('/currency-converter')
   await expect(page.getByText('stale server cache')).toBeVisible()
   await expect(page.getByText('Rate date')).toBeVisible()
   await expect(page.getByText('Server checked')).toBeVisible()
@@ -47,7 +47,7 @@ test('labels stale server cache honestly', async ({ page }) => {
 
 test('never describes reference rates as live', async ({ page }) => {
   await mockCurrencyRates(page, { cacheStatus: 'live' })
-  await page.goto('/toolbox/currency-converter')
+  await page.goto('/currency-converter')
   await expect(page.getByText('updated', { exact: true })).toBeVisible()
   await expect(page.getByText('Live', { exact: true })).toHaveCount(0)
 })

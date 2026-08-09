@@ -1,5 +1,5 @@
 export const SERVICE_WORKER_URL = '/toolbox-sw.js'
-export const SERVICE_WORKER_SCOPE = '/toolbox/'
+export const SERVICE_WORKER_SCOPE = '/'
 
 export class ToolboxServiceWorkerManager {
   constructor({ browserWindow = window, browserNavigator = navigator, callbacks = {} } = {}) {

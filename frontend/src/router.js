@@ -23,13 +23,16 @@ const queuedToolView = () => import('@/views/ToolView.vue')
 
 const routes = [
   {
+    // The root is All Tools. A visitor arriving at frappe.tools sees the whole set at once.
     path: '/',
-    redirect: '/all-tools',
-  },
-  {
-    path: '/all-tools',
     name: 'AllTools',
     component: () => import('@/views/AllToolsView.vue'),
+  },
+  {
+    // Kept so an old in-app link still lands somewhere sensible. The server sends a 308 for
+    // this path, so it is only reachable through client-side navigation.
+    path: '/all-tools',
+    redirect: '/',
   },
   {
     path: '/settings',
@@ -44,12 +47,16 @@ const routes = [
   })),
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/all-tools',
+    redirect: '/',
   },
 ]
 
+// __FRONTEND_ROUTE__ is `/` at the site root and `/toolbox` under a prefix. Normalise to one
+// trailing slash rather than appending unconditionally, which would give `//` at the root.
+const routerBase = __FRONTEND_ROUTE__.endsWith('/') ? __FRONTEND_ROUTE__ : `${__FRONTEND_ROUTE__}/`
+
 export default createRouter({
-  history: createWebHistory(`${__FRONTEND_ROUTE__}/`),
+  history: createWebHistory(routerBase),
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })

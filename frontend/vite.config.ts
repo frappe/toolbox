@@ -8,7 +8,14 @@ import { toolboxPwaBuild } from './build/pwaBuildPlugin.js'
 export default defineConfig({
   plugins: [
     frappeui({
-      frontendRoute: '/toolbox',
+      // Toolbox owns the site root, so the router base is `/`.
+      frontendRoute: '/',
+      // The plugin names the output HTML after frontendRoute, which at the root strips to an
+      // empty name and writes `www/.html`. It only forwards nested `buildConfig` options, so the
+      // path has to be set here rather than alongside frontendRoute.
+      buildConfig: {
+        indexHtmlPath: '../toolbox/www/toolbox.html',
+      },
     }),
     vue(),
     toolboxPwaBuild(),

@@ -76,7 +76,7 @@ describe('NotesView', () => {
 
     expect(api.getNote).toHaveBeenCalledWith('A')
     expect(wrapper.get('#note-title').element.value).toBe('Groceries')
-    // frappe-ui is mocked without TextEditor, so the contenteditable fallback renders.
+    // The real frappe-ui/editor mounts in jsdom; ProseMirror gives the surface role="textbox".
     expect(wrapper.find('[role="textbox"]').exists()).toBe(true)
     expect(wrapper.findAll('button').some((button) => button.text() === 'Duplicate')).toBe(true)
   })

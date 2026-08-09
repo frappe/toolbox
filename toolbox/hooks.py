@@ -144,8 +144,6 @@ after_migrate = [
 	"toolbox.dataset_sync.after_migrate",
 	# Create the Toolbox roles and enrol existing users so personal Phase 2 records work.
 	"toolbox.permissions.backfill_toolbox_user_role",
-	# Install / refresh the version-controlled default checklist templates.
-	"toolbox.checklist_default_templates.install_default_checklist_templates",
 ]
 
 # Uninstallation
@@ -188,35 +186,11 @@ after_migrate = [
 
 permission_query_conditions = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
-	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.get_permission_query_conditions",
-	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.get_permission_query_conditions",
-	"Toolbox Saved Link": "toolbox.toolbox.doctype.toolbox_saved_link.toolbox_saved_link.get_permission_query_conditions",
-	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.get_permission_query_conditions",
-	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.get_permission_query_conditions",
-	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.get_permission_query_conditions",
-	"Toolbox Expense": "toolbox.toolbox.doctype.toolbox_expense.toolbox_expense.get_permission_query_conditions",
-	"Toolbox Expense Category": "toolbox.toolbox.doctype.toolbox_expense_category.toolbox_expense_category.get_permission_query_conditions",
-	"Toolbox Payment Method": "toolbox.toolbox.doctype.toolbox_payment_method.toolbox_payment_method.get_permission_query_conditions",
-	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.get_permission_query_conditions",
-	"Toolbox Expense Project": "toolbox.toolbox.doctype.toolbox_expense_project.toolbox_expense_project.get_permission_query_conditions",
-	"Toolbox Expense Budget": "toolbox.toolbox.doctype.toolbox_expense_budget.toolbox_expense_budget.get_permission_query_conditions",
 	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
-	"Toolbox Checklist Template": "toolbox.toolbox.doctype.toolbox_checklist_template.toolbox_checklist_template.has_permission",
-	"Toolbox Note": "toolbox.toolbox.doctype.toolbox_note.toolbox_note.has_permission",
-	"Toolbox Saved Link": "toolbox.toolbox.doctype.toolbox_saved_link.toolbox_saved_link.has_permission",
-	"Toolbox Link Collection": "toolbox.toolbox.doctype.toolbox_link_collection.toolbox_link_collection.has_permission",
-	"Toolbox Reminder": "toolbox.toolbox.doctype.toolbox_reminder.toolbox_reminder.has_permission",
-	"Toolbox Reminder Delivery": "toolbox.toolbox.doctype.toolbox_reminder_delivery.toolbox_reminder_delivery.has_permission",
-	"Toolbox Expense": "toolbox.toolbox.doctype.toolbox_expense.toolbox_expense.has_permission",
-	"Toolbox Expense Category": "toolbox.toolbox.doctype.toolbox_expense_category.toolbox_expense_category.has_permission",
-	"Toolbox Payment Method": "toolbox.toolbox.doctype.toolbox_payment_method.toolbox_payment_method.has_permission",
-	"Toolbox Expense Rule": "toolbox.toolbox.doctype.toolbox_expense_rule.toolbox_expense_rule.has_permission",
-	"Toolbox Expense Project": "toolbox.toolbox.doctype.toolbox_expense_project.toolbox_expense_project.has_permission",
-	"Toolbox Expense Budget": "toolbox.toolbox.doctype.toolbox_expense_budget.toolbox_expense_budget.has_permission",
 	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.has_permission",
 }
 
@@ -242,16 +216,8 @@ doc_events = {
 
 # Scheduled Tasks
 # ---------------
-
-scheduler_events = {
-	"cron": {
-		# Every 5 minutes: fire reminders whose next trigger is due. The server scheduler is the
-		# source of truth for reminders; browser timers are never relied upon.
-		"0/5 * * * *": [
-			"toolbox.reminders.run_due_reminders",
-		],
-	},
-}
+#
+# Toolbox runs no scheduled work. The reminders cron went with the Reminders tool.
 
 # Testing
 # -------

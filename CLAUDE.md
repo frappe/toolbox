@@ -46,7 +46,9 @@ Use staged releases for PIN and IFSC data. Validate a release before activation.
 
 Toolbox is a single-owner, authenticated-only application. There is no guest, sharing, or multi-user access. The web entry `toolbox/www/toolbox.py` redirects `Guest` to the Frappe login, tool APIs are not `allow_guest`, and a client router guard (`frontend/src/utils/authGuard.js`) redirects on a lost session. Preferences sync only to the per-user server record.
 
-Phase 2 personal records (notes, checklists, links, reminders, expenses, audio) are private to their owner. Follow this foundation (`toolbox/permissions.py`):
+Toolbox is becoming a free public site with no accounts, so the tools that stored personal records have been removed. Audio recordings are the last owner-private records, and they move to the browser next. `OTHER_IDEAS.md` records every removal and its reason. Read it before you propose a feature.
+
+Audio recordings are private to their owner. Follow this foundation (`toolbox/permissions.py`):
 
 - Every real, enabled user is auto-enrolled in the `Toolbox User` role (User `after_insert` hook plus `backfill_toolbox_user_role` on migrate). `Toolbox Manager` administers shared configuration and does not get routine access to personal content.
 - Personal DocTypes restrict access to the owner. Use `owner_query_conditions(doctype, user)` and `has_owner_permission(doc, user)` for permission hooks, or DocType `if_owner` permissions for the simple case. Administrators and System Managers keep the technical access inherent to running the site.
@@ -54,7 +56,7 @@ Phase 2 personal records (notes, checklists, links, reminders, expenses, audio) 
 
 Reuse the shared Phase 2 primitives: `TagInput` (`components/inputs/TagInput.vue`) for tags, and `downloadTextFile` / `downloadJson` (`utils/fileExport.js`) for exports.
 
-Reminders use the Frappe scheduler as the source of truth, never a browser timer. Recurrence and DST math live in the dependency-free `toolbox/reminder_schedule.py` (unit-tested with controlled time); each occurrence is re-localised in the reminder's named IANA zone so a 09:00 reminder stays 09:00 across daylight-saving transitions. `toolbox/reminders.py` runs a 5-minute cron (`run_due_reminders`) that fires due reminders, records deliveries idempotently through a unique `idempotency_key` (so a retry never double-notifies), and advances or completes each reminder. Datetimes are computed as aware UTC and stored in the site's system time zone. In-app notifications are `Toolbox Reminder Delivery` rows; the inbox is unacknowledged in-app deliveries. Email uses the site's outgoing mail; browser notifications are a frontend-only enhancement.
+Toolbox runs no scheduled work. The 5-minute reminders cron went with the Reminders tool.
 
 ## Styling and accessibility
 
@@ -212,7 +214,7 @@ The application shell, desktop and mobile navigation, Home, All Tools, determini
 
 Guest and authenticated preferences work. Saved currency pairs and World Clock locations work. PWA installation, offline behavior, and update prompts work.
 
-These utilities are operational:
+These 15 utilities are operational:
 
 - Calculator
 - Unit Converter
@@ -223,60 +225,58 @@ These utilities are operational:
 - World Clock
 - Currency Converter
 - India Business Lookup (PIN and IFSC search)
+- HSN and SAC Lookup
 - Weather
 - Dictionary
-- Checklists (Phase 2: private, owner-only checklists with items, reorder, and export)
-- Notes (Phase 2: private rich-text notes with autosave and Markdown/HTML export)
-- Library (Phase 2: private saved links with collections, tags, import/export)
-- Reminders (Phase 2: server-scheduled personal reminders with recurrence, snooze, and an in-app inbox)
+- Script Conversion
+- Audio Recorder
+- Audio Editor
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 
-PIN and IFSC release infrastructure, import validation, bounded APIs, UI, and tests work. Production-scale datasets are not active yet.
+All four datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982. Each one ships as a checksummed release through `toolbox/data/manifest.json`.
 
-Weather and Dictionary remain placeholder tools that need provider and source validation.
+Weather and Dictionary are complete tools, not placeholders. Weather calls a live provider. Dictionary reads the local WordNet 3.1 dataset.
 
 ## Active development priority
 
-Productionize PIN and IFSC lookup before optional interaction polish.
+Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work the pivot in this order.
 
-1. Import the full official Department of Posts PIN CSV into `toolbox-test.localhost`.
+1. Remove the authentication layer. Move preferences to `sessionStorage`, except `theme`. Cap history at 10 entries. Add `allow_guest` and rate limits to the reference-data endpoints.
 
-2. Import a versioned Razorpay IFSC release into `toolbox-test.localhost`.
+2. Rebase routes to the site root, and render per-route meta on the server for search engines.
 
-3. Verify source dates, checksums, counts, exclusions, and attribution.
+3. Split the tabbed tools into separate tools. Two levels only: category, then tool.
 
-4. Benchmark full-scale lookup queries.
+4. Reorganize the navigation and make All Tools compact.
 
-5. Tune indexes and query shapes when measured latency requires changes.
+5. Add the data-sources page and the Frappe entry points.
 
-6. Activate each release only after validation passes.
+`~/Toolbox/NEXT_STEPS.md` holds the detail and the reasoning.
 
 ## Next development steps
 
-1. Add administrator import and release-status controls for PIN and IFSC data.
+1. Move Weather to the MET Norway provider. The Open-Meteo free tier permits non-commercial use only. Replace its geocoder with a bundled GeoNames city dataset.
 
-2. Review permissions, rate limits, concurrency behavior, and superseded-release retention.
+2. Move Audio Recorder to browser-only capture. Cap a recording at 10 minutes or 100 MB.
 
-3. Finish HSN release gaps, including attribution, type rules, copy-code, and optional statutory fields.
+3. Add synonyms and antonyms as sections inside Dictionary. Synonyms need no new data. 110,635 entries already carry them.
 
-4. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
+4. Add administrator import and release-status controls for the datasets.
 
-5. Start Dictionary or Weather only after validating the data source, provider terms, caching, and failure behavior.
+5. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
 
 6. Run `yarn verify` and the full browser matrix before a release.
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 30 unit tests and 15 integration tests.
+The isolated Frappe test site passed 59 tests.
 
-The frontend passed 434 tests across 51 files. The production Vite build passed.
+The frontend passed 594 tests across 77 files. The production Vite build passed.
 
-Focused browser workflows passed for World Clock, Home saved items, GSTIN, PIN, and IFSC.
+The full Playwright matrix passed 172 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium.
 
-Run the full Playwright suite after the latest additions. Do not treat focused browser results as a full browser release check.
-
-The last tracker count was 183 complete items and 98 open items, or 65.1 percent complete.
+Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
 
 ## Skill usage (always)
 

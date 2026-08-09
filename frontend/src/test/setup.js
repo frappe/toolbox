@@ -437,11 +437,16 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // Mirrors the model contract of frappe-ui Slider, which is the part call sites get
+  // wrong: the value is an ARRAY (`SliderValue = number[]`), and a value without
+  // `.length` falls back to `[min]` — so a scalar binding pins the thumb to the
+  // minimum. Keep the array type and the fallback exactly as the real component has
+  // them, or this stub hides the bug instead of catching it.
   const Slider = defineComponent({
     name: 'Slider',
     inheritAttrs: false,
     props: {
-      modelValue: { type: Number, default: 0 },
+      modelValue: { type: Array, default: undefined },
       min: { type: Number, default: 0 },
       max: { type: Number, default: 100 },
       step: { type: Number, default: 1 },
@@ -449,6 +454,8 @@ vi.mock('frappe-ui', async () => {
     },
     emits: ['update:modelValue'],
     setup(props, { attrs, emit }) {
+      const resolved = () => (props.modelValue?.length ? props.modelValue : [props.min])
+
       return () =>
         h('input', {
           ...attrs,
@@ -456,9 +463,9 @@ vi.mock('frappe-ui', async () => {
           min: props.min,
           max: props.max,
           step: props.step,
-          value: props.modelValue,
+          value: resolved()[0],
           'aria-label': attrs['aria-label'] || props.label || undefined,
-          onInput: (event) => emit('update:modelValue', Number(event.target.value)),
+          onInput: (event) => emit('update:modelValue', [Number(event.target.value)]),
         })
     },
   })

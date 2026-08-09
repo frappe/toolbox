@@ -27,6 +27,7 @@
         />
       </div>
 
+      <!-- Slider's model is an array; a scalar falls back to `[min]` and pins the thumb (#143). -->
       <div class="mt-8 grid gap-2">
         <Slider
           label="Frequency"
@@ -34,8 +35,8 @@
           :max="2000"
           :step="1"
           aria-label="Frequency"
-          :model-value="Math.min(frequency, 2000)"
-          @update:model-value="updateFrequency"
+          :model-value="[Math.min(frequency, 2000)]"
+          @update:model-value="updateFrequency($event[0])"
         />
         <div class="flex items-center gap-2">
           <FormControl
@@ -96,8 +97,8 @@
           :max="1"
           :step="0.01"
           aria-label="Volume"
-          :model-value="volume"
-          @update:model-value="updateVolume"
+          :model-value="[volume]"
+          @update:model-value="updateVolume($event[0])"
         />
       </div>
 

@@ -36,7 +36,7 @@
 
         <canvas ref="waveformCanvas" width="900" height="112" class="mt-4 h-28 w-full rounded-lg bg-surface-gray-2 text-ink-gray-7" role="img" aria-label="Audio waveform with the selected region highlighted" />
 
-        <!-- Trim -->
+        <!-- Trim. Slider's model is an array; a scalar falls back to `[min]` and pins the thumb (#143). -->
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <Slider
             label="Start"
@@ -45,8 +45,8 @@
             :max="editor.source.value.duration"
             :step="0.01"
             aria-label="Trim start"
-            :model-value="editor.project.value.trimStart"
-            @update:model-value="setTrimStart"
+            :model-value="[editor.project.value.trimStart]"
+            @update:model-value="setTrimStart($event[0])"
           />
           <Slider
             label="End"
@@ -55,8 +55,8 @@
             :max="editor.source.value.duration"
             :step="0.01"
             aria-label="Trim end"
-            :model-value="editor.project.value.trimEnd"
-            @update:model-value="setTrimEnd"
+            :model-value="[editor.project.value.trimEnd]"
+            @update:model-value="setTrimEnd($event[0])"
           />
         </div>
 
@@ -91,8 +91,8 @@
             :max="12"
             :step="1"
             aria-label="Gain in decibels"
-            :model-value="editor.project.value.gainDb"
-            @update:model-value="editor.update({ gainDb: Number($event) })"
+            :model-value="[editor.project.value.gainDb]"
+            @update:model-value="editor.update({ gainDb: Number($event[0]) })"
           />
         </div>
       </section>

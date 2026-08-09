@@ -494,28 +494,6 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
-  // Stand-in for the TipTap-based rich editor: a contenteditable region that echoes the
-  // content, so views that use TextEditor render a `[role="textbox"]` in tests.
-  const TextEditor = defineComponent({
-    name: 'TextEditor',
-    inheritAttrs: false,
-    props: {
-      content: { type: String, default: '' },
-      placeholder: { type: String, default: '' },
-    },
-    emits: ['change'],
-    setup(props, { attrs }) {
-      return () =>
-        h('div', {
-          ...attrs,
-          role: 'textbox',
-          'aria-multiline': 'true',
-          contenteditable: 'true',
-          innerHTML: props.content,
-        })
-    },
-  })
-
   // Renders the wrapped trigger (default slot); the tooltip text is exposed as an attr.
   const Tooltip = defineComponent({
     name: 'Tooltip',
@@ -582,7 +560,6 @@ vi.mock('frappe-ui', async () => {
     LoadingText,
     Slider,
     TabButtons,
-    TextEditor,
     TextInput,
     Tooltip,
     frappeRequest: vi.fn(),

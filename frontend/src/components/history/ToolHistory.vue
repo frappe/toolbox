@@ -7,14 +7,13 @@
         </h2>
         <p class="pt-1 text-sm text-ink-gray-5">{{ note }}</p>
       </div>
-      <Button
-        v-if="entries.length"
-        class="h-11"
-        label="Clear all"
-        variant="ghost"
-        :aria-label="clearLabel"
-        @click="emit('clear')"
-      />
+      <!--
+        The visible text and the spoken name differ, so the text goes in the default slot.
+        A `label` prop would win over `aria-label` and every tool would announce "Clear all" (#144).
+      -->
+      <Button v-if="entries.length" class="h-11" variant="ghost" :aria-label="clearLabel" @click="emit('clear')">
+        Clear all
+      </Button>
     </header>
 
     <div

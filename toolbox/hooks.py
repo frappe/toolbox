@@ -186,12 +186,10 @@ after_migrate = [
 
 permission_query_conditions = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.get_permission_query_conditions",
-	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Toolbox User Preference": "toolbox.toolbox.doctype.toolbox_user_preference.toolbox_user_preference.has_permission",
-	"Toolbox Audio Asset": "toolbox.toolbox.doctype.toolbox_audio_asset.toolbox_audio_asset.has_permission",
 }
 
 # Document Events

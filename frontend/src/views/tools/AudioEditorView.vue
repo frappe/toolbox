@@ -115,25 +115,10 @@
           </div>
         </div>
 
-        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-          <FormControl
-            type="text"
-            size="md"
-            class="flex-1"
-            label="Save to your library"
-            placeholder="Name this clip"
-            aria-label="Saved clip title"
-            :model-value="saveTitle"
-            @update:model-value="saveTitle = $event"
-          />
-          <div class="flex gap-2">
-            <Button variant="solid" icon-left="lucide-save" :label="library.isSaving.value || encoding ? 'Saving…' : 'Save'" :loading="library.isSaving.value || encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onSave" />
-            <Button variant="subtle" icon-left="lucide-download" :label="downloadLabel" :loading="encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onDownload" />
-          </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <Button variant="solid" icon-left="lucide-download" :label="downloadLabel" :loading="encoding" :disabled="editor.outputDuration.value <= 0 || encoding" @click="onDownload" />
         </div>
         <p v-if="encoding" class="mt-3 text-sm text-ink-gray-6">Encoding to Opus… this runs in real time, so it takes about the length of the clip.</p>
-        <Alert v-if="savedTitle" class="mt-3" theme="green" :dismissible="false" :title="`Saved “${savedTitle}” to your Audio Recorder library.`" />
-        <Alert v-if="library.saveError.value" class="mt-3" theme="red" :dismissible="false" :title="library.saveError.value" />
       </section>
     </template>
   </div>
@@ -142,11 +127,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Alert, Button, FormControl, Icon, Slider, TabButtons } from 'frappe-ui'
-import { useRoute } from 'vue-router'
-
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { getRecording } from '@/tools/audio-recorder/api'
-import { formatSize, useAudioLibrary } from '@/tools/audio-recorder/useAudioLibrary'
+import { formatSize } from '@/tools/audio-recorder/audioFormat'
+import { takeRecording } from '@/tools/audio-recorder/recordingHandoff'
 import { useAudioEditor } from '@/tools/audio-editor/useAudioEditor'
 import { canEncodeOpus, encodeOpus, OPUS_BITS_PER_SECOND } from '@/tools/audio-editor/webmEncode'
 
@@ -158,26 +141,19 @@ const FORMATS = [
 
 const preferences = useToolboxPreferences()
 const editor = useAudioEditor()
-const library = useAudioLibrary()
-const route = useRoute()
 
-// Opened from a saved recording via ?asset=<name>: fetch the private file and load it.
+// The Recorder hands a clip over in memory rather than through the server, so take whatever it
+// left. Nothing waiting is the normal case: the visitor opened the Editor directly.
 onMounted(() => {
-  const assetName = route.query.asset
-  if (assetName) {
-    preferences.recordRecent(TOOL_ID)
-    void loadAsset(String(assetName))
-  }
+  const offered = takeRecording()
+  if (!offered) return
+  preferences.recordRecent(TOOL_ID)
+  void loadOffered(offered)
 })
 
-async function loadAsset(name) {
+async function loadOffered({ blob, name }) {
   try {
-    const asset = await getRecording(name)
-    const response = await fetch(asset.file)
-    if (!response.ok) throw new Error(`Fetch failed (${response.status})`)
-    const blob = await response.blob()
-    const extension = (asset.container_format || 'audio').replace('mp4', 'm4a')
-    await editor.load(new File([blob], `${asset.title || 'recording'}.${extension}`, { type: asset.mime || blob.type }))
+    await editor.load(new File([blob], name || 'recording.webm', { type: blob.type }))
   } catch {
     // Leave the editor in its empty state so the user can pick a file manually.
   }
@@ -186,8 +162,6 @@ async function loadAsset(name) {
 const waveformCanvas = ref(null)
 const fileInput = ref(null)
 const previewUrl = ref('')
-const saveTitle = ref('')
-const savedTitle = ref('')
 const exportFormat = ref('wav')
 const encoding = ref(false)
 const opusAvailable = canEncodeOpus()
@@ -285,7 +259,7 @@ async function onDownload() {
   try {
     const blob = await exportBlob()
     if (!blob) return
-    const base = (saveTitle.value.trim() || editor.source.value.name || 'audio').replace(/\.[^.]+$/, '')
+    const base = (editor.source.value.name || 'audio').replace(/\.[^.]+$/, '')
     const extension = exportFormat.value === 'webm' ? 'webm' : 'wav'
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -298,33 +272,8 @@ async function onDownload() {
   }
 }
 
-async function onSave() {
-  if (encoding.value) return
-  savedTitle.value = ''
-  encoding.value = exportFormat.value === 'webm'
-  let blob
-  try {
-    blob = await exportBlob()
-  } finally {
-    encoding.value = false
-  }
-  if (!blob) return
-  const saved = await library.saveBlob(blob, {
-    title: saveTitle.value.trim() || (editor.source.value.name || 'Edited audio').replace(/\.[^.]+$/, ''),
-    durationSeconds: editor.outputDuration.value,
-    sourceType: 'Edited',
-    createdFromTool: 'editor',
-  })
-  if (saved) {
-    savedTitle.value = saved.title
-    saveTitle.value = ''
-  }
-}
-
 function onReset() {
   clearPreview()
-  savedTitle.value = ''
-  saveTitle.value = ''
   editor.reset()
 }
 

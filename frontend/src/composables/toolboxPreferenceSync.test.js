@@ -5,45 +5,22 @@ import {
   isLoggedInSession,
   retryToolboxPreferenceSync,
 } from './toolboxPreferenceSync'
-import {
-  createDefaultPreferences,
-  PREFERENCES_STORAGE_KEY,
-  ToolboxPreferencesStore,
-} from './useToolboxPreferences'
-
-class MemoryStorage {
-  constructor(value = null) {
-    this.value = value
-    this.setItem = vi.fn((key, nextValue) => {
-      expect(key).toBe(PREFERENCES_STORAGE_KEY)
-      this.value = nextValue
-    })
-  }
-
-  getItem() {
-    return this.value
-  }
-}
+import { createDefaultPreferences, ToolboxPreferencesStore } from './useToolboxPreferences'
 
 describe('toolbox preference synchronization', () => {
-  it('never falls back to guest browser storage (Toolbox is authenticated-only)', async () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('persists only to the per-user server record (Toolbox is authenticated-only)', async () => {
+    const store = new ToolboxPreferencesStore()
     const remote = createDefaultPreferences()
     const request = vi.fn().mockResolvedValue(remote)
 
     await initializeToolboxPreferences({ store, request })
     store.toggleHidden('calculator')
 
-    expect(store.mode.value).toBe('frappe')
-    expect(storage.setItem).not.toHaveBeenCalled()
+    expect(store.remoteSave).toBeTypeOf('function')
   })
 
-  it('loads signed-in preferences from Frappe without migrating local data', async () => {
-    const local = createDefaultPreferences()
-    local.hiddenToolIds = ['calculator']
-    const storage = new MemoryStorage(JSON.stringify(local))
-    const store = new ToolboxPreferencesStore(storage)
+  it('loads signed-in preferences from Frappe', async () => {
+    const store = new ToolboxPreferencesStore()
     const remote = createDefaultPreferences()
     remote.hiddenToolIds = ['timer']
     const request = vi.fn().mockResolvedValue(remote)
@@ -54,9 +31,8 @@ describe('toolbox preference synchronization', () => {
       session: { is_logged_in: true, user: 'person@example.com' },
     })
 
-    expect(store.mode.value).toBe('frappe')
+    expect(store.remoteSave).toBeTypeOf('function')
     expect(store.hiddenIds.value).toEqual(['timer'])
-    expect(storage.setItem).not.toHaveBeenCalled()
     expect(request).toHaveBeenCalledWith({
       url: expect.stringMatching(/\.get_preferences$/),
       method: 'GET',
@@ -64,8 +40,7 @@ describe('toolbox preference synchronization', () => {
   })
 
   it('saves signed-in changes as semantic operations through the POST endpoint', async () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockResolvedValueOnce(createDefaultPreferences())
@@ -91,13 +66,11 @@ describe('toolbox preference synchronization', () => {
         },
       },
     })
-    expect(storage.setItem).not.toHaveBeenCalled()
     expect(store.syncError.value).toBe('')
   })
 
   it('does not overwrite remote data when the initial load fails', async () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+    const store = new ToolboxPreferencesStore()
     const request = vi.fn().mockRejectedValue(new Error('Offline'))
 
     await initializeToolboxPreferences({
@@ -112,11 +85,10 @@ describe('toolbox preference synchronization', () => {
     await expect(store.flushRemoteSave()).resolves.toBeNull()
     expect(request).toHaveBeenCalledTimes(1)
     expect(store.syncError.value).toContain('could not be loaded')
-    expect(storage.setItem).not.toHaveBeenCalled()
   })
 
   it('fails open after a bounded wait when preference loading stalls', async () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi.fn(() => new Promise(() => {}))
 
     await initializeToolboxPreferences({
@@ -132,7 +104,7 @@ describe('toolbox preference synchronization', () => {
   })
 
   it('merges queued array operations with remote data after the initial load failed', async () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const remote = createDefaultPreferences()
     remote.hiddenToolIds = ['timer']
     remote.recentToolIds = ['world-clock']
@@ -179,9 +151,8 @@ describe('toolbox preference synchronization', () => {
     })
   })
 
-  it('reports save failures without writing guest storage', async () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('reports save failures', async () => {
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockResolvedValueOnce(createDefaultPreferences())
@@ -196,11 +167,10 @@ describe('toolbox preference synchronization', () => {
     await expect(store.flushRemoteSave()).resolves.toBeNull()
 
     expect(store.syncError.value).toContain('could not be saved')
-    expect(storage.setItem).not.toHaveBeenCalled()
   })
 
   it('retries a retained failed save after reconnect', async () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockResolvedValueOnce(createDefaultPreferences())
@@ -226,7 +196,7 @@ describe('toolbox preference synchronization', () => {
   })
 
   it('times out a stalled save, restores its operations, and retries on reconnect', async () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockResolvedValueOnce(createDefaultPreferences())
@@ -262,7 +232,7 @@ describe('toolbox preference synchronization', () => {
 
   it('keeps routes ready while a signed-in preference load is still pending', async () => {
     let finishLoad
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi.fn(
       () =>
         new Promise((resolve) => {
@@ -285,7 +255,7 @@ describe('toolbox preference synchronization', () => {
   it('preserves an explicit recent clear while reconnecting to remote data', async () => {
     const remote = createDefaultPreferences()
     remote.recentToolIds = ['world-clock', 'calculator']
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockRejectedValueOnce(new Error('Offline'))
@@ -326,8 +296,8 @@ describe('toolbox preference synchronization', () => {
         serverPreferences = applyTestOperations(serverPreferences, params.payload)
         return Promise.resolve(structuredClone(serverPreferences))
       })
-    const firstStore = new ToolboxPreferencesStore(new MemoryStorage())
-    const secondStore = new ToolboxPreferencesStore(new MemoryStorage())
+    const firstStore = new ToolboxPreferencesStore()
+    const secondStore = new ToolboxPreferencesStore()
 
     await Promise.all([
       initializeToolboxPreferences({
@@ -353,7 +323,7 @@ describe('toolbox preference synchronization', () => {
   it('preserves hidden order when a tool is removed and re-added before saving', async () => {
     const remote = createDefaultPreferences()
     remote.hiddenToolIds = ['calculator', 'timer']
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     const request = vi
       .fn()
       .mockResolvedValueOnce(remote)

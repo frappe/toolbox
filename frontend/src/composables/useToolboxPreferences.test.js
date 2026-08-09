@@ -4,34 +4,23 @@ import { tools } from '@/data/toolRegistry'
 import {
   defaultSettings,
   MAX_RECENT_TOOLS,
-  PREFERENCES_STORAGE_KEY,
   ToolboxPreferencesStore,
 } from './useToolboxPreferences'
 
-class MemoryStorage {
-  constructor(initialValue = null, shouldThrow = false) {
-    this.value = initialValue
-    this.shouldThrow = shouldThrow
-  }
-
-  getItem() {
-    if (this.shouldThrow) throw new Error('Storage unavailable')
-    return this.value
-  }
-
-  setItem(key, value) {
-    if (this.shouldThrow) throw new Error('Storage unavailable')
-    expect(key).toBe(PREFERENCES_STORAGE_KEY)
-    this.value = value
-  }
+// The store starts from defaults and is filled by the per-user server record,
+// so these exercise the same normalization through `hydrate`.
+function storeWith(remoteValue) {
+  const store = new ToolboxPreferencesStore()
+  store.hydrate(remoteValue)
+  return store
 }
 
 describe('ToolboxPreferencesStore', () => {
-  it('uses versioned defaults when storage is empty, corrupt, or outdated', () => {
-    const values = [null, '{bad json', JSON.stringify({ version: 0 })]
+  it('uses versioned defaults when the record is empty, malformed, or outdated', () => {
+    const values = [null, 'not an object', { version: 0 }]
 
     for (const value of values) {
-      const store = new ToolboxPreferencesStore(new MemoryStorage(value))
+      const store = storeWith(value)
       expect(store.snapshot()).toEqual({
         version: 1,
         hiddenToolIds: [],
@@ -45,15 +34,15 @@ describe('ToolboxPreferencesStore', () => {
   })
 
   it('normalizes stored tool IDs, list shapes, and settings', () => {
-    const stored = JSON.stringify({
+    const stored = {
       version: 1,
       recentToolIds: [...tools.map((tool) => tool.id), 'calculator'],
       savedCurrencyPairs: [{ from: 'INR', to: 'USD' }, null, 'bad'],
       savedWeatherLocations: 'bad',
       savedWorldClockLocations: [{ zone: 'Asia/Kolkata' }],
       settings: { decimalPrecision: 4, timeFormat: 'invalid', unknown: true },
-    })
-    const store = new ToolboxPreferencesStore(new MemoryStorage(stored))
+    }
+    const store = storeWith(stored)
 
     expect(store.recentToolIds.value).toEqual(
       tools.slice(0, MAX_RECENT_TOOLS).map((tool) => tool.id),
@@ -65,9 +54,8 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.settings.timeFormat).toBe(defaultSettings.timeFormat)
   })
 
-  it('persists ten distinct recent tools', () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('keeps ten distinct recent tools, most recent first', () => {
+    const store = new ToolboxPreferencesStore()
 
     for (const tool of tools) store.recordRecent(tool.id)
     store.recordRecent(tools[4].id)
@@ -75,19 +63,17 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.recentToolIds.value).toHaveLength(MAX_RECENT_TOOLS)
     expect(store.recentToolIds.value[0]).toBe(tools[4].id)
     expect(new Set(store.recentToolIds.value).size).toBe(MAX_RECENT_TOOLS)
-    expect(JSON.parse(storage.value)).toEqual(store.snapshot())
   })
 
-  it('toggles hidden tools, persists them, and ignores unknown ids', () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('toggles hidden tools and ignores unknown ids', () => {
+    const store = new ToolboxPreferencesStore()
 
     store.toggleHidden('weather')
     store.toggleHidden('missing')
     expect(store.isHidden('weather')).toBe(true)
     expect(store.isHidden('missing')).toBe(false)
     expect(store.hiddenIds.value).toEqual(['weather'])
-    expect(JSON.parse(storage.value).hiddenToolIds).toEqual(['weather'])
+    expect(store.snapshot().hiddenToolIds).toEqual(['weather'])
 
     store.toggleHidden('weather')
     expect(store.isHidden('weather')).toBe(false)
@@ -95,7 +81,7 @@ describe('ToolboxPreferencesStore', () => {
   })
 
   it('accepts only supported settings and can reset them', () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
 
     store.updateSetting('decimalPrecision', 6)
     store.updateSetting('decimalPrecision', 3)
@@ -108,7 +94,7 @@ describe('ToolboxPreferencesStore', () => {
   })
 
   it('defaults the theme to system and rejects an unsupported theme', () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage())
+    const store = new ToolboxPreferencesStore()
     expect(store.settings.theme).toBe('system')
 
     store.updateSetting('theme', 'dark')
@@ -118,30 +104,28 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.settings.theme).toBe('dark')
   })
 
-  it('persists a bounded world-clock location list', () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('bounds the world-clock location list', () => {
+    const store = new ToolboxPreferencesStore()
     const locations = Array.from({ length: 14 }, (_, index) => ({ zone: `Etc/GMT+${index}` }))
 
     store.setSavedWorldClockLocations(locations)
 
     expect(store.savedWorldClockLocations.value).toHaveLength(12)
-    expect(JSON.parse(storage.value).savedWorldClockLocations).toEqual(locations.slice(0, 12))
+    expect(store.snapshot().savedWorldClockLocations).toEqual(locations.slice(0, 12))
   })
 
-  it('persists a bounded weather location list', () => {
-    const storage = new MemoryStorage()
-    const store = new ToolboxPreferencesStore(storage)
+  it('bounds the weather location list', () => {
+    const store = new ToolboxPreferencesStore()
     const places = Array.from({ length: 14 }, (_, index) => ({ name: `City ${index}`, latitude: index, longitude: index }))
 
     store.setSavedWeatherLocations(places)
 
     expect(store.savedWeatherLocations.value).toHaveLength(12)
-    expect(JSON.parse(storage.value).savedWeatherLocations).toEqual(places.slice(0, 12))
+    expect(store.snapshot().savedWeatherLocations).toEqual(places.slice(0, 12))
   })
 
-  it('continues safely when browser storage throws', () => {
-    const store = new ToolboxPreferencesStore(new MemoryStorage(null, true))
+  it('records changes made before the remote record is attached', () => {
+    const store = new ToolboxPreferencesStore()
 
     expect(() => store.toggleHidden('calculator')).not.toThrow()
     expect(store.hiddenIds.value).toEqual(['calculator'])

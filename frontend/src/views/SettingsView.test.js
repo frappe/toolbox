@@ -24,7 +24,6 @@ describe('SettingsView', () => {
   beforeEach(() => {
     Object.assign(preferences.settings, defaultSettings)
     preferences.hiddenIds.value = []
-    preferences.mode.value = 'local'
     preferences.isSaving.value = false
     preferences.syncError.value = ''
   })
@@ -74,9 +73,8 @@ describe('SettingsView', () => {
   it('explains where preferences are saved and announces sync failures', async () => {
     const wrapper = mount(SettingsView)
 
-    expect(wrapper.get('[role="status"]').text()).toBe('Saved in this browser.')
+    expect(wrapper.get('[role="status"]').text()).toBe('Saved to your Frappe account.')
 
-    preferences.mode.value = 'frappe'
     preferences.isSaving.value = true
     await wrapper.vm.$nextTick()
     expect(wrapper.get('[role="status"]').text()).toBe('Saving to your Frappe account…')

@@ -135,16 +135,9 @@ const toolGroups = toolCategories.map((category) => ({
   ...category,
   tools: getToolsByCategory(category.id),
 }))
-const persistenceMessage = computed(() => {
-  if (preferences.syncError.value) return preferences.syncError.value
-  if (preferences.mode.value === 'frappe') {
-    return preferences.isSaving.value
-      ? 'Saving to your Frappe account…'
-      : 'Saved to your Frappe account.'
-  }
-  if (preferences.mode.value === 'memory') return 'Preferences last until this tab closes.'
-  return 'Saved in this browser.'
-})
+const persistenceMessage = computed(() =>
+  preferences.isSaving.value ? 'Saving to your Frappe account…' : 'Saved to your Frappe account.',
+)
 const themeOptions = [
   { label: 'System', value: 'system' },
   { label: 'Light', value: 'light' },

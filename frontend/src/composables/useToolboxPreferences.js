@@ -2,7 +2,6 @@ import { reactive, ref } from 'vue'
 
 import { toolsById } from '@/data/toolRegistry'
 
-export const PREFERENCES_STORAGE_KEY = 'toolbox:preferences:v1'
 export const MAX_RECENT_TOOLS = 10
 export const REMOTE_SAVE_DELAY_MS = 250
 
@@ -29,24 +28,24 @@ export const defaultSettings = Object.freeze({
 })
 
 export class ToolboxPreferencesStore {
-  constructor(storage = resolveStorage()) {
-    this.storage = storage
+  constructor() {
     this.remoteSave = null
     this.remoteReady = false
     this.remoteSaveTimer = null
     this.pendingRemoteOperations = []
     this.remoteSavePromise = null
-    this.mode = ref(storage ? 'local' : 'memory')
     this.isReady = ref(true)
     this.isSaving = ref(false)
     this.syncError = ref('')
-    const stored = this.read()
-    this.hiddenIds = ref(stored.hiddenToolIds)
-    this.recentToolIds = ref(stored.recentToolIds)
-    this.savedCurrencyPairs = ref(stored.savedCurrencyPairs)
-    this.savedWeatherLocations = ref(stored.savedWeatherLocations)
-    this.savedWorldClockLocations = ref(stored.savedWorldClockLocations)
-    this.settings = reactive(stored.settings)
+    // Toolbox is authenticated-only: the real values arrive from the per-user
+    // server record through `completeRemoteLoad`. Start from defaults.
+    const initial = createDefaultPreferences()
+    this.hiddenIds = ref(initial.hiddenToolIds)
+    this.recentToolIds = ref(initial.recentToolIds)
+    this.savedCurrencyPairs = ref(initial.savedCurrencyPairs)
+    this.savedWeatherLocations = ref(initial.savedWeatherLocations)
+    this.savedWorldClockLocations = ref(initial.savedWorldClockLocations)
+    this.settings = reactive(initial.settings)
   }
 
   isHidden(toolId) {
@@ -107,11 +106,9 @@ export class ToolboxPreferencesStore {
   }
 
   useRemotePersistence(save) {
-    this.storage = null
     this.remoteSave = save
     this.remoteReady = false
     this.pendingRemoteOperations = []
-    this.mode.value = 'frappe'
     this.hydrate(createDefaultPreferences())
   }
 
@@ -145,32 +142,11 @@ export class ToolboxPreferencesStore {
     }
   }
 
-  read() {
-    const fallback = createDefaultPreferences()
-    if (!this.storage) return fallback
-
-    try {
-      const value = this.storage.getItem(PREFERENCES_STORAGE_KEY)
-      if (!value) return fallback
-      return normalizePreferences(JSON.parse(value))
-    } catch {
-      return fallback
-    }
-  }
-
+  // Called before `useRemotePersistence` only during app bootstrap, where there
+  // is nothing worth keeping — the remote load replaces the state either way.
   persist(operation = null) {
-    if (this.remoteSave) {
-      if (operation) this.queueRemoteOperation(operation)
-      return
-    }
-
-    if (!this.storage) return
-
-    try {
-      this.storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(this.snapshot()))
-    } catch {
-      // Storage can be unavailable in private browsing or hardened browsers.
-    }
+    if (!this.remoteSave) return
+    if (operation) this.queueRemoteOperation(operation)
   }
 
   queueRemoteOperation(operation) {
@@ -316,14 +292,6 @@ function normalizeSettings(value) {
 
 function isValidSetting(key, value) {
   return settingOptions[key]?.includes(value) ?? false
-}
-
-function resolveStorage() {
-  try {
-    return globalThis.localStorage
-  } catch {
-    return null
-  }
 }
 
 function applyPreferenceOperations(store, operations) {

@@ -6,6 +6,9 @@ export const MAX_CALCULATOR_HISTORY_ENTRIES = 50
 let nextHistoryId = 1
 
 export function useCalculatorHistory({ storage = getBrowserStorage() } = {}) {
+  // The history lived in localStorage until it moved to the session. Drop what that left
+  // behind on a returning visitor.
+  forgetStoredHistory()
   const entries = ref(loadEntries(storage))
 
   function add(expression, result) {
@@ -34,7 +37,26 @@ export function useCalculatorHistory({ storage = getBrowserStorage() } = {}) {
   return { entries, add, remove, clear }
 }
 
+// `sessionStorage`: a calculator history holds what somebody was working out, and Toolbox keeps
+// nothing about a visitor past the browser session. The key the old default wrote is cleared below.
 function getBrowserStorage() {
+  try {
+    return globalThis.sessionStorage ?? null
+  } catch {
+    return null
+  }
+}
+
+export function forgetStoredHistory(storage = safeLocalStorage()) {
+  try {
+    storage?.removeItem(CALCULATOR_HISTORY_KEY)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function safeLocalStorage() {
   try {
     return globalThis.localStorage ?? null
   } catch {

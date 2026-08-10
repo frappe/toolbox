@@ -50,3 +50,20 @@ describe('dictionary recent searches', () => {
     expect(validRecentPayload(null)).toBe(false)
   })
 })
+
+describe('where recent searches are kept', () => {
+  it('uses sessionStorage, so the words go when the browser session does', () => {
+    // A list of words somebody looked up is a record of what they did not know.
+    saveRecentSearches(['serendipity'])
+
+    expect(globalThis.sessionStorage.getItem(DICTIONARY_RECENT_STORAGE_KEY)).toBeTruthy()
+    expect(globalThis.localStorage.getItem(DICTIONARY_RECENT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('forgets the key the old default left on a returning visitor', () => {
+    globalThis.localStorage.setItem(DICTIONARY_RECENT_STORAGE_KEY, JSON.stringify({ version: 1, words: ['old'] }))
+
+    expect(loadRecentSearches()).toEqual([])
+    expect(globalThis.localStorage.getItem(DICTIONARY_RECENT_STORAGE_KEY)).toBeNull()
+  })
+})

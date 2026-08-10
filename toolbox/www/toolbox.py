@@ -1,6 +1,6 @@
 import frappe
 
-from toolbox import seo
+from toolbox import seo, tool_content
 
 no_cache = 1
 
@@ -13,7 +13,12 @@ def get_context():
 	context.no_cache = 1
 	# One template serves every route, so the head is built from the path that was asked for.
 	# A crawler runs no JavaScript before it decides what a page is about.
-	context.seo = seo.page_metadata(requested_path(), frappe.utils.get_url())
+	path = requested_path()
+	context.seo = seo.page_metadata(path, frappe.utils.get_url())
+	# The heading and the content of the page, rendered into the element the application mounts
+	# on. Vue empties that element when it mounts, so this is what a crawler and a visitor with no
+	# JavaScript read, and nobody reads it twice.
+	context.page_content = tool_content.page_content(seo.normalise_path(path))
 	context.boot = frappe._dict(
 		{
 			"csrf_token": frappe.sessions.get_csrf_token(),

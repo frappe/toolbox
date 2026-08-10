@@ -3,45 +3,43 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { SERVER_META_END, SERVER_META_START, injectServerMeta } from './pwaBuildPlugin.js'
+import { SERVER_CONTENT_MARKERS, SERVER_META_MARKERS, injectBlock } from './pwaBuildPlugin.js'
 
 // The build output is gitignored, so a test that reads toolbox/www/toolbox.html passes by
-// reading nothing on a fresh clone. These read the two files that are committed instead.
+// reading nothing on a fresh clone. These read the files that are committed instead.
 const indexHtml = readFileSync(path.resolve(import.meta.dirname, '../index.html'), 'utf8')
-const metaBlock = readFileSync(
-  path.resolve(import.meta.dirname, 'server-meta.template.html'),
-  'utf8',
-)
+const read = (markers) => readFileSync(markers.templatePath, 'utf8')
+const metaBlock = read(SERVER_META_MARKERS)
+const contentBlock = read(SERVER_CONTENT_MARKERS)
+
+function build() {
+  let page = indexHtml
+  for (const markers of [SERVER_META_MARKERS, SERVER_CONTENT_MARKERS]) {
+    page = injectBlock(page, markers, read(markers))
+  }
+  return page
+}
 
 describe('the server metadata block', () => {
   it('replaces the static fallback in the page Frappe renders', () => {
-    const built = injectServerMeta(indexHtml, metaBlock)
+    const built = injectBlock(indexHtml, SERVER_META_MARKERS, metaBlock)
 
     expect(built).toContain('<title>{{ seo.title | e }}</title>')
     expect(built).toContain('{{ seo.canonical | e }}')
-    expect(built).not.toContain(SERVER_META_START)
-    expect(built).not.toContain(SERVER_META_END)
+    expect(built).not.toContain(SERVER_META_MARKERS.start)
+    expect(built).not.toContain(SERVER_META_MARKERS.end)
   })
 
   it('leaves exactly one title', () => {
-    const built = injectServerMeta(indexHtml, metaBlock)
-
-    expect(built.match(/<title>/g)).toHaveLength(1)
+    expect(build().match(/<title>/g)).toHaveLength(1)
   })
 
   it('refuses to build a page it could not put metadata into', () => {
     // Returning the HTML unchanged would ship a site whose every page claims the same title,
     // which is the exact failure this block exists to fix, and nothing else would notice.
-    expect(() => injectServerMeta('<html><head></head></html>', metaBlock)).toThrow(
+    expect(() => injectBlock('<html><head></head></html>', SERVER_META_MARKERS, metaBlock)).toThrow(
       /markers are missing/,
     )
-  })
-
-  it('keeps a readable title in the copy the service worker caches offline', () => {
-    // The same HTML is published as an asset and cached as the offline shell, where Jinja never
-    // runs. `{{ seo.title }}` there would be the visitor's tab title.
-    expect(indexHtml).toContain('<title>Toolbox</title>')
-    expect(indexHtml).not.toContain('{{')
   })
 
   it('escapes every attribute, because Frappe does not autoescape', () => {
@@ -55,5 +53,43 @@ describe('the server metadata block', () => {
 
   it('leaves the JSON-LD unescaped, because it is JSON and not markup', () => {
     expect(metaBlock).toContain('{{ seo.structured_data }}')
+  })
+})
+
+describe('the server content block', () => {
+  it('renders the heading and the content inside the element the application mounts on', () => {
+    const built = build()
+    const app = built.slice(built.indexOf('<div id="app"'), built.indexOf('</div>'))
+
+    // Vue empties its mount container, so the block is replaced rather than repeated. Anywhere
+    // else on the page it would still be there after the application boots.
+    expect(app).toContain('{{ page_content.header }}')
+    expect(app).toContain('{{ page_content.content }}')
+    expect(built).not.toContain(SERVER_CONTENT_MARKERS.start)
+  })
+
+  it('renders nothing for a route that has no content', () => {
+    expect(contentBlock).toContain('{%- if page_content %}')
+  })
+
+  it('refuses to build a page it could not put content into', () => {
+    expect(() => injectBlock('<html><body></body></html>', SERVER_CONTENT_MARKERS, contentBlock)).toThrow(
+      /markers are missing/,
+    )
+  })
+})
+
+describe('the copy the service worker caches offline', () => {
+  it('keeps a readable title and no Jinja', () => {
+    // The same HTML is published as an asset and cached as the offline shell, where Jinja never
+    // runs. `{{ seo.title }}` there would be the visitor's tab title.
+    expect(indexHtml).toContain('<title>Toolbox</title>')
+    expect(indexHtml).not.toContain('{{')
+  })
+
+  it('leaves the mount element empty, so the application fills it', () => {
+    const app = indexHtml.slice(indexHtml.indexOf('<div id="app"'), indexHtml.indexOf('</div>'))
+
+    expect(app).not.toContain('page_content')
   })
 })

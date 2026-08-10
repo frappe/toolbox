@@ -23,6 +23,7 @@ declare module 'vue' {
     SettingRow: typeof import('./src/components/settings/SettingRow.vue')['default']
     SidebarSection: typeof import('./src/components/navigation/SidebarSection.vue')['default']
     TagInput: typeof import('./src/components/inputs/TagInput.vue')['default']
+    ToolContentSection: typeof import('./src/components/content/ToolContentSection.vue')['default']
     ToolFamilyNav: typeof import('./src/components/ToolFamilyNav.vue')['default']
     ToolHistory: typeof import('./src/components/history/ToolHistory.vue')['default']
     ToolSearchDialog: typeof import('./src/components/search/ToolSearchDialog.vue')['default']

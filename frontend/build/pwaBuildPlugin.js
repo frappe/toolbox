@@ -2,16 +2,29 @@ import { randomBytes } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { buildToolContent } from './toolContent/build.js'
+
 const RELEASE_ID_PLACEHOLDER = '__TOOLBOX_RELEASE_ID__'
 const RELEASE_TIME_PLACEHOLDER = '__TOOLBOX_RELEASE_CREATED_AT__'
 const APP_ROUTES_PLACEHOLDER = '__TOOLBOX_APP_ROUTES__'
 const TEMPLATE_PATH = path.resolve(import.meta.dirname, '../pwa/service-worker.template.js')
 const WORKER_OUTPUT_PATH = path.resolve(import.meta.dirname, '../../toolbox/www/toolbox-sw.js')
 
-const SERVER_META_TEMPLATE_PATH = path.resolve(import.meta.dirname, 'server-meta.template.html')
 const WEB_PAGE_PATH = path.resolve(import.meta.dirname, '../../toolbox/www/toolbox.html')
-export const SERVER_META_START = '<!-- toolbox:server-meta:start -->'
-export const SERVER_META_END = '<!-- toolbox:server-meta:end -->'
+
+// Two blocks of Jinja, each replacing a marked region of the built page. The head block carries the
+// metadata a search engine reads. The body block carries the heading and the content a crawler
+// reads, inside the element the application mounts on.
+export const SERVER_META_MARKERS = {
+  start: '<!-- toolbox:server-meta:start -->',
+  end: '<!-- toolbox:server-meta:end -->',
+  templatePath: path.resolve(import.meta.dirname, 'server-meta.template.html'),
+}
+export const SERVER_CONTENT_MARKERS = {
+  start: '<!-- toolbox:server-content:start -->',
+  end: '<!-- toolbox:server-content:end -->',
+  templatePath: path.resolve(import.meta.dirname, 'server-content.template.html'),
+}
 
 export function toolboxPwaBuild() {
   let releaseInfo
@@ -19,8 +32,10 @@ export function toolboxPwaBuild() {
   return {
     name: 'toolbox-pwa-build',
     apply: 'build',
-    buildStart() {
+    async buildStart() {
       releaseInfo = createReleaseInfo()
+      // Before the client bundles anything: the page files are what its content chunks import.
+      await buildToolContent()
     },
     generateBundle() {
       this.emitFile({
@@ -41,31 +56,35 @@ export function toolboxPwaBuild() {
     // frappe-ui plugin copies the built HTML to toolbox/www/toolbox.html in one of them. Reading
     // that file from a writeBundle hook is a race. closeBundle runs after all of them.
     closeBundle() {
-      const metaBlock = fs.readFileSync(SERVER_META_TEMPLATE_PATH, 'utf8')
-      const webPage = fs.readFileSync(WEB_PAGE_PATH, 'utf8')
-      fs.writeFileSync(WEB_PAGE_PATH, injectServerMeta(webPage, metaBlock))
+      // Both blocks are written in one pass. Rollup treats closeBundle as a parallel hook too, so
+      // two plugins reading and writing this file would race each other.
+      let page = fs.readFileSync(WEB_PAGE_PATH, 'utf8')
+      for (const markers of [SERVER_META_MARKERS, SERVER_CONTENT_MARKERS]) {
+        page = injectBlock(page, markers, fs.readFileSync(markers.templatePath, 'utf8'))
+      }
+      fs.writeFileSync(WEB_PAGE_PATH, page)
     },
   }
 }
 
-// The metadata is Jinja, so it belongs only in the page Frappe renders. The identical HTML is
-// also published as an asset and cached by the service worker as the offline shell, where Jinja
-// never runs and `{{ seo.title }}` would be the visitor's tab title.
+// Each block is Jinja, so it belongs only in the page Frappe renders. The identical HTML is also
+// published as an asset and cached by the service worker as the offline shell, where Jinja never
+// runs and `{{ seo.title }}` would be the visitor's tab title.
 //
 // This throws rather than returning the HTML unchanged. A silent miss ships a site whose every
-// page claims the same title, which is the exact failure this whole change exists to fix, and
-// nothing else in the build would notice.
-export function injectServerMeta(html, metaBlock) {
-  const start = html.indexOf(SERVER_META_START)
-  const end = html.indexOf(SERVER_META_END)
+// page claims the same title and carries no content, which is the exact failure these blocks exist
+// to fix, and nothing else in the build would notice.
+export function injectBlock(html, markers, block) {
+  const start = html.indexOf(markers.start)
+  const end = html.indexOf(markers.end)
   if (start === -1 || end === -1 || end < start) {
     throw new Error(
-      `The server metadata markers are missing from the built page. ` +
-        `frontend/index.html must keep ${SERVER_META_START} and ${SERVER_META_END}.`,
+      `The ${markers.start} markers are missing from the built page. ` +
+        `frontend/index.html must keep ${markers.start} and ${markers.end}.`,
     )
   }
 
-  return html.slice(0, start) + metaBlock.trimEnd() + html.slice(end + SERVER_META_END.length)
+  return html.slice(0, start) + block.trimEnd() + html.slice(end + markers.end.length)
 }
 
 export function createReleaseInfo({ now = new Date(), randomSuffix } = {}) {

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { useToolFamily } from './useToolFamily'
 
-const route = { meta: {} }
+const route = { meta: {}, path: '/timer' }
 vi.mock('vue-router', () => ({ useRoute: () => route }))
 
 function familyFor(toolId) {
@@ -52,5 +52,14 @@ describe('useToolFamily', () => {
     expect(tool.value).toBeUndefined()
     expect(variant.value).toBeNull()
     expect(siblingLinks.value).toEqual([])
+  })
+})
+
+describe('currentRoute', () => {
+  it('reports the path, which is what marks a link as the page you are on', () => {
+    route.path = '/stopwatch'
+    const { currentRoute } = familyFor('stopwatch')
+
+    expect(currentRoute.value).toBe('/stopwatch')
   })
 })

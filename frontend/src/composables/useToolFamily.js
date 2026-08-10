@@ -16,9 +16,9 @@ export function useToolFamily() {
   const tool = computed(() => toolsById.get(route.meta.toolId))
   const variant = computed(() => tool.value?.variant ?? null)
 
-  // The strip that used to switch tabs now navigates. `TabButtons` renders an option carrying a
-  // `route` as a RouterLink, so these are real links: a crawler can follow them, and a visitor
-  // can open one in a new tab.
+  // The strip that used to switch tabs now navigates, so these describe links rather than
+  // options. `ToolFamilyNav` renders them, and `currentRoute` is what marks one as the page you
+  // are on.
   const siblingLinks = computed(() => {
     const family = tool.value?.family
     if (!family) return []
@@ -30,5 +30,5 @@ export function useToolFamily() {
     }))
   })
 
-  return { tool, variant, siblingLinks }
+  return { tool, variant, siblingLinks, currentRoute: computed(() => route.path) }
 }

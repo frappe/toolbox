@@ -8,7 +8,6 @@ const implementedToolViews = {
   'financial-calculators': () => import('@/views/tools/FinancialCalculatorsView.vue'),
   'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
   'hsn-sac-lookup': () => import('@/views/tools/HsnSacLookupView.vue'),
-  'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
   'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
@@ -23,6 +22,14 @@ const implementedToolViews = {
 // and its own page, and the view reads `meta.variant` to know which of them it is rendering.
 const familyViews = {
   timer: () => import('@/views/tools/TimerView.vue'),
+  'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
+}
+
+// A route that used to serve several tools behind a tab strip. The server sends a 308 for these,
+// so they are only reachable through an in-app link that has not been updated. Mirrors
+// RETIRED_ROUTES in toolbox/routes.py.
+const retiredRoutes = {
+  '/india-business-lookup': '/pin-code-search',
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 
@@ -61,6 +68,7 @@ const routes = [
     component: viewFor(tool),
     meta: { toolId: tool.id, variant: tool.variant },
   })),
+  ...Object.entries(retiredRoutes).map(([path, redirect]) => ({ path, redirect })),
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',

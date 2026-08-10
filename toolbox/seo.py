@@ -121,12 +121,21 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="BusinessApplication",
 	),
-	"/india-business-lookup": Page(
-		name="India Business Lookup",
-		title="PIN Code and Bank IFSC Code Search for India",
+	"/pin-code-search": Page(
+		name="PIN Code Search",
+		title="PIN Code Search — Find Any Indian Postal Code",
 		description=(
-			"Find an Indian PIN code by area or post office, and look up any bank IFSC code "
-			"with its branch address. Free, and answered from a local dataset."
+			"Find an Indian PIN code by area, post office, district or state, and see the "
+			"offices it covers. Free, and answered from a local dataset."
+		),
+		application_category="BusinessApplication",
+	),
+	"/ifsc-code-search": Page(
+		name="IFSC Code Search",
+		title="IFSC Code Search — Find Any Bank Branch Code",
+		description=(
+			"Look up a bank IFSC code by code, bank, branch or city, with the branch address "
+			"and MICR. Free, and answered from a local dataset."
 		),
 		application_category="BusinessApplication",
 	),

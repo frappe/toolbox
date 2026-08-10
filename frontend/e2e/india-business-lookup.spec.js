@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures'
 
-const route = '/india-business-lookup'
+const pinRoute = '/pin-code-search'
+const ifscRoute = '/ifsc-code-search'
 
 test.use({ allowOfflineNetworkErrors: true })
 
@@ -29,38 +30,46 @@ async function mockStatus(page) {
   )
 }
 
-test('@smoke opens on the PIN tab and switches to IFSC', async ({ page }) => {
+test('@smoke gives the PIN and IFSC searches a page each', async ({ page }) => {
   await mockStatus(page)
-  await page.goto(route)
+  await page.goto(pinRoute)
 
-  await expect(page.getByRole('heading', { name: 'India Business Lookup', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'PIN Code Search', level: 1 })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: 'PIN code, office, district, or state' })).toBeVisible()
 
-  await page.getByRole('radio', { name: 'IFSC' }).click()
+  await page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' }).click()
+  await expect(page).toHaveURL(new RegExp(`${ifscRoute}$`))
+  await expect(page.getByRole('heading', { name: 'IFSC Code Search', level: 1 })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' })).toBeVisible()
 })
 
-test('supports keyboard navigation across the PIN and IFSC tabs', async ({ page }) => {
-  await mockStatus(page)
-  await page.goto(route)
-  const pinTab = page.getByRole('radio', { name: 'PIN code' })
-  const ifscTab = page.getByRole('radio', { name: 'IFSC' })
+test('@smoke sends the retired lookup route to the PIN search', async ({ request }) => {
+  // The old URL is published, so it keeps working. It redirects straight to its replacement
+  // rather than through the path it used to serve, because a chain costs every old link a
+  // second round trip and a search engine discounts it.
+  for (const source of ['/india-business-lookup', '/toolbox/india-business-lookup']) {
+    const response = await request.get(source, { maxRedirects: 0 })
 
-  // TabButtons is a radiogroup: arrow keys move the roving focus, and Space
-  // activates the focused tab.
-  await pinTab.focus()
-  await pinTab.press('ArrowRight')
-  await expect(ifscTab).toBeFocused()
-  await ifscTab.press(' ')
-  await expect(ifscTab).toHaveAttribute('aria-checked', 'true')
+    expect(response.status(), source).toBe(308)
+    expect(new URL(response.headers().location, 'http://x').pathname, source).toBe(pinRoute)
+  }
+})
+
+test('moves between the two searches from the keyboard', async ({ page }) => {
+  // These are links in a nav, not a radiogroup, so Enter activates them the way it activates
+  // any link, and Tab reaches each one.
+  await mockStatus(page)
+  await page.goto(pinRoute)
+  const ifscTab = page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' })
+
+  await ifscTab.focus()
+  await ifscTab.press('Enter')
+
+  await expect(page).toHaveURL(new RegExp(`${ifscRoute}$`))
+  await expect(ifscTab).toHaveAttribute('aria-current', 'page')
   await expect(
     page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' }),
   ).toBeVisible()
-
-  await ifscTab.press('ArrowLeft')
-  await expect(pinTab).toBeFocused()
-  await pinTab.press(' ')
-  await expect(pinTab).toHaveAttribute('aria-checked', 'true')
 })
 
 test('plots located PIN results on the offline India map', async ({ page }) => {
@@ -78,7 +87,7 @@ test('plots located PIN results on the offline India map', async ({ page }) => {
       }),
     }),
   )
-  await page.goto(route)
+  await page.goto(pinRoute)
 
   await page.getByRole('searchbox', { name: 'PIN code, office, district, or state' }).fill('560001')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
@@ -102,9 +111,9 @@ test('searches the IFSC release', async ({ page }) => {
       }),
     }),
   )
-  await page.goto(route)
+  await page.goto(pinRoute)
 
-  await page.getByRole('radio', { name: 'IFSC' }).click()
+  await page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' }).click()
   await page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' }).fill('HDFC0000001')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
   await expect(page.getByRole('list', { name: 'Search results' })).toContainText('HDFC Bank — Fort')

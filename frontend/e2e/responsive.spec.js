@@ -15,7 +15,8 @@ for (const path of [
   '/stopwatch',
   '/countdown-timer',
   '/hsn-sac-lookup',
-  '/india-business-lookup',
+  '/pin-code-search',
+  '/ifsc-code-search',
   '/world-clock',
 ]) {
   const heading = headingFor(path)

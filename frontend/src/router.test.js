@@ -65,7 +65,6 @@ describe('generated routes', () => {
     ['calculator', 'CalculatorView'],
     ['gst-calculator', 'GstCalculatorView'],
     ['hsn-sac-lookup', 'HsnSacLookupView'],
-    ['unit-converter', 'UnitConverterView'],
     ['world-clock', 'WorldClockView'],
   ])('loads the implemented %s view', async (toolId, componentName) => {
     const route = router.getRoutes().find((candidate) => candidate.name === `Tool:${toolId}`)

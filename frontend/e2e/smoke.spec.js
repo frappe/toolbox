@@ -36,7 +36,7 @@ test('@smoke leaves Frappe\'s own pages alone', async ({ request }) => {
 for (const path of [
   '/calculator',
   '/currency-converter',
-  '/unit-converter',
+  '/length-converter',
   '/gst-calculator',
   '/emi-calculator',
   '/bmi-calculator',

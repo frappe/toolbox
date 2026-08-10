@@ -1,18 +1,51 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { h, nextTick } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
+import { useRoute } from 'vue-router'
 
+import { tools } from '@/data/toolRegistry'
 import UnitConverterView from './UnitConverterView.vue'
 
-function mountView() {
-  return mount(UnitConverterView, { attachTo: document.body })
+// Each measurement is its own tool at its own URL, so which one is showing comes from the route.
+// The route object is reactive, so assigning `meta` moves the view the way a navigation does.
+vi.mock('vue-router', async (importOriginal) => {
+  const { reactive } = await import('vue')
+  const route = reactive({ meta: {}, path: '/length-converter' })
+  return { ...(await importOriginal()), useRoute: () => route }
+})
+
+const route = useRoute()
+
+// The real RouterLink needs an injected router. This renders what it renders: an anchor whose
+// href is `to`, with every other attribute passed through.
+const RouterLink = {
+  props: { to: { type: String, required: true } },
+  setup(props, { attrs, slots }) {
+    return () => h('a', { ...attrs, href: props.to }, slots.default?.())
+  },
+}
+
+function toolFor(variant) {
+  return tools.find((tool) => tool.family === 'unit-converter' && tool.variant === variant)
+}
+
+function mountView(variant = 'length') {
+  const tool = toolFor(variant)
+  route.meta = { toolId: tool.id }
+  route.path = tool.route
+  return mount(UnitConverterView, { attachTo: document.body, global: { stubs: { RouterLink } } })
+}
+
+async function goToCategory(variant) {
+  const tool = toolFor(variant)
+  route.meta = { toolId: tool.id }
+  route.path = tool.route
+  await nextTick()
+  await flushPromises()
 }
 
 function valueInputs(wrapper) {
   return wrapper.findAll('input[inputmode="decimal"]')
-}
-
-function categoryTab(wrapper, name) {
-  return wrapper.findAll('[role="radio"]').find((tab) => tab.text() === name)
 }
 
 describe('UnitConverterView', () => {
@@ -29,7 +62,7 @@ describe('UnitConverterView', () => {
 
   it('changes category defaults and applies temperature formulas', async () => {
     const wrapper = mountView()
-    await categoryTab(wrapper, 'Temperature').trigger('click')
+    await goToCategory('temperature')
     const [fromInput, toInput] = valueInputs(wrapper)
     await fromInput.setValue('0')
 
@@ -129,12 +162,12 @@ describe('UnitConverterView', () => {
 
   it('clears the values while keeping the chosen category', async () => {
     const wrapper = mountView()
-    await categoryTab(wrapper, 'Temperature').trigger('click')
+    await goToCategory('temperature')
     await valueInputs(wrapper)[0].setValue('10')
     const clearButton = wrapper.findAll('button').find((button) => button.text() === 'Clear')
     await clearButton.trigger('click')
     expect(valueInputs(wrapper).map((input) => input.element.value)).toEqual(['', ''])
     // A single Clear empties the values but keeps the user's category.
-    expect(categoryTab(wrapper, 'Temperature').attributes('aria-checked')).toBe('true')
+    expect(wrapper.find('nav a[aria-current="page"]').text()).toBe('Temperature Converter')
   })
 })

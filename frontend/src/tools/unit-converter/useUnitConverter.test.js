@@ -74,7 +74,7 @@ describe('unit converter state', () => {
     expect(converter.toInput.value).toBe('100')
   })
 
-  it('uses category-specific defaults and resets to length', () => {
+  it('uses category-specific defaults and resets within the current measurement', () => {
     const converter = useUnitConverter()
     converter.setCategory('temperature')
 
@@ -83,10 +83,31 @@ describe('unit converter state', () => {
     converter.updateFromInput('0')
     expect(converter.toInput.value).toBe('32')
 
+    converter.setToUnit('kelvin')
     converter.reset()
-    expect(converter.categoryId.value).toBe('length')
+
+    // Reset used to return to length. Each measurement is its own tool at its own URL now, so
+    // moving to another one from a Reset button would leave the page and the URL disagreeing.
+    expect(converter.categoryId.value).toBe('temperature')
+    expect(converter.toUnitId.value).toBe('fahrenheit')
     expect(converter.fromInput.value).toBe('')
     expect(converter.toInput.value).toBe('')
+  })
+
+  it('starts on the measurement the route asks for, with its own units', () => {
+    const converter = useUnitConverter({ initialCategoryId: 'temperature' })
+
+    expect(converter.categoryId.value).toBe('temperature')
+    // Setting the category alone would open /temperature-converter showing metres.
+    expect(converter.fromUnitId.value).toBe('celsius')
+    expect(converter.toUnitId.value).toBe('fahrenheit')
+  })
+
+  it('falls back to length for a measurement that does not exist', () => {
+    const converter = useUnitConverter({ initialCategoryId: 'not-a-category' })
+
+    expect(converter.categoryId.value).toBe('length')
+    expect(converter.fromUnitId.value).toBe('meter')
   })
 
   it('swaps units and the displayed values', () => {

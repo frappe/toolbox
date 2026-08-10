@@ -9,9 +9,20 @@ import {
 } from './catalog'
 import { FinancialCalculationError } from './errors'
 
+// `options.initialId` is the calculator the route asks for: each is its own tool at its own URL.
 export function useFinancialCalculators(options = {}) {
-  const history = options.history ?? useToolHistory('financial-calculators')
-  const activeId = ref(financialCalculators[0].id)
+  // One history per calculator, because each one is its own tool. A single shared log would put
+  // an EMI result on the SIP page, under a panel that says these are its recent results.
+  const histories = Object.fromEntries(
+    financialCalculators.map((calculator) => [
+      calculator.id,
+      options.history ?? useToolHistory(`financial-${calculator.id}`),
+    ]),
+  )
+  const activeId = ref(
+    financialCalculatorsById.has(options.initialId) ? options.initialId : financialCalculators[0].id,
+  )
+  const history = computed(() => histories[activeId.value])
   const inputValues = reactive(
     Object.fromEntries(
       financialCalculators.map((calculator) => [
@@ -90,7 +101,7 @@ export function useFinancialCalculators(options = {}) {
     const presentation = presentedResult.value
     if (!presentation || typeof formatValue !== 'function') return
 
-    history.add({
+    history.value.add({
       label: activeCalculator.value.name,
       value: formatValue(presentation.primary.value, presentation.primary.format),
       payload: { calculatorId: activeId.value, inputs: { ...activeInputs.value } },
@@ -99,9 +110,8 @@ export function useFinancialCalculators(options = {}) {
 
   function reuseHistory(entry) {
     const payload = entry?.payload
-    if (!payload || !financialCalculatorsById.has(payload.calculatorId)) return
+    if (!payload || payload.calculatorId !== activeId.value) return
 
-    activeId.value = payload.calculatorId
     const target = activeInputs.value
     for (const input of activeCalculator.value.inputs) {
       target[input.id] = String(payload.inputs?.[input.id] ?? '')
@@ -126,11 +136,11 @@ export function useFinancialCalculators(options = {}) {
     errorMessage,
     copyStatus,
     resultAnnouncement,
-    historyEntries: history.entries,
+    historyEntries: computed(() => history.value.entries.value),
     recordHistory,
     reuseHistory,
-    removeHistory: history.remove,
-    clearHistory: history.clear,
+    removeHistory: (entryId) => history.value.remove(entryId),
+    clearHistory: () => history.value.clear(),
     selectCalculator,
     updateInput,
     clear,

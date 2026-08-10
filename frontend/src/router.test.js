@@ -63,7 +63,6 @@ describe('generated routes', () => {
 
   it.each([
     ['calculator', 'CalculatorView'],
-    ['financial-calculators', 'FinancialCalculatorsView'],
     ['gst-calculator', 'GstCalculatorView'],
     ['hsn-sac-lookup', 'HsnSacLookupView'],
     ['unit-converter', 'UnitConverterView'],

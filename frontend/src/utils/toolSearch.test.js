@@ -22,7 +22,9 @@ describe('tool search', () => {
     ['pin code', 'pin-code-search'],
     ['bmi', 'bmi-calculator'],
     ['tdee', 'tdee-calculator'],
-    ['compound interest', 'financial-calculators'],
+    ['compound interest', 'compound-interest-calculator'],
+    ['emi', 'emi-calculator'],
+    ['sip', 'sip-calculator'],
   ])('ranks %s with %s first', (query, expectedToolId) => {
     expect(resultIds(query)[0]).toBe(expectedToolId)
   })

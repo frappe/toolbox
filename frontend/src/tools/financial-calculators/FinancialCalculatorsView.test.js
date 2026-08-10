@@ -1,6 +1,9 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { h, nextTick } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useRoute } from 'vue-router'
 
+import { tools } from '@/data/toolRegistry'
 import FinancialCalculatorsView from '@/views/tools/FinancialCalculatorsView.vue'
 
 const preferences = vi.hoisted(() => ({
@@ -18,33 +21,49 @@ vi.mock('@/composables/useToolboxPreferences', () => ({
   useToolboxPreferences: () => preferences,
 }))
 
-function mountView() {
-  return mount(FinancialCalculatorsView, { attachTo: document.body })
+vi.mock('vue-router', async (importOriginal) => {
+  const { reactive } = await import('vue')
+  const route = reactive({ meta: {}, path: '/emi-calculator' })
+  return { ...(await importOriginal()), useRoute: () => route }
+})
+
+// Each calculator is its own tool at its own URL, so which one is showing comes from the route.
+// The route object is reactive, so assigning `meta` moves the view the way a navigation does.
+const route = useRoute()
+
+function toolFor(variant) {
+  return tools.find((tool) => tool.family === 'financial-calculators' && tool.variant === variant)
 }
 
-// TabButtons renders each tab as a `[data-slot="tab-button"]` pill labelled by
-// the calculator short name, so pick the tab by its visible label.
-const tabLabels = {
-  emi: 'EMI',
-  'compound-interest': 'Compound',
-  sip: 'SIP',
-  cagr: 'CAGR',
-  'projected-value': 'Projected',
-  'break-even': 'Break-even',
+// The real RouterLink needs an injected router. This renders what it renders: an anchor whose
+// href is `to`, with every other attribute passed through.
+const RouterLink = {
+  props: { to: { type: String, required: true } },
+  setup(props, { attrs, slots }) {
+    return () => h('a', { ...attrs, href: props.to }, slots.default?.())
+  },
 }
 
-async function selectCalculator(wrapper, id) {
-  const tab = wrapper
-    .findAll('[data-slot="tab-button"]')
-    .find((button) => button.text() === tabLabels[id])
-  await tab.trigger('click')
+function mountView(variant = 'emi') {
+  const tool = toolFor(variant)
+  route.meta = { toolId: tool.id }
+  route.path = tool.route
+  return mount(FinancialCalculatorsView, {
+    attachTo: document.body,
+    global: { stubs: { RouterLink } },
+  })
+}
+
+async function selectCalculator(wrapper, variant) {
+  const tool = toolFor(variant)
+  route.meta = { toolId: tool.id }
+  route.path = tool.route
+  await nextTick()
+  await flushPromises()
 }
 
 function activeTabLabel(wrapper) {
-  return wrapper
-    .findAll('[data-slot="tab-button"]')
-    .find((button) => button.attributes('data-state') === 'checked')
-    ?.text()
+  return wrapper.find('nav a[aria-current="page"]').text()
 }
 
 describe('FinancialCalculatorsView', () => {
@@ -52,9 +71,9 @@ describe('FinancialCalculatorsView', () => {
     vi.clearAllMocks()
   })
 
-  it('tracks recent use', () => {
-    mountView()
-    expect(preferences.recordRecent).toHaveBeenCalledWith('financial-calculators')
+  it('tracks recent use against the tool the route names', () => {
+    mountView('sip')
+    expect(preferences.recordRecent).toHaveBeenCalledWith('sip-calculator')
   })
 
   it('records a committed result and reuses its inputs from history', async () => {
@@ -67,13 +86,17 @@ describe('FinancialCalculatorsView', () => {
     const historyList = wrapper.get('[aria-label="Financial calculation history"]')
     expect(historyList.text()).toContain('EMI')
 
-    // Move to a different calculator, then reuse the EMI row.
+    // Each calculator keeps its own history now, so the SIP page does not show an EMI result.
     await selectCalculator(wrapper, 'sip')
-    expect(activeTabLabel(wrapper)).toBe('SIP')
+    expect(activeTabLabel(wrapper)).toBe('SIP Calculator')
+    expect(wrapper.find('[aria-label="Financial calculation history"]').exists()).toBe(false)
+
+    // Back on EMI, the row is still there and still reusable.
+    await selectCalculator(wrapper, 'emi')
+    expect(activeTabLabel(wrapper)).toBe('EMI Calculator')
     await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
     await flushPromises()
 
-    expect(activeTabLabel(wrapper)).toBe('EMI')
     expect(wrapper.get('#emi-principal').element.value).toBe('500000')
   })
 

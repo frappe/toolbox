@@ -11,7 +11,9 @@
         <div class="flex items-center gap-2 px-1">
           <Icon :name="group.category.icon" class="size-4 text-ink-gray-5" />
           <h2 class="text-sm font-semibold text-ink-gray-8">{{ group.category.name }}</h2>
-          <span class="text-sm text-ink-gray-4">{{ group.tools.length }}</span>
+          <!-- ink-gray-4 is #999999, which is 2.84:1 on the page background and fails WCAG AA.
+               The count says how many tools a category holds, so it has to be readable. -->
+          <span class="text-sm text-ink-gray-6">{{ group.tools.length }}</span>
         </div>
         <div class="grid gap-4 pt-4 sm:grid-cols-2 lg:grid-cols-3">
           <RouterLink

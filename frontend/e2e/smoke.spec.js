@@ -38,7 +38,7 @@ for (const path of [
   '/currency-converter',
   '/unit-converter',
   '/gst-calculator',
-  '/financial-calculators',
+  '/emi-calculator',
   '/bmi-calculator',
   '/hsn-sac-lookup',
   '/timer',

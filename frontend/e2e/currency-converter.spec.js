@@ -39,10 +39,13 @@ test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page
 test('labels stale server cache honestly', async ({ page }) => {
   await mockCurrencyRates(page, { cacheStatus: 'stale' })
   await page.goto('/currency-converter')
-  await expect(page.getByText('stale server cache')).toBeVisible()
-  await expect(page.getByText('Rate date')).toBeVisible()
-  await expect(page.getByText('Server checked')).toBeVisible()
-  await expect(page.getByText('Offline snapshot')).toBeVisible()
+
+  // Scoped to the line that carries the rate state. The content below the tool explains what each
+  // status means, so it holds the same words, and a page-wide lookup matches both.
+  const rateState = page.getByTestId('rate-state')
+  await expect(rateState).toContainText('stale server cache')
+  await expect(rateState).toContainText('Server checked')
+  await expect(rateState).toContainText('Offline snapshot')
 })
 
 test('never describes reference rates as live', async ({ page }) => {

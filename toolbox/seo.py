@@ -288,8 +288,8 @@ PAGES: dict[str, Page] = {
 		name="World Clock",
 		title="World Clock and Time Zone Converter",
 		description=(
-			"Compare the time in cities worldwide, convert a time between zones, and find the "
-			"working hours that two places share."
+			"Compare the time in cities worldwide, convert a time between zones, and copy the "
+			"result as a list of meeting times. Daylight saving is applied for you."
 		),
 		application_category="UtilitiesApplication",
 	),
@@ -322,9 +322,9 @@ PAGES: dict[str, Page] = {
 	),
 	"/weather": Page(
 		name="Weather",
-		title="Weather Forecast by City — Ten Day Outlook",
+		title="Weather Forecast by City — Seven Day Outlook",
 		description=(
-			"Current conditions and a ten-day forecast for any city, from MET Norway. Search "
+			"Current conditions and a seven-day forecast for any city, from MET Norway. Search "
 			"for a city by the name it is known by locally: München, Roma, Bombay."
 		),
 		application_category="UtilitiesApplication",

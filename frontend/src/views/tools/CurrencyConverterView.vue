@@ -30,7 +30,9 @@
         </section>
 
         <div v-if="converter.rateData.value" class="mt-6 space-y-2 text-sm leading-6 text-ink-gray-5">
-          <p>
+          <!-- The content below the tool explains what each rate state means, so it carries the
+               same words. A test needs this line, not any line that says them. -->
+          <p data-testid="rate-state">
             Rate date <span class="font-medium text-ink-gray-7">{{ converter.rateData.value.rateDate }}</span>
             · <span class="capitalize">{{ rateStatus }}</span>
             · Server checked {{ formatTimestamp(converter.rateData.value.providerCheckedAt) }}

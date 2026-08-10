@@ -27,6 +27,11 @@ function scoreTool(tool, query) {
   if (normalizedName === query) score += 500
   else if (normalizedName.startsWith(query)) score += 260
   else if (normalizedName.includes(query)) score += 150
+  // A near miss of the whole name, for a typo such as "calculatr". Without this, every tool
+  // whose name merely contains that word scores the same on the token pass, and the tie is
+  // broken alphabetically: "BMI Calculator" then beats "Calculator". The split multiplies names
+  // ending in Calculator and Converter, so the tie is now the common case rather than a corner.
+  else if (isCloseMatch(query, normalizedName)) score += 200
 
   let matchedTokens = 0
   for (const queryToken of queryTokens) {

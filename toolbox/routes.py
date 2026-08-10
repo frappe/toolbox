@@ -33,7 +33,10 @@ TOOL_ROUTES = (
 	"dictionary",
 	"financial-calculators",
 	"gst-calculator",
-	"health-calculators",
+	"bmi-calculator",
+	"bmr-calculator",
+	"pace-calculator",
+	"tdee-calculator",
 	"hsn-sac-lookup",
 	"ifsc-code-search",
 	"pin-code-search",
@@ -54,6 +57,7 @@ APP_ROUTES = (*APP_PAGES, *TOOL_ROUTES)
 # `/<old>` and letting that redirect again would cost every old link two round trips, and a
 # search engine discounts a chain.
 RETIRED_ROUTES = {
+	"health-calculators": "bmi-calculator",
 	"india-business-lookup": "pin-code-search",
 }
 

@@ -39,7 +39,7 @@ for (const path of [
   '/unit-converter',
   '/gst-calculator',
   '/financial-calculators',
-  '/health-calculators',
+  '/bmi-calculator',
   '/hsn-sac-lookup',
   '/timer',
 ]) {

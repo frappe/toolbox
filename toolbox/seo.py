@@ -85,12 +85,39 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="FinanceApplication",
 	),
-	"/health-calculators": Page(
-		name="Health & Fitness Calculators",
-		title="BMI, BMR and Daily Calorie Calculator",
+	"/bmi-calculator": Page(
+		name="BMI Calculator",
+		title="BMI Calculator — Work Out Your Body Mass Index",
 		description=(
-			"Calculate your BMI, BMR, daily maintenance calories and running pace. Free health "
-			"calculators that take metric or imperial units."
+			"Work out your body mass index from your height and weight, and see the category it "
+			"falls in. Free, in metric or imperial units."
+		),
+		application_category="HealthApplication",
+	),
+	"/bmr-calculator": Page(
+		name="BMR Calculator",
+		title="BMR Calculator — Basal Metabolic Rate",
+		description=(
+			"Estimate the energy your body uses at rest, using the Mifflin-St Jeor equation. "
+			"Free, in metric or imperial units."
+		),
+		application_category="HealthApplication",
+	),
+	"/tdee-calculator": Page(
+		name="TDEE Calculator",
+		title="TDEE Calculator — Daily Calories You Burn",
+		description=(
+			"Estimate the calories you burn in a day from your BMR and an activity level you "
+			"choose. Free, and the activity factor is stated rather than hidden."
+		),
+		application_category="HealthApplication",
+	),
+	"/pace-calculator": Page(
+		name="Pace Calculator",
+		title="Running Pace Calculator — Distance, Time and Pace",
+		description=(
+			"Enter any two of distance, duration and pace, and get the third. Free, in "
+			"kilometres or miles, for a 5K through to a marathon."
 		),
 		application_category="HealthApplication",
 	),

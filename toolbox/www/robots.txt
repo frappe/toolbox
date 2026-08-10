@@ -1,0 +1,18 @@
+# Toolbox is a free public website. Every tool is meant to be found.
+#
+# There is no "Allow: /" line. Anything not disallowed is already allowed, and the rule would
+# not be harmless: Google resolves a conflict by the longest matching path, but several parsers,
+# including Python's own robotparser, take the first match. Under those, a leading "Allow: /"
+# wins every comparison and the lines below stop meaning anything.
+#
+# /settings is deliberately absent. It carries a noindex robots tag instead, and it is linked
+# from the navigation. Disallowing a linked page stops a crawler fetching it, which means the
+# crawler never reads the noindex, and the URL can still surface with no description. Blocking
+# and hiding are different instructions, and only one of them belongs on a page we link to.
+
+User-agent: *
+Disallow: /api/
+Disallow: /app/
+
+Sitemap: {{ sitemap_url | e }}
+

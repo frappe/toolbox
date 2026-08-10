@@ -61,3 +61,34 @@ test('serves the social card the head points at', async ({ request }) => {
   expect(response.ok()).toBe(true)
   expect(response.headers()['content-type']).toContain('image/png')
 })
+
+// Both of these override a file Frappe already serves, and the override only holds because
+// TemplatePage searches installed apps in reverse order. If that ever changes, Frappe answers
+// again: an empty robots.txt, and a sitemap offering its own /about and /contact.
+test('@smoke offers every tool in the sitemap', async ({ request }) => {
+  const response = await request.get('/sitemap.xml')
+  expect(response.headers()['content-type']).toContain('xml')
+
+  const locations = [...(await response.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    ([, location]) => new URL(location).pathname,
+  )
+
+  expect(locations).toContain('/')
+  for (const path of ['/weather', '/calculator', '/dictionary', '/audio-editor']) {
+    expect(locations, `${path} is missing from the sitemap`).toContain(path)
+  }
+  // Advertising a page that carries noindex is a contradiction.
+  expect(locations).not.toContain('/settings')
+  expect(locations).not.toContain('/about')
+})
+
+test('@smoke serves robots.txt from the app, not from an empty site field', async ({ request }) => {
+  const response = await request.get('/robots.txt')
+  expect(response.headers()['content-type']).toContain('text/plain')
+
+  const body = await response.text()
+  expect(body).toMatch(/^Sitemap: https?:\/\/.+\/sitemap\.xml$/m)
+  expect(body).toContain('Disallow: /api/')
+  // A blanket allow would silently void every Disallow under a first-match parser.
+  expect(body).not.toMatch(/^Allow:/m)
+})

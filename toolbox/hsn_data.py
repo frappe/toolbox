@@ -19,6 +19,7 @@ from pathlib import Path
 import frappe
 from frappe.utils import now_datetime
 
+from toolbox.dataset_lock import dataset_import_lock
 from toolbox.india_business_data import RELEASE_DOCTYPE, file_sha256
 
 DATASET_TYPE = "HSN"
@@ -38,7 +39,7 @@ def import_hsn_jsonl(path: str, version: str, source_updated_at: str) -> dict[st
 	_validate_arguments(version, source_updated_at)
 	file_path = Path(path).resolve(strict=True)
 	checksum = file_sha256(file_path)
-	with frappe.db.advisory_lock("toolbox:hsn-dataset-import", timeout=30):
+	with dataset_import_lock("toolbox:hsn-dataset-import"):
 		return _import_jsonl_locked(file_path, checksum, version, source_updated_at)
 
 

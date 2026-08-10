@@ -2,7 +2,7 @@
 
 ## Project scope
 
-Toolbox is a Frappe web application that provides small, focused utilities. The application route is `/toolbox`.
+Toolbox is a Frappe web application that provides small, focused utilities. It owns the whole site, so a tool sits directly under the root: `/calculator`, not `/toolbox/calculator`. `toolbox/routes.py` holds the reasoning and the explicit route list.
 
 Prioritize useful features and correct results. Defer optional interaction polish, such as keyboard navigation, until core utility work is complete.
 
@@ -16,7 +16,7 @@ The frontend uses Vue 3 Composition API with `<script setup>`. It also uses Frap
 
 Vitest and Vue Test Utils cover frontend units and components. Playwright with Chromium covers browser workflows. Axe-core supports accessibility checks.
 
-Ruff formats and lints Python. Prettier formats frontend files. ESLint checks JavaScript and Vue files. Pre-commit runs these tools.
+Ruff formats and lints Python. ESLint checks JavaScript and Vue files. Frontend formatting is done by hand. Do not run Prettier: the installed version reformats this codebase against its own conventions.
 
 The Frappe app root is this directory. The frontend source is in `frontend/`. Vite writes production assets to `toolbox/public/frontend/`.
 
@@ -71,7 +71,7 @@ Support light and dark themes. Preserve visible focus states, labels, roles, and
 
 Respect reduced-motion settings. Do not make animation necessary to understand state changes.
 
-Use Prettier output for JavaScript and Vue indentation when `.editorconfig` differs from Prettier.
+Write JavaScript and Vue with single quotes, no semicolons, and two-space indentation. Match the file you are editing. Do not run Prettier or `eslint --fix` to get there: both rewrite files that are already correct, and the diff then buries the change under reformatting.
 
 Ruff uses Python 3.14, a 110-character line length, double quotes, and tab indentation.
 
@@ -90,15 +90,15 @@ yarn --cwd frontend preview
 
 ### Lint and format
 
-The project has no separate npm lint command. Pre-commit is the canonical lint and format entry point.
+The project has no separate npm lint command. Pre-commit is the canonical entry point for Python.
 
 ```bash
-pre-commit run --all-files
 pre-commit run ruff --all-files
 pre-commit run ruff-format --all-files
-pre-commit run prettier --all-files
 pre-commit run eslint --all-files
 ```
+
+Do not run `pre-commit run --all-files`. It includes the Prettier hook, which reformats the whole frontend.
 
 The project has no separate TypeScript typecheck command.
 
@@ -185,7 +185,7 @@ Store SHA-256 source identities and release metadata. Record imported, duplicate
 
 Add tests with each behavior change. Test the success path, invalid input, boundary values, and failure recovery.
 
-Update the central registry, route, search metadata, tests, and tracker when you add a tool.
+Update the central registry, `toolbox/routes.py`, the page metadata in `toolbox/seo.py`, search metadata, tests, and tracker when you add a tool. Tests fail when the first three disagree, which is deliberate: a tool missing from one of them 404s on a hard refresh, or inherits another page's title in a search result.
 
 Do not add a new state library without a clear application-wide need.
 
@@ -217,9 +217,11 @@ Follow this path in order.
 
 ## Current application state
 
-The application shell, desktop and mobile navigation, Home, All Tools, deterministic search, favorites, recent tools, and settings work.
+The application shell, desktop and mobile navigation, All Tools at the root, deterministic search, recent tools, and settings work. There is no Home page and no favorites; both went with the pivot.
 
-Guest and authenticated preferences work. Saved currency pairs and World Clock locations work. PWA installation, offline behavior, and update prompts work.
+Preferences work, for the length of the browser session. Saved currency pairs and World Clock locations work the same way. PWA installation, offline behavior, and update prompts work.
+
+Each route sends its own `<title>`, description, canonical URL, social tags, and JSON-LD, built by `toolbox/seo.py` and rendered into the server response. The application serves its own `robots.txt` and `sitemap.xml`, which override Frappe's. Add a tool, and its metadata entry is required: a test fails when `seo.py` and `routes.py` disagree.
 
 These 15 utilities are operational:
 
@@ -253,13 +255,15 @@ Weather and Dictionary are complete tools, not placeholders. Weather forecasts c
 
 Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work the pivot in this order.
 
-1. Rebase routes to the site root, and render per-route meta on the server for search engines.
+1. Split the tabbed tools into separate tools. Two levels only: category, then tool. Each new route needs an entry in the registry, in `toolbox/routes.py`, and in `toolbox/seo.py`.
 
-2. Split the tabbed tools into separate tools. Two levels only: category, then tool.
+2. Write the per-tool content that makes a page rank: FAQs, how the calculation is done, background, and worked examples. This waits for the split, so the text is written once against the final set of pages.
 
 3. Reorganize the navigation and make All Tools compact.
 
 4. Add the data-sources page and the Frappe entry points.
+
+Routes moved to the site root, and each one renders its own metadata for search engines. Both are done.
 
 `~/Toolbox/NEXT_STEPS.md` holds the detail and the reasoning.
 
@@ -269,17 +273,15 @@ Toolbox is becoming a free public site on `frappe.tools`, with no accounts. Work
 
 2. Add administrator import and release-status controls for the datasets.
 
-3. Replace deprecated `limit_page_length` use in `toolbox/hsn_catalog.py` with the Frappe 17 `limit` argument.
-
-4. Run `yarn verify` and the full browser matrix before a release.
+3. Run `yarn verify` and the full browser matrix before a release.
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 135 tests.
+The isolated Frappe test site passed 169 tests.
 
-The frontend passed 596 tests across 79 files. The production Vite build passed.
+The frontend passed 610 tests across 81 files. The production Vite build passed.
 
-The full Playwright matrix passed 177 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
+The full Playwright matrix passed 195 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
 
 Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
 

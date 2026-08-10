@@ -31,15 +31,21 @@ class TestStorage {
   }
 }
 
-Object.defineProperty(globalThis, 'localStorage', {
-  configurable: true,
-  value: new TestStorage(),
-})
+// Both, because Toolbox keeps almost everything for the browser session and the theme alone in
+// localStorage. A suite that only defined one silently tested the other against jsdom's own copy,
+// which nothing cleared between tests.
+for (const kind of ['localStorage', 'sessionStorage']) {
+  Object.defineProperty(globalThis, kind, {
+    configurable: true,
+    value: new TestStorage(),
+  })
+}
 
 enableAutoUnmount(afterEach)
 
 afterEach(() => {
   globalThis.localStorage.clear()
+  globalThis.sessionStorage.clear()
   vi.clearAllMocks()
 })
 

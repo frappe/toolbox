@@ -3,6 +3,8 @@ export const MAX_RECENT_WORDS = 10
 const MAX_WORD_LENGTH = 80
 
 export function loadRecentSearches(storage = safeStorage()) {
+  // The list lived in localStorage until it moved to the session.
+  forgetStoredSearches()
   try {
     const parsed = JSON.parse(storage?.getItem(DICTIONARY_RECENT_STORAGE_KEY))
     return validRecentPayload(parsed) ? normalizeWords(parsed.words) : []
@@ -56,9 +58,28 @@ function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+// `sessionStorage`: a list of words somebody looked up is a record of what they did not know, and
+// Toolbox keeps nothing about a visitor past the browser session.
 function safeStorage() {
   try {
-    return globalThis.localStorage
+    return globalThis.sessionStorage ?? null
+  } catch {
+    return null
+  }
+}
+
+export function forgetStoredSearches(storage = safeLocalStorage()) {
+  try {
+    storage?.removeItem(DICTIONARY_RECENT_STORAGE_KEY)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function safeLocalStorage() {
+  try {
+    return globalThis.localStorage ?? null
   } catch {
     return null
   }

@@ -34,9 +34,13 @@ The application does not use Pinia or Vuex. Shared preferences use the singleton
 
 Preferences use `sessionStorage` under `toolbox:preferences:v1`, so they last as long as the tab. The one exception is `theme`, which uses `localStorage` under `toolbox:theme:v1` so a returning visitor is not flashed a white page. The store falls back to memory when a browser blocks storage.
 
-Tool history uses `sessionStorage` too, and keeps the last 10 entries for each tool.
+Tool history uses `sessionStorage` too, and keeps the last 10 entries for each tool. So do the calculator's own history, the dictionary's recent searches, and the timer workspace, which holds the timer, the stopwatch and the countdown. Each of the three used `localStorage` until it was moved, so each clears the key that left behind when it loads.
 
 Nothing a visitor does is sent to the server. Do not add a preference, history, or draft that outlives the browser session.
+
+Three keys live in `localStorage` today, and only three. `toolbox:theme:v1`, for the reason above. The Currency Converter rate snapshot and the Weather forecast snapshot, which are what let those two tools work with no connection. The forecast snapshot is keyed by place, so it does record where a visitor looked, and whether it belongs there is the open question in issue #206.
+
+`frontend/src/test/setup.js` replaces both storages with one test double and clears both after each test. A suite that defines only one tests the other against jsdom's own copy, which nothing clears between tests.
 
 Use bounded whitelisted APIs for lookup data. Validate input on the server. Keep database queries indexed and limit all result sets.
 

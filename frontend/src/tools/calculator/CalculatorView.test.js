@@ -156,7 +156,7 @@ describe('CalculatorView history', () => {
 
     await wrapper.get('[aria-label="Clear calculator history"]').trigger('click')
     expect(wrapper.text()).toContain('No calculations yet')
-    expect(globalThis.localStorage.getItem('toolbox:calculator-history:v1')).toBe('[]')
+    expect(globalThis.sessionStorage.getItem('toolbox:calculator-history:v1')).toBe('[]')
   })
 
   it('copies the current result only after an explicit action', async () => {

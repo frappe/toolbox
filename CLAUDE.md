@@ -223,13 +223,17 @@ Preferences work, for the length of the browser session. Saved currency pairs an
 
 Each route sends its own `<title>`, description, canonical URL, social tags, and JSON-LD, built by `toolbox/seo.py` and rendered into the server response. The application serves its own `robots.txt` and `sitemap.xml`, which override Frappe's. Add a tool, and its metadata entry is required: a test fails when `seo.py` and `routes.py` disagree.
 
-These 15 utilities are operational:
+Some tools share one view because they share the state behind it: the timer, the stopwatch and the countdown keep one workspace, so a timer runs while you use the stopwatch. Each still has its own route, heading and metadata. The registry marks them with `family`, naming the view, and `variant`, naming which of its tools to render. `useToolFamily` reads the pair from the route, and the strip between them is real links rather than tabs.
+
+These 17 utilities are operational:
 
 - Calculator
 - Unit Converter
 - GST Calculator
 - Financial Calculators
-- Timer, Stopwatch, and Countdown
+- Timer
+- Stopwatch
+- Countdown Timer
 - Health and Fitness Calculators
 - World Clock
 - Currency Converter

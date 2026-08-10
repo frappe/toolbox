@@ -1,16 +1,23 @@
 import { expect, test } from './fixtures'
 import { currencyApiPattern, mockCurrencyRates } from './currency-fixture'
+import { headingFor } from './toolPages'
 
 test.use({ allowOfflineNetworkErrors: true })
 
-for (const [path, heading] of [
-  ['/calculator', 'Calculator'],
-  ['/unit-converter', 'Unit Converter'],
-  ['/gst-calculator', 'GST Calculator'],
-  ['/financial-calculators', 'Financial Calculators'],
-  ['/health-calculators', 'Health & Fitness Calculators'],
-  ['/timer', 'Timer, Stopwatch & Countdown'],
+for (const path of [
+  '/calculator',
+  '/unit-converter',
+  '/gst-calculator',
+  '/financial-calculators',
+  '/health-calculators',
+  '/timer',
+  // A newly minted route reaches the service worker's claim list through the registry. This is
+  // the check that it actually did: the route set is injected at build time, and a route the
+  // worker does not claim serves nothing at all on an offline reload.
+  '/stopwatch',
 ]) {
+  const heading = headingFor(path)
+
   test(`launches ${heading} offline after installation`, async ({ context, page }) => {
     await page.goto(path)
     await page.evaluate(() => navigator.serviceWorker.ready)

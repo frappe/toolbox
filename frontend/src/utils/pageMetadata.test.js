@@ -38,12 +38,12 @@ describe('resolveCanonical', () => {
 
 describe('applyPageMetadata', () => {
   it('sets the title and moves the canonical link to the new route', () => {
-    globalThis.toolbox_page_titles = { '/timer': 'Online Timer, Stopwatch and Countdown' }
+    globalThis.toolbox_page_titles = { '/timer': 'Online Timer — Count Down From Any Number of Minutes' }
     document.head.innerHTML = '<link rel="canonical" href="https://frappe.tools/" />'
 
     applyPageMetadata('/timer')
 
-    expect(document.title).toBe('Online Timer, Stopwatch and Countdown')
+    expect(document.title).toBe('Online Timer — Count Down From Any Number of Minutes')
     // A canonical still naming the entry route tells a crawler every page is really that one.
     expect(document.querySelector('link[rel="canonical"]').getAttribute('href')).toBe(
       `${globalThis.location.origin}/timer`,
@@ -54,7 +54,7 @@ describe('applyPageMetadata', () => {
     document.head.innerHTML = ''
 
     expect(() => applyPageMetadata('/timer')).not.toThrow()
-    expect(document.title).toBe('Timer, Stopwatch & Countdown | Toolbox')
+    expect(document.title).toBe('Timer | Toolbox')
   })
 })
 

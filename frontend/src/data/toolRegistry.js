@@ -101,15 +101,44 @@ export const tools = [
     offlineCapability: 'full',
     searchKeywords: ['timezone', 'meeting', 'city', 'iana', 'planner'],
   }),
+  // Three tools, one view. `family` names the view that renders them and `variant` names which
+  // of its sub-tools to show. They share `useTimerWorkspace`, so a running timer survives a move
+  // to the stopwatch, which is the behaviour the tab strip had before each gained a URL.
   defineTool({
     id: 'timer',
-    name: 'Timer, Stopwatch & Countdown',
-    description: 'Keep time accurately across pauses, refreshes, and date changes.',
+    name: 'Timer',
+    description: 'Count down from a set number of minutes, with an optional label.',
     icon: 'lucide-timer',
     category: 'time',
     route: '/timer',
+    family: 'timer',
+    variant: 'timer',
     offlineCapability: 'full',
-    searchKeywords: ['alarm', 'lap', 'duration', 'date countdown'],
+    searchKeywords: ['alarm', 'minutes', 'duration', 'kitchen timer', 'egg timer'],
+  }),
+  defineTool({
+    id: 'stopwatch',
+    name: 'Stopwatch',
+    description: 'Time something as it happens, and record a lap without stopping.',
+    icon: 'lucide-timer-reset',
+    category: 'time',
+    route: '/stopwatch',
+    family: 'timer',
+    variant: 'stopwatch',
+    offlineCapability: 'full',
+    searchKeywords: ['lap', 'split', 'elapsed', 'online stopwatch'],
+  }),
+  defineTool({
+    id: 'countdown-timer',
+    name: 'Countdown Timer',
+    description: 'Count down to a future date and time, or for a duration you set.',
+    icon: 'lucide-calendar-clock',
+    category: 'time',
+    route: '/countdown-timer',
+    family: 'timer',
+    variant: 'countdown',
+    offlineCapability: 'full',
+    searchKeywords: ['days until', 'date countdown', 'new year', 'exam', 'deadline'],
   }),
   defineTool({
     id: 'weather',
@@ -181,11 +210,18 @@ export function isToolAvailable(tool) {
   return tool.releaseStatus === 'available'
 }
 
+export function getFamily(familyId) {
+  return tools.filter((tool) => tool.family === familyId)
+}
+
 function defineTool(tool) {
   return Object.freeze({
     featureFlag: null,
     releaseStatus: 'available',
     externalDependencyStatus: 'none',
+    // A tool that is not part of a family renders its own view and has no siblings.
+    family: null,
+    variant: null,
     ...tool,
   })
 }

@@ -140,11 +140,29 @@ PAGES: dict[str, Page] = {
 		application_category="UtilitiesApplication",
 	),
 	"/timer": Page(
-		name="Timer, Stopwatch & Countdown",
-		title="Online Timer, Stopwatch and Countdown",
+		name="Timer",
+		title="Online Timer — Count Down From Any Number of Minutes",
 		description=(
-			"A free online timer, a stopwatch with laps, and a countdown to any date. Keeps "
-			"accurate time across a pause, a refresh and a change of date."
+			"A free online timer that counts down from the minutes you set, with an optional "
+			"label. It keeps accurate time across a pause and a refresh."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/stopwatch": Page(
+		name="Stopwatch",
+		title="Online Stopwatch With Laps",
+		description=(
+			"A free online stopwatch. Start it, record a lap without stopping the clock, and "
+			"read each split beside the total elapsed time."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/countdown-timer": Page(
+		name="Countdown Timer",
+		title="Countdown Timer — Count Down to Any Date",
+		description=(
+			"Count down to a date and time, or for a duration you set. Free, and it keeps the "
+			"right time across a refresh or a change of date."
 		),
 		application_category="UtilitiesApplication",
 	),

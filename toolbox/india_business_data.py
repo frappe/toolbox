@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Literal
 
 import frappe
+
+from toolbox.dataset_lock import dataset_import_lock
 from frappe.utils import now_datetime
 
 DatasetType = Literal["PIN", "IFSC"]
@@ -64,7 +66,7 @@ def import_csv(path: str, metadata: ImportMetadata) -> dict[str, object]:
 	_validate_metadata(metadata)
 	file_path = Path(path).resolve(strict=True)
 	checksum = file_sha256(file_path)
-	with frappe.db.advisory_lock(f"toolbox:{metadata.dataset_type.lower()}-dataset-import", timeout=30):
+	with dataset_import_lock(f"toolbox:{metadata.dataset_type.lower()}-dataset-import"):
 		return _import_csv_locked(file_path, checksum, metadata)
 
 

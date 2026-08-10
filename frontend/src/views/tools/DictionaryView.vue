@@ -54,14 +54,43 @@
                 <ul v-if="sense.examples?.length" class="mt-2 space-y-1 border-l-2 border-outline-gray-2 pl-3">
                   <li v-for="(example, exampleIndex) in sense.examples" :key="exampleIndex" class="text-sm italic leading-6 text-ink-gray-6">&ldquo;{{ example }}&rdquo;</li>
                 </ul>
+                <!-- Scoped to this meaning. The section below gathers every sense into one list,
+                     and two headings reading "Synonyms" beside each other say nothing about the
+                     difference between them. -->
                 <div v-if="sense.synonyms?.length" class="flex flex-wrap items-center gap-2 pt-3">
-                  <span class="text-xs font-medium text-ink-gray-5">Synonyms</span>
+                  <span class="text-xs font-medium text-ink-gray-5">In this sense</span>
                   <Button v-for="synonym in sense.synonyms" :key="synonym" variant="subtle" size="sm" :label="synonym" @click="dict.selectWord(synonym)" />
                 </div>
               </div>
             </li>
           </ol>
         </div>
+
+        <!-- One word input answers two questions. The meaning comes first, because this is a
+             dictionary, and the synonyms of every sense are gathered into one list under it. -->
+        <section class="pt-8" aria-labelledby="dictionary-synonyms-heading">
+          <h3 id="dictionary-synonyms-heading" class="text-sm font-semibold uppercase tracking-wide text-ink-gray-5">
+            Synonyms
+          </h3>
+          <div v-if="synonymGroups.length" class="space-y-3 pt-3">
+            <div v-for="group in synonymGroups" :key="group.pos">
+              <p v-if="synonymGroups.length > 1" class="text-xs text-ink-gray-5">{{ group.label }}</p>
+              <div class="flex flex-wrap gap-2 pt-1.5">
+                <Button
+                  v-for="synonym in group.words"
+                  :key="synonym"
+                  variant="subtle"
+                  size="sm"
+                  :label="synonym"
+                  @click="dict.selectWord(synonym)"
+                />
+              </div>
+            </div>
+          </div>
+          <p v-else class="pt-2 text-sm leading-6 text-ink-gray-6">
+            WordNet records no synonyms for this word.
+          </p>
+        </section>
 
         <div v-if="activeSource" class="mt-8 border-t border-outline-gray-2 pt-5 text-xs leading-5 text-ink-gray-5">
           <a class="font-medium underline underline-offset-2" :href="activeSource.url" target="_blank" rel="noreferrer">{{ activeSource.attribution }}</a>
@@ -100,7 +129,7 @@
       <section v-else class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-8 text-center">
         <Icon name="lucide-book-open" class="mx-auto size-7 text-ink-gray-5" />
         <h2 class="pt-3 text-base font-semibold text-ink-gray-8">Search for a word</h2>
-        <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Type a word and look it up to see its definitions, grouped by part of speech.</p>
+        <p class="mx-auto max-w-md pt-2 text-sm leading-6 text-ink-gray-6">Type a word and look it up to see what it means and what else means the same.</p>
       </section>
     </div>
 
@@ -114,6 +143,7 @@ import { Button, Icon, LoadingIndicator } from 'frappe-ui'
 
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { countSynonyms, groupSynonyms } from '@/tools/dictionary/synonyms'
 import { useDictionary } from '@/tools/dictionary/useDictionary'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
@@ -138,13 +168,24 @@ const groupedSenses = computed(() => {
     .sort((a, b) => posRank(a.pos) - posRank(b.pos))
 })
 
+// A synonym is recorded against one sense, so a word with thirteen senses answers the question
+// thirteen times over with repeats. This is the one list a visitor asked for.
+const synonymGroups = computed(() =>
+  groupSynonyms(dict.senses.value, dict.word.value)
+    .map((group) => ({ ...group, label: POS_LABELS[group.pos] ?? capitalize(group.pos) }))
+    .sort((a, b) => posRank(a.pos) - posRank(b.pos)),
+)
+
 const activeSource = computed(() => dict.source.value ?? dict.datasetStatus.value?.source ?? null)
 const activeSourceUpdatedAt = computed(() => dict.sourceUpdatedAt.value || dict.datasetStatus.value?.sourceUpdatedAt || '')
 
 const announcement = computed(() => {
   const state = dict.state.value
   if (state === 'loading') return `Looking up ${dict.query.value}.`
-  if (state === 'ready') return `${dict.word.value}: ${dict.senses.value.length} definitions.`
+  if (state === 'ready') {
+    const synonyms = countSynonyms(synonymGroups.value)
+    return `${dict.word.value}: ${dict.senses.value.length} definitions, ${synonyms} synonyms.`
+  }
   if (state === 'missing') return `No exact match for ${dict.word.value}.`
   if (state === 'unavailable') return 'The dictionary dataset is not active.'
   if (state === 'error') return dict.errorMessage.value

@@ -98,9 +98,9 @@ Dictionary stays and grows. Synonyms and antonyms become **sections inside Dicti
 separate tools. One word input answers all three questions. The placeholder text tells the visitor
 so: type the word you want the meaning, synonyms, or antonyms of.
 
-1. **Synonyms.** The data is already loaded. 110,635 of 147,982 dictionary entries carry a populated
-   `synonyms` array, because WordNet is built on synsets. This needs a new section, not a new
-   dataset.
+1. **Synonyms.** Done. The data was already loaded, because WordNet is built on synsets, so this
+   needed a new section rather than a new dataset. The synonyms of every sense are gathered into
+   one list for each part of speech, under the definitions.
 2. **Antonyms.** WordNet records antonyms as an explicit relation. The current importer skips it.
    This needs an extended extractor and one re-import.
 

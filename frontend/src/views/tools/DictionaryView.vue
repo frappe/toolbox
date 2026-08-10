@@ -3,7 +3,7 @@
     <header class="flex items-start gap-4">
       <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon name="lucide-book-open" class="size-6 text-ink-gray-7" /></span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Information</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Dictionary</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Look up English definitions from the openly licensed WordNet dataset.</p>
       </div>
@@ -115,7 +115,9 @@ import { Button, Icon, LoadingIndicator } from 'frappe-ui'
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useDictionary } from '@/tools/dictionary/useDictionary'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('dictionary')
 const TOOL_ID = 'dictionary'
 const POS_LABELS = { noun: 'Noun', verb: 'Verb', adjective: 'Adjective', adverb: 'Adverb' }
 const POS_ORDER = ['noun', 'verb', 'adjective', 'adverb']

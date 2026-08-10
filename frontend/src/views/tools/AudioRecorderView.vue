@@ -5,7 +5,7 @@
         <Icon name="lucide-mic" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Media</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Recorder</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Record a voice note in your browser and save it to your device. Nothing is uploaded.</p>
       </div>
@@ -136,6 +136,7 @@ import { formatDuration, formatSize } from '@/tools/audio-recorder/audioFormat'
 import { chooseFileSink, isFileSinkSupported, suggestedFileName } from '@/tools/audio-recorder/fileSink'
 import { offerRecording } from '@/tools/audio-recorder/recordingHandoff'
 import { RECORDER_PRESETS, DEFAULT_PRESET_ID, resolvePreset } from '@/tools/audio-recorder/recorderPresets'
+import { getToolCategoryName } from '@/data/toolRegistry'
 import {
   MAX_BYTES,
   MAX_DURATION_SECONDS,
@@ -146,6 +147,7 @@ import {
 
 const TOOL_ID = 'audio-recorder'
 
+const categoryName = getToolCategoryName(TOOL_ID)
 const preferences = useToolboxPreferences()
 const recorder = useAudioRecorder()
 const router = useRouter()

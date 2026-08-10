@@ -5,7 +5,7 @@
         <Icon :name="tool.icon" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">India</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ tool.name }}</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }}</p>
       </div>
@@ -30,6 +30,7 @@ import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import BusinessDatasetPanel from '@/tools/india-business-lookup/BusinessDatasetPanel.vue'
 import { fetchDatasetStatus } from '@/tools/india-business-lookup/api'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
 // The PIN and IFSC searches are two tools with two routes, rendered here together because they
 // read one dataset-status response. Fetching it once keeps a move between them instant.
@@ -37,6 +38,7 @@ const DATASET_LABELS = { pin: 'PIN code', ifsc: 'IFSC' }
 
 const preferences = useToolboxPreferences()
 const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const datasetStatus = ref(null)
 const datasetLabel = computed(() => DATASET_LABELS[variant.value])
 

@@ -5,7 +5,7 @@
         <Icon name="lucide-search" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">India</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">HSN &amp; SAC Lookup</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Search Indian HSN (goods) and SAC (services) codes and descriptions.</p>
       </div>
@@ -50,7 +50,9 @@ import { Alert, Badge, Button, FormControl, Icon } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useHsnLookup } from '@/tools/hsn-sac-lookup/useHsnLookup'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('hsn-sac-lookup')
 const TOOL_ID = 'hsn-sac-lookup'
 const preferences = useToolboxPreferences()
 const hsn = useHsnLookup()

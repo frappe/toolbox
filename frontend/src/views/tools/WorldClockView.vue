@@ -5,7 +5,7 @@
         <Icon name="lucide-globe-2" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Time</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">World Clock</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">See the current time across the cities you care about.</p>
       </div>
@@ -86,7 +86,9 @@ import { Badge, Button, FormControl, Icon, TabButtons } from 'frappe-ui'
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useWorldClock } from '@/tools/world-clock/useWorldClock'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('world-clock')
 const TOOL_ID = 'world-clock'
 const preferences = useToolboxPreferences()
 const clock = useWorldClock()

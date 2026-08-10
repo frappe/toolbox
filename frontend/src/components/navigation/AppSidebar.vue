@@ -38,7 +38,10 @@
         v-for="category in categoryGroups"
         :key="category.id"
         :label="category.name"
+        :count="category.tools.length"
+        :open="isOpen(category.id)"
         :collapsed="collapsed"
+        @toggle="toggleCategory(category.id)"
       >
         <NavigationItem
           v-for="tool in category.tools"
@@ -104,12 +107,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { Icon } from 'frappe-ui'
 
 import { usePwaStatus } from '@/composables/usePwaStatus'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { getToolsByCategory, toolCategories, tools } from '@/data/toolRegistry'
+import { getToolsByCategory, toolCategories, tools, toolsById } from '@/data/toolRegistry'
 import AppBrandMenu from './AppBrandMenu.vue'
 import NavigationItem from './NavigationItem.vue'
 import SidebarSection from './SidebarSection.vue'
@@ -124,6 +128,7 @@ defineEmits(['navigate', 'search', 'toggle-collapse'])
 
 const preferences = useToolboxPreferences()
 const pwa = usePwaStatus()
+const route = useRoute()
 const categoryGroups = computed(() =>
   toolCategories
     .map((category) => ({
@@ -132,4 +137,28 @@ const categoryGroups = computed(() =>
     }))
     .filter((category) => category.tools.length),
 )
+
+// Two levels, and one of them open. Thirty-four tools listed at once is a scroll rather than a
+// navigation, so a category opens when it holds the tool being used, and stays open after that.
+// A visitor who wants everything at once has All Tools, which is what the first link goes to.
+const openCategories = ref([])
+const activeCategory = computed(() => toolsById.get(route.meta.toolId)?.category)
+
+watch(
+  activeCategory,
+  (category) => {
+    if (category && !openCategories.value.includes(category)) openCategories.value.push(category)
+  },
+  { immediate: true },
+)
+
+function isOpen(category) {
+  return openCategories.value.includes(category)
+}
+
+function toggleCategory(category) {
+  openCategories.value = isOpen(category)
+    ? openCategories.value.filter((id) => id !== category)
+    : [...openCategories.value, category]
+}
 </script>

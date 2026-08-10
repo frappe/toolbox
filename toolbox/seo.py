@@ -76,12 +76,57 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="FinanceApplication",
 	),
-	"/financial-calculators": Page(
-		name="Financial Calculators",
-		title="EMI, SIP, CAGR and Compound Interest Calculators",
+	"/emi-calculator": Page(
+		name="EMI Calculator",
+		title="EMI Calculator — Loan Instalment and Schedule",
 		description=(
-			"Work out a loan EMI, compound interest, SIP returns, CAGR and a break-even point. "
-			"Free financial calculators with charts and a full repayment schedule."
+			"Work out the monthly instalment on a loan, and read the full amortisation "
+			"schedule showing how much of each payment is interest. Free."
+		),
+		application_category="FinanceApplication",
+	),
+	"/compound-interest-calculator": Page(
+		name="Compound Interest Calculator",
+		title="Compound Interest Calculator With Contributions",
+		description=(
+			"See what a sum grows to at a given rate, with or without a regular contribution, "
+			"and at the compounding frequency you choose. Free."
+		),
+		application_category="FinanceApplication",
+	),
+	"/sip-calculator": Page(
+		name="SIP Calculator",
+		title="SIP Calculator — Monthly Investment Returns",
+		description=(
+			"Project what a monthly systematic investment adds up to over time, and how much "
+			"of the total is growth rather than what you put in. Free."
+		),
+		application_category="FinanceApplication",
+	),
+	"/cagr-calculator": Page(
+		name="CAGR Calculator",
+		title="CAGR Calculator — Compound Annual Growth Rate",
+		description=(
+			"Find the compound annual growth rate between a starting value and an ending "
+			"value over any number of years. Free."
+		),
+		application_category="FinanceApplication",
+	),
+	"/future-value-calculator": Page(
+		name="Future Value Calculator",
+		title="Future Value Calculator — What an Amount Becomes",
+		description=(
+			"Project what an amount is worth after a number of years at a rate you set. Free, "
+			"and the assumptions are stated rather than hidden."
+		),
+		application_category="FinanceApplication",
+	),
+	"/break-even-calculator": Page(
+		name="Break-Even Calculator",
+		title="Break-Even Calculator — Units to Cover Costs",
+		description=(
+			"Find how many units you need to sell before revenue covers fixed and variable "
+			"costs, with the crossover shown on a chart. Free."
 		),
 		application_category="FinanceApplication",
 	),

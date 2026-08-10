@@ -166,12 +166,84 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="HealthApplication",
 	),
-	"/unit-converter": Page(
-		name="Unit Converter",
-		title="Unit Converter — Length, Weight, Temperature, Speed",
+	"/length-converter": Page(
+		name="Length Converter",
+		title="Length Converter — Metres, Feet, Miles and Inches",
 		description=(
-			"Convert length, weight, temperature, area, volume, speed and data size. Exact "
-			"conversion factors, no external service, and it works offline."
+			"Convert between metres, feet, inches, miles and more, with exact factors. Free, and it "
+			"works without an internet connection."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/area-converter": Page(
+		name="Area Converter",
+		title="Area Converter — Square Metres, Acres and Hectares",
+		description=(
+			"Convert between square metres, square feet, acres and hectares. Free, exact, and it "
+			"works without an internet connection."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/volume-converter": Page(
+		name="Volume Converter",
+		title="Volume Converter — Litres, Gallons and Cups",
+		description=(
+			"Convert between litres, millilitres, gallons, cups and cubic metres. Free, and it tells "
+			"you which gallon it means."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/weight-converter": Page(
+		name="Weight Converter",
+		title="Weight Converter — Kilograms, Pounds and Stones",
+		description=(
+			"Convert between kilograms, pounds, stones, ounces and tonnes. Free, exact, and it works "
+			"without an internet connection."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/temperature-converter": Page(
+		name="Temperature Converter",
+		title="Temperature Converter — Celsius, Fahrenheit, Kelvin",
+		description=(
+			"Convert between Celsius, Fahrenheit and Kelvin. Free, and the conversion runs on your "
+			"own device."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/speed-converter": Page(
+		name="Speed Converter",
+		title="Speed Converter — km/h, mph, Knots and m/s",
+		description=(
+			"Convert between kilometres per hour, miles per hour, knots and metres per second. Free "
+			"and exact."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/time-unit-converter": Page(
+		name="Time Unit Converter",
+		title="Time Unit Converter — Seconds, Hours and Days",
+		description=(
+			"Convert between seconds, minutes, hours, days and weeks. For converting a time between "
+			"zones, use the World Clock."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/data-storage-converter": Page(
+		name="Data Storage Converter",
+		title="Data Storage Converter — MB, GB and TB",
+		description=(
+			"Convert between bytes, kilobytes, megabytes, gigabytes and terabytes. Free, and the "
+			"units are stated unambiguously."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/fuel-consumption-converter": Page(
+		name="Fuel Consumption Converter",
+		title="Fuel Consumption Converter — MPG and L/100km",
+		description=(
+			"Convert between miles per gallon, litres per 100 kilometres and kilometres per litre. "
+			"Free and exact."
 		),
 		application_category="UtilitiesApplication",
 	),

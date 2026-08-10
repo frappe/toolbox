@@ -20,11 +20,16 @@ export const DEFAULT_UNIT_PAIRS = Object.freeze({
   }),
 })
 
+// `options.initialCategoryId` is the measurement the route asks for: each is its own tool at
+// its own URL.
 export function useUnitConverter(options = {}) {
   const history = options.history ?? useToolHistory('unit-converter')
-  const categoryId = ref(DEFAULT_CATEGORY_ID)
-  const fromUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].fromUnitId)
-  const toUnitId = ref(DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].toUnitId)
+  // The units have to start on the initial measurement's own pair, not on length's. Setting the
+  // category alone would open /temperature-converter showing metres.
+  const initialCategoryId = getCategory(options.initialCategoryId)?.id ?? DEFAULT_CATEGORY_ID
+  const categoryId = ref(initialCategoryId)
+  const fromUnitId = ref(DEFAULT_UNIT_PAIRS[initialCategoryId].fromUnitId)
+  const toUnitId = ref(DEFAULT_UNIT_PAIRS[initialCategoryId].toUnitId)
   const fromInput = ref('')
   const toInput = ref('')
   const lastEditedSide = ref('from')
@@ -90,10 +95,12 @@ export function useUnitConverter(options = {}) {
     clearFeedback()
   }
 
+  // Reset returns this converter to its own defaults. It does not move to another measurement,
+  // because that would leave the page showing one thing and the URL naming another.
   function reset() {
-    categoryId.value = DEFAULT_CATEGORY_ID
-    fromUnitId.value = DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].fromUnitId
-    toUnitId.value = DEFAULT_UNIT_PAIRS[DEFAULT_CATEGORY_ID].toUnitId
+    const defaults = DEFAULT_UNIT_PAIRS[categoryId.value]
+    fromUnitId.value = defaults.fromUnitId
+    toUnitId.value = defaults.toUnitId
     clearValues()
   }
 

@@ -7,7 +7,6 @@ const implementedToolViews = {
   'currency-converter': () => import('@/views/tools/CurrencyConverterView.vue'),
   'hsn-sac-lookup': () => import('@/views/tools/HsnSacLookupView.vue'),
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
-  'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   weather: () => import('@/views/tools/WeatherView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
@@ -23,6 +22,7 @@ const familyViews = {
   'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
   'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
   'financial-calculators': () => import('@/views/tools/FinancialCalculatorsView.vue'),
+  'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
 }
 
 // A route that used to serve several tools behind a tab strip. The server sends a 308 for these,
@@ -32,6 +32,7 @@ const retiredRoutes = {
   '/india-business-lookup': '/pin-code-search',
   '/health-calculators': '/bmi-calculator',
   '/financial-calculators': '/emi-calculator',
+  '/unit-converter': '/length-converter',
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

@@ -25,6 +25,7 @@ WEB_PAGE = "toolbox"
 APP_PAGES = ("settings",)
 
 TOOL_ROUTES = (
+	"area-converter",
 	"audio-editor",
 	"audio-recorder",
 	"bmi-calculator",
@@ -35,21 +36,28 @@ TOOL_ROUTES = (
 	"compound-interest-calculator",
 	"countdown-timer",
 	"currency-converter",
+	"data-storage-converter",
 	"dictionary",
 	"emi-calculator",
+	"fuel-consumption-converter",
 	"future-value-calculator",
 	"gst-calculator",
 	"hsn-sac-lookup",
 	"ifsc-code-search",
+	"length-converter",
 	"pace-calculator",
 	"pin-code-search",
 	"script-conversion",
 	"sip-calculator",
+	"speed-converter",
 	"stopwatch",
 	"tdee-calculator",
+	"temperature-converter",
+	"time-unit-converter",
 	"timer",
-	"unit-converter",
+	"volume-converter",
 	"weather",
+	"weight-converter",
 	"world-clock",
 )
 
@@ -63,6 +71,7 @@ APP_ROUTES = (*APP_PAGES, *TOOL_ROUTES)
 # search engine discounts a chain.
 RETIRED_ROUTES = {
 	"financial-calculators": "emi-calculator",
+	"unit-converter": "length-converter",
 	"health-calculators": "bmi-calculator",
 	"india-business-lookup": "pin-code-search",
 }

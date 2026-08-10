@@ -1,6 +1,9 @@
 <template>
-  <nav :aria-label="label" class="-mx-1 overflow-x-auto px-1">
-    <ul class="inline-flex shrink-0 items-center gap-1.5 rounded-[10px] bg-surface-gray-2 p-px">
+  <nav :aria-label="label" class="-mx-1 px-1">
+    <!-- The pills wrap rather than scroll. Nine converters named "<measurement> Converter" are
+         far wider than the column they sit in, and a strip that scrolls sideways with no
+         affordance hides the last four from anyone who does not think to drag it. -->
+    <ul class="inline-flex flex-wrap items-center gap-1.5 rounded-[10px] bg-surface-gray-2 p-px">
       <li v-for="link in links" :key="link.route">
         <RouterLink
           :to="link.route"

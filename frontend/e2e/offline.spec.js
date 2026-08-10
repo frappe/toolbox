@@ -6,7 +6,7 @@ test.use({ allowOfflineNetworkErrors: true })
 
 for (const path of [
   '/calculator',
-  '/unit-converter',
+  '/length-converter',
   '/gst-calculator',
   '/emi-calculator',
   '/bmi-calculator',

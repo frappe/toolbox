@@ -24,7 +24,7 @@ describe('tool registry', () => {
   it('defines every V1 tool with a complete and valid schema', () => {
     const categoryIds = new Set(toolCategories.map((category) => category.id))
 
-    expect(tools).toHaveLength(26)
+    expect(tools).toHaveLength(34)
     expect(new Set(tools.map((tool) => tool.id)).size).toBe(tools.length)
     expect(new Set(tools.map((tool) => tool.route)).size).toBe(tools.length)
 
@@ -55,7 +55,13 @@ describe('tool registry', () => {
       families.set(tool.family, [...(families.get(tool.family) ?? []), tool.variant])
     }
 
-    expect(new Set(families.keys())).toEqual(new Set(['timer', 'india-business-lookup', 'health-calculators', 'financial-calculators']))
+    expect(new Set(families.keys())).toEqual(new Set([
+        'timer',
+        'india-business-lookup',
+        'health-calculators',
+        'financial-calculators',
+        'unit-converter',
+      ]))
     for (const [family, variants] of families) {
       // Two tools sharing a variant would render the same page at two URLs, which is the
       // duplicate content the split exists to avoid.

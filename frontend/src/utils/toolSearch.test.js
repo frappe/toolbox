@@ -20,9 +20,21 @@ describe('tool search', () => {
     ['currency', 'currency-converter'],
     ['time zone', 'world-clock'],
     ['pin code', 'pin-code-search'],
+    ['bmi', 'bmi-calculator'],
+    ['tdee', 'tdee-calculator'],
     ['compound interest', 'financial-calculators'],
   ])('ranks %s with %s first', (query, expectedToolId) => {
     expect(resultIds(query)[0]).toBe(expectedToolId)
+  })
+
+  it('prefers a near miss of the whole name over a word inside a longer one', () => {
+    // Many tools are now named "<something> Calculator". On the token pass they all score the
+    // same for a typo of "calculator", and the tie used to be broken alphabetically, which put
+    // BMI Calculator first.
+    const ranked = resultIds('calculatr')
+
+    expect(ranked[0]).toBe('calculator')
+    expect(ranked).toContain('bmi-calculator')
   })
 
   it('requires every token in a multi-token query', () => {

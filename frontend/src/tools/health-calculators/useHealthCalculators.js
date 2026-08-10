@@ -2,8 +2,10 @@ import { computed, reactive, ref } from 'vue'
 import { healthCalculators, healthCalculatorsById } from './catalog'
 import { HealthCalculationError } from './errors'
 
-export function useHealthCalculators() {
-  const activeId = ref('bmi')
+// `initialId` is the calculator the route asks for. Each calculator is its own tool at its own
+// URL now, so which one is showing is decided before this is called rather than by a first click.
+export function useHealthCalculators(initialId = healthCalculators[0].id) {
+  const activeId = ref(healthCalculatorsById.has(initialId) ? initialId : healthCalculators[0].id)
   const valuesById = reactive(Object.fromEntries(healthCalculators.map((item) => [item.id, { ...item.defaults }])))
   const result = ref(null)
   const errorMessage = ref('')

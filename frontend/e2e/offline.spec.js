@@ -9,7 +9,7 @@ for (const path of [
   '/unit-converter',
   '/gst-calculator',
   '/financial-calculators',
-  '/health-calculators',
+  '/bmi-calculator',
   '/timer',
   // A newly minted route reaches the service worker's claim list through the registry. This is
   // the check that it actually did: the route set is injected at build time, and a route the
@@ -117,14 +117,13 @@ test('keeps Financial Calculators functional while offline', async ({ context, p
 })
 
 test('keeps Health Calculators functional while offline', async ({ context, page }) => {
-  await page.goto('/health-calculators')
+  await page.goto('/pace-calculator')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await page.getByRole('radio', { name: 'Pace' }).click()
     await page.locator('#pace-duration').fill('25:00')
     await expect(page.getByRole('status', { name: 'Primary health result' })).toHaveText('05:00 per km')
   } finally {

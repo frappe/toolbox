@@ -6,7 +6,6 @@ const implementedToolViews = {
   calculator: () => import('@/views/tools/CalculatorView.vue'),
   'currency-converter': () => import('@/views/tools/CurrencyConverterView.vue'),
   'financial-calculators': () => import('@/views/tools/FinancialCalculatorsView.vue'),
-  'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
   'hsn-sac-lookup': () => import('@/views/tools/HsnSacLookupView.vue'),
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
   'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
@@ -23,6 +22,7 @@ const implementedToolViews = {
 const familyViews = {
   timer: () => import('@/views/tools/TimerView.vue'),
   'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
+  'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
 }
 
 // A route that used to serve several tools behind a tab strip. The server sends a 308 for these,
@@ -30,6 +30,7 @@ const familyViews = {
 // RETIRED_ROUTES in toolbox/routes.py.
 const retiredRoutes = {
   '/india-business-lookup': '/pin-code-search',
+  '/health-calculators': '/bmi-calculator',
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

@@ -5,7 +5,7 @@
         <Icon name="lucide-calculator" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Calculate</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
           Calculator
         </h1>
@@ -114,7 +114,9 @@ import CalculatorKeypad from '@/tools/calculator/CalculatorKeypad.vue'
 import { ANGLE_MODES } from '@/tools/calculator'
 import { useCalculator } from '@/tools/calculator/useCalculator'
 import { useCalculatorHistory } from '@/tools/calculator/useCalculatorHistory'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('calculator')
 const angleTabs = [
   { label: 'DEG', value: ANGLE_MODES.DEGREES },
   { label: 'RAD', value: ANGLE_MODES.RADIANS },

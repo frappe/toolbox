@@ -5,7 +5,7 @@
         <Icon name="lucide-percent" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Calculate</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
           GST Calculator
         </h1>
@@ -140,7 +140,9 @@ import GstRatePicker from '@/tools/gst-calculator/GstRatePicker.vue'
 import GstResults from '@/tools/gst-calculator/GstResults.vue'
 import { GST_MODES, GST_SUPPLY_TYPES } from '@/tools/gst-calculator'
 import { useGstCalculator } from '@/tools/gst-calculator/useGstCalculator'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('gst-calculator')
 const preferences = useToolboxPreferences()
 const initialRate = new URLSearchParams(globalThis.location?.search ?? '').get('rate')
 const calculator = useGstCalculator({ initialRate })

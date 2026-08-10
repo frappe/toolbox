@@ -5,7 +5,7 @@
         <Icon :name="tool.icon" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Calculate</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
           {{ tool.name }}
         </h1>
@@ -113,11 +113,13 @@ import FinancialInput from '@/tools/financial-calculators/FinancialInput.vue'
 import FinancialResults from '@/tools/financial-calculators/FinancialResults.vue'
 import { createFinancialFormatter } from '@/tools/financial-calculators/formatFinancialValue'
 import { useFinancialCalculators } from '@/tools/financial-calculators/useFinancialCalculators'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
 const preferences = useToolboxPreferences()
 // Six calculators with six routes, rendered here together because they keep what was typed into
 // each: a visitor can compare an EMI against a SIP without entering the numbers twice.
 const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const calculator = useFinancialCalculators({ initialId: variant.value })
 const formatValue = computed(() => createFinancialFormatter(preferences.settings))
 const copiedHistoryId = ref('')

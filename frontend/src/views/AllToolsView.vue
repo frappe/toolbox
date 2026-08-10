@@ -15,23 +15,29 @@
                The count says how many tools a category holds, so it has to be readable. -->
           <span class="text-sm text-ink-gray-6">{{ group.tools.length }}</span>
         </div>
-        <div class="grid gap-4 pt-4 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- A row for each tool rather than a card. Thirty-four bordered boxes is a page a
+             visitor scrolls past, and a hover tint shows the target just as well. -->
+        <div class="grid gap-1 pt-2 sm:grid-cols-2 lg:grid-cols-3">
           <RouterLink
             v-for="tool in group.tools"
             :key="tool.id"
             :to="tool.route"
             data-tool-card
-            class="group flex flex-col gap-3 rounded-2xl border border-outline-gray-2 bg-surface-base p-5 transition hover:border-outline-gray-3 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+            class="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
           >
-            <span class="flex size-11 items-center justify-center rounded-xl bg-surface-gray-2">
-              <Icon :name="tool.icon" class="size-5 text-ink-gray-7" />
+            <!-- The tile and the row hover share a token, so the tile takes the next step up on
+                 hover. Without that it disappears into the row it sits on. -->
+            <span
+              class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2 transition-colors group-hover:bg-surface-gray-3"
+            >
+              <Icon :name="tool.icon" class="size-4 text-ink-gray-7" />
             </span>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <h3 class="font-semibold text-ink-gray-9">{{ tool.name }}</h3>
+                <h3 class="truncate text-sm font-medium text-ink-gray-9">{{ tool.name }}</h3>
                 <Badge v-if="!isToolAvailable(tool)" theme="gray" label="Validating" />
               </div>
-              <p class="pt-1 text-sm leading-6 text-ink-gray-6">{{ tool.description }}</p>
+              <p class="truncate text-xs leading-5 text-ink-gray-6">{{ tool.description }}</p>
             </div>
           </RouterLink>
         </div>

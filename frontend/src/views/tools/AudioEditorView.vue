@@ -5,7 +5,7 @@
         <Icon name="lucide-audio-lines" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Media</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Editor</h1>
         <p class="pt-2 text-base leading-7 text-ink-gray-6">Trim, fade and adjust a clip in your browser, then export a clean WAV. Nothing leaves your device until you save.</p>
       </div>
@@ -132,7 +132,9 @@ import { formatSize } from '@/tools/audio-recorder/audioFormat'
 import { takeRecording } from '@/tools/audio-recorder/recordingHandoff'
 import { useAudioEditor } from '@/tools/audio-editor/useAudioEditor'
 import { canEncodeOpus, encodeOpus, OPUS_BITS_PER_SECOND } from '@/tools/audio-editor/webmEncode'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
+const categoryName = getToolCategoryName('audio-editor')
 const TOOL_ID = 'audio-editor'
 const FORMATS = [
   { id: 'wav', label: 'WAV (lossless)' },

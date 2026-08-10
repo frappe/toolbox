@@ -1,10 +1,13 @@
+// The order a visitor meets them in the sidebar and on All Tools. Calculate held eleven of the 34
+// tools until the health calculators moved out, which put a third of the site under one heading.
 export const toolCategories = [
   { id: 'calculate', name: 'Calculate', icon: 'lucide-calculator' },
   { id: 'convert', name: 'Convert', icon: 'lucide-arrow-right-left' },
+  { id: 'health', name: 'Health', icon: 'lucide-heart-pulse' },
   { id: 'india', name: 'India', icon: 'lucide-map-pinned' },
   { id: 'time', name: 'Time', icon: 'lucide-clock-3' },
-  { id: 'media', name: 'Media', icon: 'lucide-mic' },
   { id: 'information', name: 'Information', icon: 'lucide-library' },
+  { id: 'media', name: 'Media', icon: 'lucide-mic' },
 ]
 
 export const tools = [
@@ -109,7 +112,7 @@ export const tools = [
     name: 'BMI Calculator',
     description: 'Work out your body mass index and the category it falls in.',
     icon: 'lucide-scale',
-    category: 'calculate',
+    category: 'health',
     route: '/bmi-calculator',
     family: 'health-calculators',
     variant: 'bmi',
@@ -121,7 +124,7 @@ export const tools = [
     name: 'BMR Calculator',
     description: 'Estimate the energy your body uses at rest, with Mifflin-St Jeor.',
     icon: 'lucide-heart-pulse',
-    category: 'calculate',
+    category: 'health',
     route: '/bmr-calculator',
     family: 'health-calculators',
     variant: 'bmr',
@@ -133,7 +136,7 @@ export const tools = [
     name: 'TDEE Calculator',
     description: 'Estimate the calories you burn in a day at your activity level.',
     icon: 'lucide-flame',
-    category: 'calculate',
+    category: 'health',
     route: '/tdee-calculator',
     family: 'health-calculators',
     variant: 'maintenance',
@@ -145,7 +148,7 @@ export const tools = [
     name: 'Pace Calculator',
     description: 'Enter any two of distance, duration and pace to get the third.',
     icon: 'lucide-footprints',
-    category: 'calculate',
+    category: 'health',
     route: '/pace-calculator',
     family: 'health-calculators',
     variant: 'pace',
@@ -181,7 +184,9 @@ export const tools = [
   defineTool({
     id: 'volume-converter',
     name: 'Volume Converter',
-    description: 'Convert litres, gallons, cups and cubic metres.',
+    // No cup: the converter offers litres, millilitres, both gallons, US fluid ounces and the
+    // cubic units. A description reaches a search result, so it names what is really there.
+    description: 'Convert litres, gallons, fluid ounces and cubic metres.',
     icon: 'lucide-beaker',
     category: 'convert',
     route: '/volume-converter',
@@ -421,6 +426,14 @@ export const toolsById = new Map(tools.map((tool) => [tool.id, tool]))
 
 export function getCategory(categoryId) {
   return toolCategories.find((category) => category.id === categoryId)
+}
+
+// The label a tool page shows above its heading. It comes from here so that the page and the
+// navigation cannot disagree, which they did while each view wrote its own: GST said Calculate
+// and sat under India, and Script Conversion said Language, which is not a category.
+export function getToolCategoryName(toolId) {
+  const tool = toolsById.get(toolId)
+  return tool ? (getCategory(tool.category)?.name ?? '') : ''
 }
 
 export function getToolsByCategory(categoryId) {

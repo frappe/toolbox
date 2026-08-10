@@ -5,7 +5,7 @@
         <Icon :name="tool.icon" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">Convert</p>
+        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
         <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
           {{ tool.name }}
         </h1>
@@ -137,10 +137,12 @@ import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
 import ConversionField from '@/tools/unit-converter/ConversionField.vue'
 import { useUnitConverter } from '@/tools/unit-converter/useUnitConverter'
+import { getToolCategoryName } from '@/data/toolRegistry'
 
 // Nine converters with nine routes, rendered here together because they share the conversion
 // field and the recent-pairs list: a value already typed survives a move between measurements.
 const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const converter = useUnitConverter({ initialCategoryId: variant.value })
 const preferences = useToolboxPreferences()
 const copiedHistoryId = ref('')

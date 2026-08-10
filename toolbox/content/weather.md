@@ -80,6 +80,10 @@ MET publishes no "feels like" reading, so Toolbox computes one with Steadman's a
 It raises the air temperature for humidity, which slows the loss of heat by sweating, and lowers it
 for wind, which carries heat away.
 
+Every temperature here is Celsius until you choose otherwise. Settings holds the choice, and
+Fahrenheit is applied as the page is drawn, so the forecast itself is fetched once whichever unit
+you read in.
+
 MET Norway and GeoNames both license their data CC BY 4.0. For the time in another city, use the
-[World Clock](/world-clock). For a temperature in Fahrenheit, use the
+[World Clock](/world-clock). To convert a temperature that did not come from a forecast, use the
 [Temperature Converter](/temperature-converter).

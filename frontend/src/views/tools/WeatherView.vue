@@ -60,8 +60,8 @@
         <div class="flex flex-wrap items-center gap-5 pt-5">
           <Icon :name="currentCondition.icon" class="size-12 text-ink-gray-7" />
           <div>
-            <p class="text-4xl font-semibold tracking-tight text-ink-gray-9">{{ formatValue(weather.current.value.temperature) }}{{ unit('temperature') }}</p>
-            <p class="pt-1 text-sm text-ink-gray-6">{{ currentCondition.label }} · Feels like {{ formatValue(weather.current.value.apparentTemperature) }}{{ unit('apparentTemperature') }}</p>
+            <p class="text-4xl font-semibold tracking-tight text-ink-gray-9">{{ temperature(weather.current.value.temperature) }}</p>
+            <p class="pt-1 text-sm text-ink-gray-6">{{ currentCondition.label }} · Feels like {{ temperature(weather.current.value.apparentTemperature) }}</p>
           </div>
         </div>
         <dl class="grid grid-cols-2 gap-3 pt-6 sm:grid-cols-3">
@@ -77,7 +77,7 @@
           <div v-for="hour in hourlyPreview" :key="hour.time" class="flex min-w-20 shrink-0 flex-col items-center gap-1 rounded-xl border border-outline-gray-2 bg-surface-base p-3 text-center">
             <span class="text-xs text-ink-gray-5">{{ formatHour(hour.time) }}</span>
             <Icon :name="describeWeatherCode(hour.weatherCode).icon" class="size-6 text-ink-gray-7" />
-            <span class="text-sm font-medium text-ink-gray-9">{{ formatValue(hour.temperature) }}{{ unit('temperature') }}</span>
+            <span class="text-sm font-medium text-ink-gray-9">{{ temperature(hour.temperature) }}</span>
             <span class="text-xs text-ink-gray-5">{{ formatValue(hour.precipitation, 1) }} {{ unit('precipitation') }}</span>
           </div>
         </div>
@@ -91,7 +91,7 @@
             <Icon :name="describeWeatherCode(day.weatherCode).icon" class="size-6 shrink-0 text-ink-gray-7" />
             <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-6">{{ describeWeatherCode(day.weatherCode).label }}</span>
             <span v-if="day.precipitationProbabilityMax !== null && day.precipitationProbabilityMax !== undefined" class="text-sm text-ink-gray-5">{{ formatValue(day.precipitationProbabilityMax) }}%</span>
-            <span class="text-sm font-medium text-ink-gray-9">{{ formatValue(day.temperatureMax) }}{{ unit('temperature') }} / {{ formatValue(day.temperatureMin) }}{{ unit('temperature') }}</span>
+            <span class="text-sm font-medium text-ink-gray-9">{{ temperature(day.temperatureMax) }} / {{ temperature(day.temperatureMin) }}</span>
             <!-- Above the polar circles the sun neither rises nor sets, so the line is dropped rather than left blank. -->
             <span v-if="day.sunrise && day.sunset" class="w-full text-xs text-ink-gray-5">Sunrise {{ formatHour(day.sunrise) }} · Sunset {{ formatHour(day.sunset) }}</span>
           </li>
@@ -130,6 +130,7 @@ import { Alert, Button, Icon, LoadingIndicator } from 'frappe-ui'
 
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import { formatTemperature } from '@/tools/weather/temperature'
 import { useWeather } from '@/tools/weather/useWeather'
 import { describeWeatherCode, windCompass } from '@/tools/weather/weatherCodes'
 import { getToolCategoryName } from '@/data/toolRegistry'
@@ -209,6 +210,12 @@ onMounted(async () => {
 function placeKey(place) { return place.id ?? `${place.latitude}:${place.longitude}` }
 function placeRegion(place) { return [place.admin1, place.country].filter(Boolean).join(', ') }
 function unit(key) { return weather.units.value?.[key] ?? '' }
+
+// Settings offers Celsius or Fahrenheit, and until now nothing read it. The forecast arrives in
+// Celsius whichever is chosen, so the conversion belongs here.
+function temperature(celsius) {
+  return formatTemperature(celsius, preferences.settings.temperatureUnit)
+}
 
 function formatValue(value, digits = 0) {
   if (!Number.isFinite(value)) return '—'

@@ -124,8 +124,9 @@ class TestStructuredData(UnitTestCase):
 	def test_a_tool_describes_itself_and_its_place(self):
 		documents = json.loads(seo.page_metadata("/gst-calculator", BASE_URL)["structured_data"])
 
+		# A written page adds FAQPage and HowTo after these two.
 		self.assertEqual(
-			[document["@type"] for document in documents], ["WebApplication", "BreadcrumbList"]
+			[document["@type"] for document in documents][:2], ["WebApplication", "BreadcrumbList"]
 		)
 
 		application = documents[0]
@@ -188,12 +189,19 @@ class TestContentStructuredData(UnitTestCase):
 			list(tool_content.page_content("/emi-calculator").steps),
 		)
 
-	def test_a_page_that_is_not_written_describes_no_questions(self):
-		"""Structured data has to describe what the page says, and an empty page says nothing."""
-		types = [document["@type"] for document in self.documents("/pace-calculator")]
+	def test_structured_data_follows_the_page_rather_than_the_route(self):
+		"""Structured data has to describe what the page says, and an empty page says nothing.
 
-		self.assertNotIn("FAQPage", types)
-		self.assertNotIn("HowTo", types)
+		Every tool page is written today, so this states the rule rather than naming a page that
+		happens to be empty: the schema appears when the text does, and goes when the text goes.
+		"""
+		for route in TOOL_ROUTES:
+			with self.subTest(route=route):
+				content = tool_content.page_content(f"/{route}")
+				types = [document["@type"] for document in self.documents(f"/{route}")]
+
+				self.assertEqual("FAQPage" in types, bool(content.faqs))
+				self.assertEqual("HowTo" in types, bool(content.steps))
 
 
 class TestHeadEscaping(UnitTestCase):

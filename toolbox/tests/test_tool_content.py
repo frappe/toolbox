@@ -30,6 +30,19 @@ class TestPageFiles(UnitTestCase):
 				self.assertIn("<h1", content.header)
 				self.assertIn("<noscript>", content.header)
 
+	def test_every_tool_page_is_written(self):
+		"""A tool with no text answers a search with a heading and nothing else.
+
+		This fails for a tool added without its page in `toolbox/content`, which is the point:
+		a page nobody can read from a search result is the failure this whole change removes.
+		"""
+		for route in TOOL_ROUTES:
+			with self.subTest(route=route):
+				content = tool_content.page_content(f"/{route}")
+				self.assertIn("Frequently asked questions", content.content)
+				self.assertGreaterEqual(len(content.faqs), 4)
+				self.assertTrue(content.steps)
+
 	def test_a_route_without_a_file_has_no_content(self):
 		self.assertIsNone(tool_content.page_content("/settings"))
 		self.assertIsNone(tool_content.page_content("/"))

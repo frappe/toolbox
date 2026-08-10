@@ -243,7 +243,7 @@ Fuel Consumption · Currency.
 Five of these were one tabbed tool each until the split: a tab has no URL, so one page competed
 for several searches at once and nothing could link to the stopwatch.
 
-HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
+HSN and SAC lookup reads Toolbox's own imported release, so it needs no ERPNext or India Compliance install. The India Compliance project compiles the dataset, and it is not a runtime dependency. There is no client-side snapshot, so the lookup needs a connection and says so when it has none.
 
 All five datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982, City 34,080 with 23,992 alternate names. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The city dataset is the one bundled in the repository rather than downloaded, because it is small and static.
 

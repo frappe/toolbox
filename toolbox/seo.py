@@ -357,6 +357,15 @@ def served_routes() -> set[str]:
 	return {ROOT_PATH} | {f"/{route}" for route in APP_ROUTES}
 
 
+def indexable_routes() -> list[str]:
+	"""Return the routes a sitemap should offer, in the order a reader would meet them.
+
+	This is the same `indexable` flag that decides the robots meta tag, so a page cannot be told
+	to stay out of the index and then be advertised for crawling in the same breath.
+	"""
+	return [route for route, page in PAGES.items() if page.indexable]
+
+
 def as_json_ld(documents: list[dict]) -> str:
 	"""Serialise structured data for a `<script type="application/ld+json">` block.
 

@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
 import { mockHsnAvailable } from './hsn-fixture'
+import { headingFor } from './toolPages'
 
 test('@smoke serves All Tools at the site root', async ({ page }) => {
   await page.goto('/')
@@ -32,16 +33,18 @@ test('@smoke leaves Frappe\'s own pages alone', async ({ request }) => {
   }
 })
 
-for (const [path, heading] of [
-  ['/calculator', 'Calculator'],
-  ['/currency-converter', 'Currency Converter'],
-  ['/unit-converter', 'Unit Converter'],
-  ['/gst-calculator', 'GST Calculator'],
-  ['/financial-calculators', 'Financial Calculators'],
-  ['/health-calculators', 'Health & Fitness Calculators'],
-  ['/hsn-sac-lookup', 'HSN & SAC Lookup'],
-  ['/timer', 'Timer, Stopwatch & Countdown'],
+for (const path of [
+  '/calculator',
+  '/currency-converter',
+  '/unit-converter',
+  '/gst-calculator',
+  '/financial-calculators',
+  '/health-calculators',
+  '/hsn-sac-lookup',
+  '/timer',
 ]) {
+  const heading = headingFor(path)
+
   test(`@smoke opens ${heading} directly`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)
     if (path.includes('hsn-sac-lookup')) await mockHsnAvailable(page)

@@ -1,20 +1,25 @@
 import { expect, test } from './fixtures'
 import { mockCurrencyRates } from './currency-fixture'
 import { mockHsnAvailable } from './hsn-fixture'
+import { headingFor } from './toolPages'
 
-for (const [path, heading] of [
-  ['/', 'All tools'],
-  ['/calculator', 'Calculator'],
-  ['/currency-converter', 'Currency Converter'],
-  ['/unit-converter', 'Unit Converter'],
-  ['/gst-calculator', 'GST Calculator'],
-  ['/financial-calculators', 'Financial Calculators'],
-  ['/health-calculators', 'Health & Fitness Calculators'],
-  ['/timer', 'Timer, Stopwatch & Countdown'],
-  ['/hsn-sac-lookup', 'HSN & SAC Lookup'],
-  ['/india-business-lookup', 'India Business Lookup'],
-  ['/world-clock', 'World Clock'],
+for (const path of [
+  '/',
+  '/calculator',
+  '/currency-converter',
+  '/unit-converter',
+  '/gst-calculator',
+  '/financial-calculators',
+  '/health-calculators',
+  '/timer',
+  '/stopwatch',
+  '/countdown-timer',
+  '/hsn-sac-lookup',
+  '/india-business-lookup',
+  '/world-clock',
 ]) {
+  const heading = headingFor(path)
+
   test(`${heading} fits the mobile viewport`, async ({ page }) => {
     if (path.includes('currency-converter')) await mockCurrencyRates(page)
     if (path.includes('hsn-sac-lookup')) await mockHsnAvailable(page)

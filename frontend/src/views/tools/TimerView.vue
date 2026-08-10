@@ -1,20 +1,20 @@
 <template>
   <div class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-12">
     <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon name="lucide-timer" class="size-6 text-ink-gray-7" /></span>
+      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon :name="tool.icon" class="size-6 text-ink-gray-7" /></span>
       <div class="min-w-0 flex-1">
         <p class="text-sm font-medium text-ink-gray-5">Time</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Timer, Stopwatch &amp; Countdown</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">Keep time across pauses and refreshes, with no network connection.</p>
+        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ tool.name }}</h1>
+        <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }}</p>
       </div>
     </header>
 
     <div class="mt-8 overflow-x-auto">
-      <TabButtons v-model="activeTab" :options="tabs" size="md" aria-label="Timekeeping tool" />
+      <TabButtons :model-value="variant" :options="siblingLinks" size="md" aria-label="Timekeeping tool" />
     </div>
 
     <div class="pt-5">
-      <section v-if="activeTab === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <section v-if="variant === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
           <div class="grid gap-4 pt-5 sm:grid-cols-2">
@@ -26,7 +26,7 @@
         <TimeDisplay :label="workspace.state.timer.label || 'Timer remaining'" :milliseconds="workspace.state.timer.remainingMs" :status="workspace.state.timer.status" />
       </section>
 
-      <section v-else-if="activeTab === 'stopwatch'" aria-labelledby="stopwatch-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <section v-else-if="variant === 'stopwatch'" aria-labelledby="stopwatch-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="stopwatch-heading" class="text-lg font-semibold text-ink-gray-9">Stopwatch</h2>
           <div class="flex flex-wrap gap-2 pt-6"><Button :label="stopwatchAction" :icon-left="stopwatchActionIcon" variant="solid" class="h-12" @click="workspace.toggleStopwatch" /><Button label="Lap" icon-left="lucide-flag" variant="outline" class="h-12" :disabled="workspace.state.stopwatch.status !== 'running'" @click="workspace.lap" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetStopwatch" /></div>
@@ -56,17 +56,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
+import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TimeDisplay from '@/tools/timer/TimeDisplay.vue'
 import { useTimerWorkspace } from '@/tools/timer/useTimerWorkspace'
 import { formatDuration } from '@/tools/timer/formatTime'
 
-const tabs = [{ value: 'timer', label: 'Timer' }, { value: 'stopwatch', label: 'Stopwatch' }, { value: 'countdown', label: 'Countdown' }]
 const countdownModes = [{ value: 'duration', label: 'Duration' }, { value: 'date', label: 'Date and time' }]
-const activeTab = ref('timer'), timerMinutes = ref('5'), timerLabel = ref(''), countdownMode = ref('duration'), countdownMinutes = ref('60'), countdownDate = ref(''), countdownError = ref('')
+const timerMinutes = ref('5'), timerLabel = ref(''), countdownMode = ref('duration'), countdownMinutes = ref('60'), countdownDate = ref(''), countdownError = ref('')
 const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
+// The timer, the stopwatch and the countdown are three tools with three routes, rendered here
+// together because they share one workspace: a timer keeps running while you use the stopwatch.
+const { tool, variant, siblingLinks } = useToolFamily()
 const stopwatchElapsed = workspace.stopwatchElapsed
 const timerAction = computed(() => workspace.state.timer.status === 'running' ? 'Pause' : workspace.state.timer.status === 'paused' ? 'Resume' : 'Start')
 const stopwatchAction = computed(() => workspace.state.stopwatch.status === 'running' ? 'Stop' : workspace.state.stopwatch.status === 'paused' ? 'Resume' : 'Start')
@@ -75,5 +78,7 @@ const stopwatchActionIcon = computed(() => workspace.state.stopwatch.status === 
 const targetText = computed(() => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(workspace.state.countdown.targetAt))
 function setTimer() { const minutes = Number(timerMinutes.value); if (minutes >= 1 && minutes <= 1440) workspace.configureTimer(minutes * 60000, timerLabel.value) }
 function startCountdown() { countdownError.value = ''; const target = countdownMode.value === 'duration' ? Date.now() + Number(countdownMinutes.value) * 60000 : new Date(countdownDate.value).getTime(); if (!Number.isFinite(target) || target <= Date.now()) { countdownError.value = 'Choose a future date or a duration of at least one minute.'; return } workspace.setCountdown(target) }
-onMounted(() => preferences.recordRecent('timer'))
+// A move between the three does not remount this view, because it is the same component on a
+// different route, so recording the recent tool has to follow the route rather than the mount.
+watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
 </script>

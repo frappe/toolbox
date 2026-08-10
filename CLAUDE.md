@@ -223,27 +223,23 @@ Preferences work, for the length of the browser session. Saved currency pairs an
 
 Each route sends its own `<title>`, description, canonical URL, social tags, and JSON-LD, built by `toolbox/seo.py` and rendered into the server response. The application serves its own `robots.txt` and `sitemap.xml`, which override Frappe's. Add a tool, and its metadata entry is required: a test fails when `seo.py` and `routes.py` disagree.
 
-Some tools share one view because they share the state behind it: the timer, the stopwatch and the countdown keep one workspace, so a timer runs while you use the stopwatch. Each still has its own route, heading and metadata. The registry marks them with `family`, naming the view, and `variant`, naming which of its tools to render. `useToolFamily` reads the pair from the route, and the strip between them is real links rather than tabs.
+Some tools share one view because they share the state behind it: the timer, the stopwatch and the countdown keep one workspace; the six financial calculators keep what was typed into each; the nine converters keep the value already entered. Each still has its own route, heading and metadata. The registry marks them with `family`, naming the view, and `variant`, naming which of its tools to render. `useToolFamily` reads the pair from the route, and the router throws if a family has no registered view.
 
-These 17 utilities are operational:
+The strip between tools in a family is `components/ToolFamilyNav.vue`, a nav of links. Do not use frappe-ui `TabButtons` for it. TabButtons can render an option as a RouterLink, but the option stays inside a reka radiogroup, which handles Space itself and cancels Enter, so neither key reaches the anchor and the strip becomes reachable by mouse alone.
 
-- Calculator
-- Unit Converter
-- GST Calculator
-- Financial Calculators
-- Timer
-- Stopwatch
-- Countdown Timer
-- Health and Fitness Calculators
-- World Clock
-- Currency Converter
-- India Business Lookup (PIN and IFSC search)
-- HSN and SAC Lookup
-- Weather
-- Dictionary
-- Script Conversion
-- Audio Recorder
-- Audio Editor
+These 34 utilities are operational.
+
+**Calculate:** Calculator · EMI · Compound Interest · SIP · CAGR · Future Value · Break-Even ·
+BMI · BMR · TDEE · Pace.
+**Convert:** Length · Area · Volume · Weight · Temperature · Speed · Time Unit · Data Storage ·
+Fuel Consumption · Currency.
+**India:** GST Calculator · HSN and SAC Lookup · PIN Code Search · IFSC Code Search.
+**Time:** Timer · Stopwatch · Countdown Timer · World Clock.
+**Information:** Weather · Dictionary · Script Conversion.
+**Media:** Audio Recorder · Audio Editor.
+
+Five of these were one tabbed tool each until the split: a tab has no URL, so one page competed
+for several searches at once and nothing could link to the stopwatch.
 
 HSN and SAC lookup works when India Compliance or ERPNext supplies the catalog. Its offline snapshot and dependency gate work.
 
@@ -283,9 +279,9 @@ Routes moved to the site root, and each one renders its own metadata for search 
 
 The isolated Frappe test site passed 169 tests.
 
-The frontend passed 610 tests across 81 files. The production Vite build passed.
+The frontend passed 625 tests across 82 files. The production Vite build passed.
 
-The full Playwright matrix passed 195 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
+The full Playwright matrix passed 305 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
 
 Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
 

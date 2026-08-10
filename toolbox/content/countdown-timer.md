@@ -69,9 +69,13 @@ time in the future.
 
 ### What happens if I reload the page or close the tab?
 
-The target is written to this browser, so a reload picks the countdown up where it stands. Nothing
-runs while the tab is closed, and nothing needs to: the target is a fixed moment, so when you open
-the page again the countdown subtracts the current time from it and shows the correct figure.
+A reload picks the countdown up where it stands, because the target is a fixed moment rather than a
+number counting down: the page subtracts the current time from it and shows the correct figure.
+Nothing runs while the tab is closed, and nothing needs to.
+
+Closing the tab clears the target. It is held for the browser session only, like everything else
+Toolbox keeps. Enter the date again and the countdown reads the same, because the moment did not
+move.
 
 ### Is anything I enter sent to a server?
 

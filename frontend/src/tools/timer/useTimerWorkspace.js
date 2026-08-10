@@ -1,10 +1,13 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { createAlarmController } from './alarmController'
-import { loadTimerWorkspace, saveTimerWorkspace } from './timerStorage'
+import { forgetStoredWorkspace, loadTimerWorkspace, saveTimerWorkspace } from './timerStorage'
 import { STATUS, addLap, createCountdown, createStopwatch, createTimer, pauseStopwatch, pauseTimer, readCountdown, readStopwatch, readTimer, resetTimer, startStopwatch, startTimer } from './timeEngines'
 
 export function useTimerWorkspace({ now = () => Date.now(), storage, setIntervalFn = setInterval, clearIntervalFn = clearInterval, createAlarm = createAlarmController } = {}) {
   const saved = loadTimerWorkspace(storage)
+  // The workspace lived in localStorage until it moved to the session. Drop what that left
+  // behind on a returning visitor's machine.
+  forgetStoredWorkspace()
   const state = reactive(saved ?? { timer: createTimer(300000), stopwatch: createStopwatch(), countdown: createCountdown() })
   const clock = ref(now())
   const alarm = createAlarm()

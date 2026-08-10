@@ -57,12 +57,15 @@ A browser or an operating system can suspend a background tab, and a suspended p
 anything. The page says so above the timer. The display is always right when you come back. The
 sound is not promised.
 
-### What happens if I close the tab?
+### What happens if I reload the page, or close the tab?
 
-Nothing runs while the tab is closed, so no tone can play. The timer is written to this browser as
-you use it, and what is stored is the moment it is due. Open the page again and the tool subtracts
-the current time from that moment, so you see the time that has really passed. A timer whose moment
-has already gone reads 00:00:00 and Done.
+A reload keeps the timer. What is stored is the moment it is due, so the page subtracts the current
+time from that moment and shows the time that has really passed. A timer whose moment has already
+gone reads 00:00:00 and Done.
+
+Closing the tab ends it. The timer is held for the browser session and nothing is left behind, which
+is what Toolbox does with everything except your choice of theme. Nothing runs while the tab is
+closed either, so no tone can play.
 
 ### How long can a timer be?
 

@@ -2,6 +2,12 @@ import { computed, reactive, ref } from 'vue'
 import { healthCalculators, healthCalculatorsById } from './catalog'
 import { HealthCalculationError } from './errors'
 
+// The height and weight a visitor types are the same height and weight in each of these, which is
+// the reason the four share one view. Age and sex are shared for the same reason. What stays with
+// one calculator is what belongs to it: the activity level, and everything the pace calculator
+// holds. A calculator that does not carry a shared field is simply skipped.
+const SHARED_INPUTS = ['unitSystem', 'height', 'weight', 'age', 'sex']
+
 // `initialId` is the calculator the route asks for. Each calculator is its own tool at its own
 // URL now, so which one is showing is decided before this is called rather than by a first click.
 export function useHealthCalculators(initialId = healthCalculators[0].id) {
@@ -23,9 +29,19 @@ export function useHealthCalculators(initialId = healthCalculators[0].id) {
   function updateInput(id, value) {
     if (!Object.hasOwn(activeValues.value, id)) return
     const oldSystem = id === 'unitSystem' ? activeValues.value.unitSystem : null
-    activeValues.value[id] = String(value)
+    writeInput(id, String(value))
     if (id === 'unitSystem' && oldSystem !== value) convertBodyInputs(oldSystem, value)
     calculate()
+  }
+
+  function writeInput(id, value) {
+    if (!SHARED_INPUTS.includes(id)) {
+      activeValues.value[id] = value
+      return
+    }
+    for (const values of Object.values(valuesById)) {
+      if (Object.hasOwn(values, id)) values[id] = value
+    }
   }
 
   function calculate() {
@@ -39,19 +55,25 @@ export function useHealthCalculators(initialId = healthCalculators[0].id) {
   }
 
   function reset() {
-    Object.assign(activeValues.value, activeCalculator.value.defaults)
+    // Through the same path, so a reset of a shared measurement reaches the calculators that share
+    // it. Resetting one and leaving the others holding the old height is worse than not sharing.
+    for (const [id, value] of Object.entries(activeCalculator.value.defaults)) writeInput(id, value)
     calculate()
   }
 
+  // Every calculator that holds a height holds it in the system now chosen. Converting only the
+  // one on screen would leave the others reading imperial numbers under metric labels.
   function convertBodyInputs(from, to) {
     if (!from || !to || from === to) return
-    const values = activeValues.value
-    if (to === 'imperial') {
-      values.height = formatConverted(Number(values.height) / 2.54)
-      values.weight = formatConverted(Number(values.weight) * 2.2046226218)
-    } else {
-      values.height = formatConverted(Number(values.height) * 2.54)
-      values.weight = formatConverted(Number(values.weight) / 2.2046226218)
+    for (const values of Object.values(valuesById)) {
+      if (!Object.hasOwn(values, 'height')) continue
+      if (to === 'imperial') {
+        values.height = formatConverted(Number(values.height) / 2.54)
+        values.weight = formatConverted(Number(values.weight) * 2.2046226218)
+      } else {
+        values.height = formatConverted(Number(values.height) * 2.54)
+        values.weight = formatConverted(Number(values.weight) / 2.2046226218)
+      }
     }
   }
 

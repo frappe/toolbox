@@ -19,6 +19,7 @@ test.
 import json
 from dataclasses import dataclass
 
+from toolbox import tool_content
 from toolbox.routes import APP_ROUTES, TOOL_ROUTES
 
 SITE_NAME = "Toolbox"
@@ -429,14 +430,22 @@ def structured_data(route: str, page: Page, base_url: str) -> list[dict]:
 	"""Return the JSON-LD for one route.
 
 	The root describes the site and lists the tools. A tool describes itself and its place in the
-	site. A page that is not indexed describes nothing, because structured data for a page a
-	crawler is asked to skip is only a contradiction.
+	site, and adds its questions and its steps once its page is written. A page that is not indexed
+	describes nothing, because structured data for a page a crawler is asked to skip is only a
+	contradiction.
 	"""
 	if route == ROOT_PATH:
 		return [website_schema(base_url), tool_list_schema(base_url)]
 	if not page.indexable:
 		return []
-	return [web_application_schema(route, page, base_url), breadcrumb_schema(route, page, base_url)]
+
+	documents = [web_application_schema(route, page, base_url), breadcrumb_schema(route, page, base_url)]
+	content = tool_content.page_content(route)
+	if content and content.faqs:
+		documents.append(faq_schema(content))
+	if content and content.steps:
+		documents.append(how_to_schema(page, content))
+	return documents
 
 
 def website_schema(base_url: str) -> dict:
@@ -491,6 +500,41 @@ def web_application_schema(route: str, page: Page, base_url: str) -> dict:
 			"url": absolute_url(base_url, ROOT_PATH),
 		},
 		"publisher": publisher_schema(),
+	}
+
+
+def faq_schema(content: tool_content.PageContent) -> dict:
+	"""Describe the questions the page answers.
+
+	The text comes from the page itself. Structured data that answers a question the page does not
+	answer is the one thing every search engine says not to do.
+	"""
+	return {
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		"mainEntity": [
+			{
+				"@type": "Question",
+				"name": faq.question,
+				"acceptedAnswer": {"@type": "Answer", "text": faq.answer},
+			}
+			for faq in content.faqs
+		],
+	}
+
+
+def how_to_schema(page: Page, content: tool_content.PageContent) -> dict:
+	"""Describe the steps the page lists, when it lists any.
+
+	A page states its steps as a numbered list under "How it works". A page that explains its
+	subject in prose has none, and gets no HowTo.
+	"""
+	return {
+		"@context": "https://schema.org",
+		"@type": "HowTo",
+		"name": f"How the {page.name} works",
+		"description": page.description,
+		"step": [{"@type": "HowToStep", "text": step} for step in content.steps],
 	}
 
 

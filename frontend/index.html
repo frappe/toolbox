@@ -40,7 +40,14 @@
     </script>
   </head>
   <body class="h-full bg-surface-white text-ink-gray-9">
-    <div id="app" class="h-full"></div>
+    <div id="app" class="h-full">
+      <!-- toolbox:server-content:start -->
+      <!-- The build replaces everything between these markers, in toolbox/www/toolbox.html only,
+           with the heading and the content of the route being served. It stays empty here: this
+           copy is the offline shell, where Jinja never runs, and the application fills the
+           element as soon as it mounts. -->
+      <!-- toolbox:server-content:end -->
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

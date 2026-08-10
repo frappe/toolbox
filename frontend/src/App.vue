@@ -2,6 +2,7 @@
   <FrappeUIProvider>
     <AppShell>
       <router-view />
+      <ToolContentSection />
     </AppShell>
     <DevTweakPanel v-if="isDevelopment" />
   </FrappeUIProvider>
@@ -11,6 +12,7 @@
 import { FrappeUIProvider } from 'frappe-ui'
 
 import AppShell from '@/components/layout/AppShell.vue'
+import ToolContentSection from '@/components/content/ToolContentSection.vue'
 import DevTweakPanel from '@/components/dev/DevTweakPanel.vue'
 import { useTheme } from '@/composables/useTheme'
 

@@ -1,0 +1,5 @@
+<!-- The heading and the content of one route, from toolbox/tool_content.py. Vue empties this
+         element when it mounts, so the server block is replaced rather than repeated.
+         The HTML is rendered by the build from toolbox/content, and reaches the template as a
+         value, so Jinja does not read it as markup a second time. -->
+      {%- if page_content %}{{ page_content.header }}{{ page_content.content }}{%- endif %}

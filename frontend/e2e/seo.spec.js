@@ -40,11 +40,60 @@ test('@smoke serves structured data a parser can read', async ({ request }) => {
   const block = head(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
 
   const documents = JSON.parse(block)
-  expect(documents.map((document) => document['@type'])).toEqual([
+  // A written page adds FAQPage and HowTo after these two.
+  expect(documents.map((document) => document['@type']).slice(0, 2)).toEqual([
     'WebApplication',
     'BreadcrumbList',
   ])
   expect(documents[0].name).toBe('Weather')
+})
+
+test('@smoke gives a crawler the heading and the content of the page', async ({ request }) => {
+  const html = await (await request.get('/emi-calculator')).text()
+  const body = html.slice(html.indexOf('<div id="app"'))
+
+  expect(body).toContain('<h1')
+  expect(body).toContain('EMI Calculator')
+  expect(body).toContain('Frequently asked questions')
+  expect(body).toContain('Why is an early instalment almost all interest?')
+
+  const documents = JSON.parse(head(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/))
+  const types = documents.map((document) => document['@type'])
+  expect(types).toContain('FAQPage')
+  expect(types).toContain('HowTo')
+})
+
+test('gives a crawler a heading even where the content is not written yet', async ({ request }) => {
+  const html = await (await request.get('/pace-calculator')).text()
+  const body = html.slice(html.indexOf('<div id="app"'))
+
+  expect(body).toContain('Pace Calculator')
+  expect(body).toContain('<noscript>')
+})
+
+test('@smoke shows the content once, under the tool', async ({ page }) => {
+  // The server block sits inside the element the application mounts on, so Vue replaces it. A
+  // block anywhere else would still be there after boot, and the page would say everything twice.
+  await page.goto('/emi-calculator')
+  await expect(page.getByRole('heading', { level: 1, name: 'EMI Calculator' })).toBeVisible()
+
+  await expect(page.getByRole('heading', { name: 'Frequently asked questions' })).toHaveCount(1)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+  await expect(page.getByText('Why is an early instalment almost all interest?')).toBeVisible()
+})
+
+test('replaces the content when the visitor moves to another tool', async ({ page }) => {
+  await page.goto('/emi-calculator')
+  await expect(page.getByText('equated monthly instalment')).toBeVisible()
+
+  // A tool name is a link in the sidebar and in the family strip, so the lookup is scoped.
+  await page
+    .getByRole('navigation', { name: 'Toolbox navigation' })
+    .getByRole('link', { name: 'Calculator', exact: true })
+    .click()
+
+  await expect(page.getByText('The calculator reads a whole expression')).toBeVisible()
+  await expect(page.getByText('equated monthly instalment')).toHaveCount(0)
 })
 
 test('keeps the settings page out of the index', async ({ request }) => {

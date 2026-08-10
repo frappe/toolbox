@@ -7,7 +7,7 @@ from pathlib import Path
 import frappe
 from frappe.tests import UnitTestCase
 
-from toolbox import seo
+from toolbox import seo, tool_content
 from toolbox.routes import TOOL_ROUTES
 
 BASE_URL = "https://frappe.tools"
@@ -141,10 +141,14 @@ class TestStructuredData(UnitTestCase):
 		)
 
 	def test_every_tool_produces_valid_json(self):
+		"""Every tool describes itself and its place, and adds what its written page carries."""
 		for route in TOOL_ROUTES:
 			with self.subTest(route=route):
 				documents = json.loads(seo.page_metadata(f"/{route}", BASE_URL)["structured_data"])
-				self.assertEqual(len(documents), 2)
+				types = [document["@type"] for document in documents]
+
+				self.assertEqual(types[:2], ["WebApplication", "BreadcrumbList"])
+				self.assertLessEqual(set(types[2:]), {"FAQPage", "HowTo"})
 
 	def test_a_description_cannot_end_the_script_element(self):
 		"""The copy carries no closing tag today. Escaping means a later one cannot become markup."""
@@ -155,6 +159,41 @@ class TestStructuredData(UnitTestCase):
 
 	def test_nothing_to_say_renders_nothing(self):
 		self.assertEqual(seo.as_json_ld([]), "")
+
+
+class TestContentStructuredData(UnitTestCase):
+	"""The questions and the steps a written page carries are described to a search engine."""
+
+	def documents(self, route):
+		return json.loads(seo.page_metadata(route, BASE_URL)["structured_data"])
+
+	def test_a_written_page_describes_its_questions(self):
+		faq = next(
+			document for document in self.documents("/emi-calculator") if document["@type"] == "FAQPage"
+		)
+		content = tool_content.page_content("/emi-calculator")
+
+		self.assertEqual(len(faq["mainEntity"]), len(content.faqs))
+		for question, written in zip(faq["mainEntity"], content.faqs, strict=True):
+			self.assertEqual(question["name"], written.question)
+			self.assertEqual(question["acceptedAnswer"]["text"], written.answer)
+
+	def test_a_written_page_describes_its_steps(self):
+		how_to = next(
+			document for document in self.documents("/emi-calculator") if document["@type"] == "HowTo"
+		)
+
+		self.assertEqual(
+			[step["text"] for step in how_to["step"]],
+			list(tool_content.page_content("/emi-calculator").steps),
+		)
+
+	def test_a_page_that_is_not_written_describes_no_questions(self):
+		"""Structured data has to describe what the page says, and an empty page says nothing."""
+		types = [document["@type"] for document in self.documents("/pace-calculator")]
+
+		self.assertNotIn("FAQPage", types)
+		self.assertNotIn("HowTo", types)
 
 
 class TestHeadEscaping(UnitTestCase):

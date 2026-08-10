@@ -185,7 +185,7 @@ Store SHA-256 source identities and release metadata. Record imported, duplicate
 
 Add tests with each behavior change. Test the success path, invalid input, boundary values, and failure recovery.
 
-Update the central registry, `toolbox/routes.py`, the page metadata in `toolbox/seo.py`, search metadata, tests, and tracker when you add a tool. Tests fail when the first three disagree, which is deliberate: a tool missing from one of them 404s on a hard refresh, or inherits another page's title in a search result.
+Update the central registry, `toolbox/routes.py`, the page metadata in `toolbox/seo.py`, search metadata, tests, and tracker when you add a tool. Tests fail when the first three disagree, which is deliberate: a tool missing from one of them 404s on a hard refresh, or inherits another page's title in a search result. Write its page in `toolbox/content` as well: a tool with no content file still gets a heading, and nothing else for a search engine to read.
 
 Do not add a new state library without a clear application-wide need.
 
@@ -222,6 +222,8 @@ The application shell, desktop and mobile navigation, All Tools at the root, det
 Preferences work, for the length of the browser session. Saved currency pairs and World Clock locations work the same way. PWA installation, offline behavior, and update prompts work.
 
 Each route sends its own `<title>`, description, canonical URL, social tags, and JSON-LD, built by `toolbox/seo.py` and rendered into the server response. The application serves its own `robots.txt` and `sitemap.xml`, which override Frappe's. Add a tool, and its metadata entry is required: a test fails when `seo.py` and `routes.py` disagree.
+
+Each tool page also sends its heading and its content in the HTML, inside the element the application mounts on. Vue empties that element when it mounts, so the block is replaced rather than repeated. The text of one page is one Markdown file in `toolbox/content`, and `toolbox/content/README.md` states the format. The Vite build renders those files once and writes the committed JSON under `toolbox/content/pages`, which `toolbox/tool_content.py` reads on the server and the client imports as a lazy chunk. One renderer produces both, so the words a crawler reads and the words a visitor reads cannot drift apart. `seo.py` builds `FAQPage` and `HowTo` JSON-LD from the same file. Run `yarn build` after you edit a content file: a test fails when the generated files no longer match the Markdown.
 
 Some tools share one view because they share the state behind it: the timer, the stopwatch and the countdown keep one workspace; the six financial calculators keep what was typed into each; the nine converters keep the value already entered. Each still has its own route, heading and metadata. The registry marks them with `family`, naming the view, and `variant`, naming which of its tools to render. `useToolFamily` reads the pair from the route, and the router throws if a family has no registered view.
 

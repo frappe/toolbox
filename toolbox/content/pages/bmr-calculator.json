@@ -1,0 +1,7 @@
+{
+  "route": "/bmr-calculator",
+  "header": "<div class=\"mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-8 sm:px-8 sm:py-12\"><h1 class=\"text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl\">BMR Calculator</h1><p class=\"text-base leading-7 text-ink-gray-6\">Estimate the energy your body uses at rest, with Mifflin-St Jeor.</p><noscript><p class=\"text-base leading-7 text-ink-gray-7\">This tool runs in your browser, so it needs JavaScript. The explanation below needs nothing.</p></noscript></div>",
+  "content": "",
+  "faqs": [],
+  "steps": []
+}

@@ -91,3 +91,37 @@ class TestServerRenderedMetadata(UnitTestCase):
 
 		self.assertEqual(titles, seo.route_titles())
 		self.assertEqual(titles["/weather"], seo.PAGES["/weather"].title)
+
+
+class TestServerRenderedContent(UnitTestCase):
+	"""A crawler runs no JavaScript, so the page carries its heading and its content already."""
+
+	def test_a_tool_page_carries_its_heading(self):
+		with requested("/weather"):
+			content = get_context().page_content
+
+		self.assertIn("<h1", content.header)
+		self.assertIn("Weather", content.header)
+
+	def test_a_written_page_carries_its_content(self):
+		with requested("/emi-calculator"):
+			content = get_context().page_content
+
+		self.assertIn("Frequently asked questions", content.content)
+		self.assertTrue(content.faqs)
+
+	def test_two_routes_do_not_share_content(self):
+		with requested("/calculator"):
+			calculator = get_context().page_content
+		with requested("/emi-calculator"):
+			emi = get_context().page_content
+
+		self.assertNotEqual(calculator.header, emi.header)
+		self.assertNotEqual(calculator.content, emi.content)
+
+	def test_a_page_without_content_renders_none(self):
+		"""The template asks whether there is content. An empty block is not the same as none."""
+		with requested("/settings"):
+			self.assertIsNone(get_context().page_content)
+		with requested(""):
+			self.assertIsNone(get_context().page_content)

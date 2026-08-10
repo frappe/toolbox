@@ -10,7 +10,13 @@ WordNet records for it, and the other words that mean the same thing in that sen
 1. Type a word. Suggestions appear when you stop typing.
 2. Press Look up, or select a suggestion.
 3. Read the senses, grouped by part of speech.
-4. Select a synonym to look that word up in turn.
+4. Read the synonyms of every sense, gathered into one list for each part of speech.
+5. Select a synonym to look that word up in turn.
+
+A synonym belongs to a sense rather than to the word, so a word with many senses answers the
+question many times over, with repeats. Each sense keeps its own list, and the Synonyms section
+under the definitions gathers all of them into one list for each part of speech. The word `quiet`
+has 13 senses which name 29 different words between them.
 
 When no entry matches, the page offers near matches rather than nothing. The server collects words
 that begin with what you typed, then with the same text minus its last character, and so on for up

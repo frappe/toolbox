@@ -559,11 +559,15 @@ vi.mock('frappe-ui', async () => {
           { ...attrs, role: 'radiogroup' },
           props.options.map((option) => {
             const checked = Object.is(option.value, props.modelValue)
+            // The real component renders an option carrying a `route` as a RouterLink, so it
+            // is an anchor rather than a button. A stub that draws a button either way would
+            // hide a strip that navigates nowhere.
+            const link = Boolean(option.route)
             return h(
-              'button',
+              link ? 'a' : 'button',
               {
                 key: String(option.value),
-                type: 'button',
+                ...(link ? { href: option.route } : { type: 'button' }),
                 role: 'radio',
                 'data-slot': 'tab-button',
                 'data-state': checked ? 'checked' : 'unchecked',

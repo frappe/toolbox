@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { Alert, Button, Dropdown, Slider } from 'frappe-ui'
+import { Alert, Button, Dropdown, Slider, TabButtons } from 'frappe-ui'
 import { describe, expect, it, vi } from 'vitest'
 
 // Guards the stub contract itself (#145).
@@ -112,5 +112,29 @@ describe('Alert stub declares no default slot', () => {
 
     expect(wrapper.text()).toContain('Heads up')
     expect(wrapper.text()).not.toContain('this renders nowhere')
+  })
+})
+
+describe('TabButtons stub renders a routed option as a link', () => {
+  it('draws an anchor when an option carries a route, and a button when it does not', () => {
+    const wrapper = mount(TabButtons, {
+      props: {
+        modelValue: 'timer',
+        options: [
+          { label: 'Timer', value: 'timer', route: '/timer' },
+          { label: 'Duration', value: 'duration' },
+        ],
+      },
+    })
+    const [routed, plain] = wrapper.findAll('[data-slot="tab-button"]')
+
+    // The real component renders a routed option through RouterLink. A stub that drew a
+    // button either way would hide a strip whose links go nowhere, which is the whole
+    // reason these options carry a route.
+    expect(routed.element.tagName).toBe('A')
+    expect(routed.attributes('href')).toBe('/timer')
+    expect(routed.attributes('aria-checked')).toBe('true')
+    expect(plain.element.tagName).toBe('BUTTON')
+    expect(plain.attributes('href')).toBeUndefined()
   })
 })

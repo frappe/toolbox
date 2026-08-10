@@ -66,7 +66,6 @@ describe('generated routes', () => {
     ['financial-calculators', 'FinancialCalculatorsView'],
     ['gst-calculator', 'GstCalculatorView'],
     ['hsn-sac-lookup', 'HsnSacLookupView'],
-    ['india-business-lookup', 'IndiaBusinessLookupView'],
     ['unit-converter', 'UnitConverterView'],
     ['world-clock', 'WorldClockView'],
   ])('loads the implemented %s view', async (toolId, componentName) => {

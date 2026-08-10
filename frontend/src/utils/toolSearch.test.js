@@ -19,7 +19,7 @@ describe('tool search', () => {
     ['math', 'calculator'],
     ['currency', 'currency-converter'],
     ['time zone', 'world-clock'],
-    ['pin code', 'india-business-lookup'],
+    ['pin code', 'pin-code-search'],
     ['compound interest', 'financial-calculators'],
   ])('ranks %s with %s first', (query, expectedToolId) => {
     expect(resultIds(query)[0]).toBe(expectedToolId)

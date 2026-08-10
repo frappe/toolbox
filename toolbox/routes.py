@@ -35,7 +35,8 @@ TOOL_ROUTES = (
 	"gst-calculator",
 	"health-calculators",
 	"hsn-sac-lookup",
-	"india-business-lookup",
+	"ifsc-code-search",
+	"pin-code-search",
 	"script-conversion",
 	"stopwatch",
 	"timer",
@@ -45,6 +46,16 @@ TOOL_ROUTES = (
 )
 
 APP_ROUTES = (*APP_PAGES, *TOOL_ROUTES)
+
+# A route that used to serve several tools behind a tab strip, and the tool a visitor arriving
+# there should land on now. These are published URLs, so they keep working rather than 404.
+#
+# Each retired route is redirected straight to its replacement. Sending `/toolbox/<old>` to
+# `/<old>` and letting that redirect again would cost every old link two round trips, and a
+# search engine discounts a chain.
+RETIRED_ROUTES = {
+	"india-business-lookup": "pin-code-search",
+}
 
 
 def website_route_rules() -> list[dict[str, str]]:
@@ -74,4 +85,9 @@ def website_redirects() -> list[dict[str, object]]:
 		permanent("/all-tools", "/"),
 	]
 	redirects.extend(permanent(f"/toolbox/{route}", f"/{route}") for route in APP_ROUTES)
+
+	for retired, replacement in RETIRED_ROUTES.items():
+		redirects.append(permanent(f"/{retired}", f"/{replacement}"))
+		redirects.append(permanent(f"/toolbox/{retired}", f"/{replacement}"))
+
 	return redirects

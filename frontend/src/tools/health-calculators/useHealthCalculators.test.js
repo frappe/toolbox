@@ -33,3 +33,62 @@ describe('health calculator workspace', () => {
     expect(calculator.presentation.value.assumption).toContain('WHO and CDC')
   })
 })
+
+describe('the measurements the four calculators share', () => {
+  it('carries a height and weight typed in one into the others', () => {
+    // This is the reason the four share a view, and it was the one thing they did not do.
+    const health = useHealthCalculators('bmi')
+    health.updateInput('height', '180')
+    health.updateInput('weight', '82')
+
+    health.selectCalculator('bmr')
+    expect(health.activeValues.value.height).toBe('180')
+    expect(health.activeValues.value.weight).toBe('82')
+
+    health.selectCalculator('maintenance')
+    expect(health.activeValues.value.height).toBe('180')
+  })
+
+  it('carries age and sex, which BMR and maintenance both ask for', () => {
+    const health = useHealthCalculators('bmr')
+    health.updateInput('age', '41')
+    health.updateInput('sex', 'female')
+
+    health.selectCalculator('maintenance')
+    expect(health.activeValues.value.age).toBe('41')
+    expect(health.activeValues.value.sex).toBe('female')
+  })
+
+  it('keeps what belongs to one calculator alone', () => {
+    const health = useHealthCalculators('maintenance')
+    health.updateInput('activityMultiplier', '1.9')
+
+    health.selectCalculator('pace')
+    expect(health.activeValues.value.activityMultiplier).toBeUndefined()
+    expect(health.activeValues.value.distance).toBe('5')
+
+    health.selectCalculator('maintenance')
+    expect(health.activeValues.value.activityMultiplier).toBe('1.9')
+  })
+
+  it('converts every calculator when the unit system changes', () => {
+    // Converting only the one on screen leaves the others reading imperial numbers under metric
+    // labels, which is worse than not sharing at all.
+    const health = useHealthCalculators('bmi')
+    health.updateInput('unitSystem', 'imperial')
+
+    health.selectCalculator('bmr')
+    expect(health.activeValues.value.unitSystem).toBe('imperial')
+    expect(Number(health.activeValues.value.height)).toBeCloseTo(68.9, 1)
+    expect(Number(health.activeValues.value.weight)).toBeCloseTo(154.3, 1)
+  })
+
+  it('resets a shared measurement everywhere it is shared', () => {
+    const health = useHealthCalculators('bmi')
+    health.updateInput('height', '180')
+    health.reset()
+
+    health.selectCalculator('bmr')
+    expect(health.activeValues.value.height).toBe('175')
+  })
+})

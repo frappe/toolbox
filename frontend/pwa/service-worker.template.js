@@ -207,6 +207,16 @@ async function matchAcrossShellGenerations(request) {
   for (const generation of currentFirst) {
     const response = await caches.match(request, { cacheName: generation.name })
     if (response) return response
+
+    // A built asset is cached under the path the bundle manifest gives, which carries no query.
+    // The stylesheet asks for the font with one: `Inter.var-C9xDBOS3.woff2?v=3.19`. The bytes are
+    // the same file, and the hash in the name is what makes it immutable, so the query is noise
+    // here. Without this the page loads offline with no font and the request fails.
+    const ignoringQuery = await caches.match(request, {
+      cacheName: generation.name,
+      ignoreSearch: true,
+    })
+    if (ignoringQuery) return ignoringQuery
   }
   return null
 }

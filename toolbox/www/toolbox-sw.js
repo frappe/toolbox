@@ -1,6 +1,6 @@
 {% raw %}
-const RELEASE_ID = '20260811t062815803z-138505d1789c'
-const RELEASE_CREATED_AT = 1786429695803
+const RELEASE_ID = '20260811t070324142z-2d47581a28b0'
+const RELEASE_CREATED_AT = 1786431804142
 const SHELL_CACHE_PREFIX = 'toolbox-shell-'
 const SHELL_CACHE = `${SHELL_CACHE_PREFIX}${RELEASE_ID}`
 const SHELL_CACHE_METADATA_KEY = '/toolbox-shell-metadata'
@@ -13,7 +13,7 @@ const BUNDLE_MANIFEST_URL = '/assets/toolbox/frontend/manifest.json'
 // Every path the client app owns, injected at build time from the tool registry so this list
 // cannot drift from the routes the app actually serves. At the site root the worker has to know
 // them exactly: a prefix test would claim Frappe's own /app and /login pages as well.
-const TOOLBOX_ROUTES = new Set(["/","/data-sources","/settings","/calculator","/gst-calculator","/emi-calculator","/compound-interest-calculator","/sip-calculator","/cagr-calculator","/future-value-calculator","/break-even-calculator","/bmi-calculator","/bmr-calculator","/tdee-calculator","/pace-calculator","/length-converter","/area-converter","/volume-converter","/weight-converter","/temperature-converter","/speed-converter","/time-unit-converter","/data-storage-converter","/fuel-consumption-converter","/currency-converter","/hsn-sac-lookup","/pin-code-search","/ifsc-code-search","/world-clock","/timer","/stopwatch","/countdown-timer","/weather","/dictionary","/script-conversion","/audio-recorder","/audio-editor"])
+const TOOLBOX_ROUTES = new Set(["/","/about","/data-sources","/settings","/calculator","/gst-calculator","/emi-calculator","/compound-interest-calculator","/sip-calculator","/cagr-calculator","/future-value-calculator","/break-even-calculator","/bmi-calculator","/bmr-calculator","/tdee-calculator","/pace-calculator","/length-converter","/area-converter","/volume-converter","/weight-converter","/temperature-converter","/speed-converter","/time-unit-converter","/data-storage-converter","/fuel-consumption-converter","/currency-converter","/hsn-sac-lookup","/pin-code-search","/ifsc-code-search","/world-clock","/timer","/stopwatch","/countdown-timer","/weather","/dictionary","/script-conversion","/audio-recorder","/audio-editor"])
 
 const CORE_ASSET_URLS = [
   '/assets/toolbox/pwa/manifest.webmanifest',
@@ -208,6 +208,16 @@ async function matchAcrossShellGenerations(request) {
   for (const generation of currentFirst) {
     const response = await caches.match(request, { cacheName: generation.name })
     if (response) return response
+
+    // A built asset is cached under the path the bundle manifest gives, which carries no query.
+    // The stylesheet asks for the font with one: `Inter.var-C9xDBOS3.woff2?v=3.19`. The bytes are
+    // the same file, and the hash in the name is what makes it immutable, so the query is noise
+    // here. Without this the page loads offline with no font and the request fails.
+    const ignoringQuery = await caches.match(request, {
+      cacheName: generation.name,
+      ignoreSearch: true,
+    })
+    if (ignoringQuery) return ignoringQuery
   }
   return null
 }

@@ -1,6 +1,6 @@
 {% raw %}
-const RELEASE_ID = '20260810t133514414z-000b1274ce76'
-const RELEASE_CREATED_AT = 1786368914414
+const RELEASE_ID = '20260811t061538457z-0aa188ce8996'
+const RELEASE_CREATED_AT = 1786428938457
 const SHELL_CACHE_PREFIX = 'toolbox-shell-'
 const SHELL_CACHE = `${SHELL_CACHE_PREFIX}${RELEASE_ID}`
 const SHELL_CACHE_METADATA_KEY = '/toolbox-shell-metadata'
@@ -13,7 +13,7 @@ const BUNDLE_MANIFEST_URL = '/assets/toolbox/frontend/manifest.json'
 // Every path the client app owns, injected at build time from the tool registry so this list
 // cannot drift from the routes the app actually serves. At the site root the worker has to know
 // them exactly: a prefix test would claim Frappe's own /app and /login pages as well.
-const TOOLBOX_ROUTES = new Set(["/","/settings","/calculator","/gst-calculator","/emi-calculator","/compound-interest-calculator","/sip-calculator","/cagr-calculator","/future-value-calculator","/break-even-calculator","/bmi-calculator","/bmr-calculator","/tdee-calculator","/pace-calculator","/length-converter","/area-converter","/volume-converter","/weight-converter","/temperature-converter","/speed-converter","/time-unit-converter","/data-storage-converter","/fuel-consumption-converter","/currency-converter","/hsn-sac-lookup","/pin-code-search","/ifsc-code-search","/world-clock","/timer","/stopwatch","/countdown-timer","/weather","/dictionary","/script-conversion","/audio-recorder","/audio-editor"])
+const TOOLBOX_ROUTES = new Set(["/","/data-sources","/settings","/calculator","/gst-calculator","/emi-calculator","/compound-interest-calculator","/sip-calculator","/cagr-calculator","/future-value-calculator","/break-even-calculator","/bmi-calculator","/bmr-calculator","/tdee-calculator","/pace-calculator","/length-converter","/area-converter","/volume-converter","/weight-converter","/temperature-converter","/speed-converter","/time-unit-converter","/data-storage-converter","/fuel-consumption-converter","/currency-converter","/hsn-sac-lookup","/pin-code-search","/ifsc-code-search","/world-clock","/timer","/stopwatch","/countdown-timer","/weather","/dictionary","/script-conversion","/audio-recorder","/audio-editor"])
 
 const CORE_ASSET_URLS = [
   '/assets/toolbox/pwa/manifest.webmanifest',

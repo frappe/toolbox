@@ -365,6 +365,14 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="MultimediaApplication",
 	),
+	"/about": Page(
+		name="About Toolbox",
+		title="About Toolbox — Free Tools Made by Frappe",
+		description=(
+			"Who makes these tools, why they are free, and what they are built on. No account, "
+			"no tracking, no advertisements, and the code is public."
+		),
+	),
 	"/data-sources": Page(
 		name="Data Sources",
 		title="Where Toolbox Data Comes From",

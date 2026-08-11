@@ -38,9 +38,28 @@
         <p class="pt-1 text-xs leading-5 text-ink-gray-5">
           Nothing you type is stored on a server. Your settings stay in this browser.
         </p>
+        <p class="pt-2 text-xs leading-5 text-ink-gray-5">
+          Made by
+          <a
+            class="font-medium text-ink-gray-7 underline underline-offset-2"
+            href="https://frappe.io"
+            target="_blank"
+            rel="noreferrer"
+            >Frappe</a
+          >.
+        </p>
       </div>
 
       <div class="p-1">
+        <RouterLink
+          to="/about"
+          role="menuitem"
+          class="flex h-9 items-center gap-2 rounded-lg px-2 text-sm font-medium text-ink-gray-7 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+          @click="handleNavigate"
+        >
+          <Icon name="lucide-info" class="size-4 shrink-0" />
+          <span>About Toolbox</span>
+        </RouterLink>
         <RouterLink
           to="/data-sources"
           role="menuitem"

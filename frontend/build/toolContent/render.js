@@ -72,8 +72,8 @@ function renderBlock(block) {
   return `<${tag} class="${style} space-y-2 pl-5 ${PROSE}">${items}</${tag}>`
 }
 
-// Three inline constructs, and no more. Bold for a term, code for a formula, and a link to another
-// tool. A link out of the site is a content decision that nothing here has to make yet.
+// Three inline constructs, and no more. Bold for a term, code for a formula, and a link, either to
+// another tool or out of the site.
 function inline(text) {
   return escape(text)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, target) => link(label, target))
@@ -85,7 +85,10 @@ function inline(text) {
 }
 
 function link(label, target) {
-  return `<a class="text-ink-gray-9 underline underline-offset-2 hover:text-ink-gray-7" href="${target}">${label}</a>`
+  // A link out of the site opens in its own tab, and carries no referrer. It carries no `nofollow`
+  // either: the pages this recommends are ones the site means to recommend.
+  const outbound = target.startsWith('https://') ? ' target="_blank" rel="noreferrer"' : ''
+  return `<a class="text-ink-gray-9 underline underline-offset-2 hover:text-ink-gray-7" href="${target}"${outbound}>${label}</a>`
 }
 
 function escape(text) {

@@ -61,6 +61,11 @@ const routes = [
     redirect: '/',
   },
   {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/AboutView.vue'),
+  },
+  {
     path: '/data-sources',
     name: 'DataSources',
     component: () => import('@/views/DataSourcesView.vue'),

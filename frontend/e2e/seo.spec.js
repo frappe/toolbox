@@ -149,7 +149,9 @@ test('@smoke offers every tool in the sitemap', async ({ request }) => {
   }
   // Advertising a page that carries noindex is a contradiction.
   expect(locations).not.toContain('/settings')
-  expect(locations).not.toContain('/about')
+  // `/about` is Toolbox's own page now, not Frappe's stock one, and it belongs here.
+  expect(locations).toContain('/about')
+  expect(locations).not.toContain('/contact')
 })
 
 test('@smoke serves robots.txt from the app, not from an empty site field', async ({ request }) => {
@@ -176,4 +178,20 @@ test('serves the data sources page, and offers it in the sitemap', async ({ page
   // any mention of it.
   await expect(page.getByText('WordNet-3.1')).toBeVisible()
   await expect(page.getByText('165,616')).toBeVisible()
+})
+
+test('@smoke serves the About page instead of Frappe\'s stock one', async ({ request }) => {
+  // Frappe ships its own /about, which redirects to /404 when no About Us Settings doc exists.
+  // The route rule in toolbox/routes.py takes the path before a renderer is chosen, so this wins.
+  const response = await request.get('/about')
+  expect(response.status()).toBe(200)
+
+  const html = await response.text()
+  const body = html.slice(html.indexOf('<div id="app"'), html.indexOf('<script', html.indexOf('<div id="app"')))
+
+  expect(body).toContain('About Toolbox')
+  expect(body).toContain('href="https://frappe.io"')
+  expect(body).toContain('href="https://frappe.io/erpnext"')
+  // A link out of the site opens in its own tab and carries no referrer.
+  expect(body).toContain('rel="noreferrer"')
 })

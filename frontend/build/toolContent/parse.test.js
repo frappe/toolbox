@@ -205,9 +205,16 @@ It does.
     )
   })
 
-  it('rejects a link out of the site', () => {
-    expect(() => parse(withLink('https://example.com'), { knownRoutes: ['/calculator'] })).toThrow(
-      /not an internal link/,
-    )
+  it('accepts a link out of the site over https', () => {
+    // The About page exists to make some. It says who built this and what else they make.
+    expect(() => parse(withLink('https://frappe.io'), { knownRoutes: ['/calculator'] })).not.toThrow()
+  })
+
+  it('rejects a link out of the site over anything else', () => {
+    for (const target of ['http://frappe.io', 'ftp://frappe.io', 'mailto:hello@frappe.io']) {
+      expect(() => parse(withLink(target), { knownRoutes: ['/calculator'] }), target).toThrow(
+        /neither a route nor an https address/,
+      )
+    }
   })
 })

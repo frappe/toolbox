@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { APP_PAGES } from '../../build/appRoutes.js'
 import { readAppRoutes } from '../../build/pwaBuildPlugin.js'
 import { tools } from './toolRegistry'
 
@@ -34,16 +35,17 @@ describe('app routes agree across the registry, Frappe, and the service worker',
     )
   })
 
-  it('routes.py does not route all-tools, because the root is that page', () => {
-    expect(pythonTuple('APP_PAGES')).toEqual(['data-sources', 'settings'])
+  it('routes.py and the build agree on the pages that are not tools', () => {
+    // The root is absent from routes.py: a rule never fires for it, so the home page hook serves
+    // it. `all-tools` is absent too, because the root is that page.
+    expect(pythonTuple('APP_PAGES')).toEqual(['about', 'data-sources', 'settings'])
+    expect(APP_PAGES).toEqual(['/', ...pythonTuple('APP_PAGES').map((page) => `/${page}`)])
   })
 
   it('the service worker claims every app route and nothing of Frappe', async () => {
     const swRoutes = await readAppRoutes()
 
-    expect(swRoutes).toContain('/')
-    expect(swRoutes).toContain('/settings')
-    expect(swRoutes).toContain('/data-sources')
+    for (const page of APP_PAGES) expect(swRoutes).toContain(page)
     for (const tool of tools) expect(swRoutes).toContain(tool.route)
 
     // Claiming these would hand Frappe's own pages the Toolbox shell.

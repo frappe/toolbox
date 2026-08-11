@@ -63,6 +63,27 @@ test('@smoke gives a crawler the heading and the content of the page', async ({ 
   expect(types).toContain('HowTo')
 })
 
+test('@smoke gives a crawler the front door, with a link to every tool', async ({ request }) => {
+  // The root carried a title and an empty body until the heading moved to seo.py. A crawler that
+  // runs no JavaScript reached a tool only through the sitemap, which carries a URL and no words.
+  const html = await (await request.get('/')).text()
+  const body = html.slice(html.indexOf('<div id="app"'), html.indexOf('<script', html.indexOf('<div id="app"')))
+
+  expect(body).toContain('<h1')
+  expect(body).toContain('All Tools')
+  for (const path of ['/calculator', '/emi-calculator', '/weather', '/audio-editor']) {
+    expect(body, `${path} is not linked from the root`).toContain(`href="${path}"`)
+  }
+})
+
+test('gives a crawler a heading on a page that is not a tool', async ({ request }) => {
+  const html = await (await request.get('/data-sources')).text()
+  const body = html.slice(html.indexOf('<div id="app"'), html.indexOf('<script', html.indexOf('<div id="app"')))
+
+  expect(body).toContain('<h1')
+  expect(body).toContain('Data Sources')
+})
+
 test('gives a crawler a heading even where the content is not written yet', async ({ request }) => {
   const html = await (await request.get('/pace-calculator')).text()
   const body = html.slice(html.indexOf('<div id="app"'))

@@ -37,14 +37,6 @@ describe('the committed page files', () => {
       )
     }
   })
-
-  it('carry a heading for every tool, whether its content is written or not', () => {
-    for (const tool of tools) {
-      // "HSN & SAC Lookup" reaches the page escaped, which is why this compares escaped text.
-      const name = tool.name.replaceAll('&', '&amp;')
-      expect(committedPage(tool.route).header).toContain(`>${name}</h1>`)
-    }
-  })
 })
 
 describe('a page that has content', () => {

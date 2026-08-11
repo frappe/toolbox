@@ -1,5 +1,22 @@
-<!-- The heading and the content of one route, from toolbox/tool_content.py. Vue empties this
-         element when it mounts, so the server block is replaced rather than repeated.
-         The HTML is rendered by the build from toolbox/content, and reaches the template as a
-         value, so Jinja does not read it as markup a second time. -->
-      {%- if page_content %}{{ page_content.header }}{{ page_content.content }}{%- endif %}
+<!-- What a crawler reads, inside the element the application mounts on. Vue empties its mount
+         container, so this block is replaced rather than repeated.
+
+         The heading comes from toolbox/seo.py, which is where the name of a page is written, so
+         every route has one and not only the tools. The content comes from toolbox/tool_content.py
+         and is rendered by the build from toolbox/content. Both reach the template as values, so
+         Jinja does not read them as markup a second time.
+
+         Every value is escaped: Frappe's Jinja environment does not autoescape. -->
+      <div class="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-8 sm:px-8 sm:py-12">
+        <h1 class="text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ seo.name | e }}</h1>
+        <p class="text-base leading-7 text-ink-gray-6">{{ seo.description | e }}</p>
+        <noscript><p class="text-base leading-7 text-ink-gray-7">Toolbox runs in your browser, so it needs JavaScript. The text on this page needs none.</p></noscript>
+      </div>
+      {%- if seo.tool_links %}
+      <nav class="mx-auto flex w-full max-w-3xl flex-col gap-1 px-4 pb-10 sm:px-8" aria-label="All tools">
+        {%- for link in seo.tool_links %}
+        <a class="text-base leading-7 text-ink-gray-9 underline underline-offset-2" href="{{ link.path | e }}">{{ link.name | e }}</a>
+        {%- endfor %}
+      </nav>
+      {%- endif %}
+      {%- if page_content %}{{ page_content.content }}{%- endif %}

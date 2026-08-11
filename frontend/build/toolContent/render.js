@@ -11,20 +11,6 @@ const PROSE = 'text-base leading-7 text-ink-gray-7'
 const COLUMN = 'mx-auto flex w-full max-w-3xl flex-col'
 const EXAMPLE_SURFACE = 'flex flex-col gap-3 rounded-xl bg-surface-gray-1 p-4 sm:p-5'
 
-// A tool needs JavaScript, so a visitor without it sees the page and no tool. Say why.
-const NO_SCRIPT =
-  'This tool runs in your browser, so it needs JavaScript. The explanation below needs nothing.'
-
-export function renderHeader({ name, description }) {
-  return [
-    `<div class="${COLUMN} gap-2 px-4 py-8 sm:px-8 sm:py-12">`,
-    `<h1 class="text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">${escape(name)}</h1>`,
-    `<p class="text-base leading-7 text-ink-gray-6">${escape(description)}</p>`,
-    `<noscript><p class="${PROSE}">${NO_SCRIPT}</p></noscript>`,
-    '</div>',
-  ].join('')
-}
-
 // A tool page sets its own width, from three to six columns wide, so the content cannot share a
 // lane with every one of them. It reads as its own band instead: a rule across the page, and a
 // measure narrow enough to read comfortably under it.

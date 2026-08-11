@@ -398,6 +398,9 @@ def page_metadata(path: str, base_url: str) -> dict[str, str]:
 		route, page = ROOT_PATH, PAGES[ROOT_PATH]
 
 	return {
+		# The heading the server renders into the body. It comes from here because this is where
+		# the name of a page is written, and a page that is not a tool has no other source for it.
+		"name": page.name,
 		"title": page.title,
 		"description": page.description,
 		"canonical": absolute_url(base_url, route),
@@ -407,7 +410,18 @@ def page_metadata(path: str, base_url: str) -> dict[str, str]:
 		"image_width": CARD_IMAGE_WIDTH,
 		"image_height": CARD_IMAGE_HEIGHT,
 		"structured_data": as_json_ld(structured_data(route, page, base_url)),
+		"tool_links": tool_links() if route == ROOT_PATH else [],
 	}
+
+
+def tool_links() -> list[dict[str, str]]:
+	"""Every tool, as a link, for the root to render.
+
+	The root is the front door and the only page that lists them all. Without this a crawler that
+	runs no JavaScript reads an empty body there and reaches a tool only through the sitemap, which
+	carries a URL and no words. A link carries the name of what it points at.
+	"""
+	return [{"name": PAGES[f"/{route}"].name, "path": f"/{route}"} for route in TOOL_ROUTES]
 
 
 def route_titles() -> dict[str, str]:

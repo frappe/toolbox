@@ -34,12 +34,13 @@ class Faq:
 
 @dataclass(frozen=True)
 class PageContent:
-	"""What one route sends below its metadata."""
+	"""What one route sends below its heading.
+
+	The heading itself comes from `toolbox/seo.py` and is rendered by the template, because every
+	route has a name there and only a tool has content here.
+	"""
 
 	route: str
-	# The heading and the description, rendered for every tool whether it has content or not.
-	header: str
-	# The content itself. Empty until the page is written.
 	content: str
 	faqs: tuple[Faq, ...]
 	steps: tuple[str, ...]
@@ -66,7 +67,6 @@ def _read_page(path: Path, modified_at: int) -> PageContent:
 	page = json.loads(path.read_text(encoding="utf-8"))
 	return PageContent(
 		route=page["route"],
-		header=page["header"],
 		content=page["content"],
 		faqs=tuple(Faq(question=faq["question"], answer=faq["answer"]) for faq in page["faqs"]),
 		steps=tuple(page["steps"]),

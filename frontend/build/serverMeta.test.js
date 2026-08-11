@@ -63,13 +63,31 @@ describe('the server content block', () => {
 
     // Vue empties its mount container, so the block is replaced rather than repeated. Anywhere
     // else on the page it would still be there after the application boots.
-    expect(app).toContain('{{ page_content.header }}')
-    expect(app).toContain('{{ page_content.content }}')
+    expect(app).toContain('{{ seo.name | e }}')
+    expect(app).toContain('{{ seo.description | e }}')
+    expect(built).toContain('{{ page_content.content }}')
     expect(built).not.toContain(SERVER_CONTENT_MARKERS.start)
   })
 
-  it('renders nothing for a route that has no content', () => {
+  it('gives every route a heading, and content only where there is content', () => {
+    // The heading comes from seo.py, which names every route. Only a tool has content.
+    expect(contentBlock).toContain('<h1')
     expect(contentBlock).toContain('{%- if page_content %}')
+  })
+
+  it('lists every tool at the root, and nowhere else', () => {
+    expect(contentBlock).toContain('{%- if seo.tool_links %}')
+    expect(contentBlock).toContain('href="{{ link.path | e }}"')
+  })
+
+  it('escapes every value, because Frappe does not autoescape', () => {
+    const interpolations = [...contentBlock.matchAll(/\{\{([^}]*)\}\}/g)].map(([, value]) => value.trim())
+
+    for (const value of interpolations) {
+      // `page_content.content` is rendered HTML from the build, and is raw on purpose.
+      if (value === 'page_content.content') continue
+      expect(value, value).toMatch(/\|\s*e$/)
+    }
   })
 
   it('refuses to build a page it could not put content into', () => {

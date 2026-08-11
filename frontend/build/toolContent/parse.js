@@ -167,12 +167,18 @@ function blocksOf(sections, title) {
 
 // A link to a route the application does not serve is a broken link on a page whose whole purpose
 // is to be found. The registry knows every route, so the build settles it.
+//
+// A link out of the site is allowed, and has to be `https`. The About page exists to make some, and
+// a page that recommends somewhere should not send a reader there over plain http.
 function checkLinkTargets(sections, source, knownRoutes) {
   if (!knownRoutes.length) return
 
   for (const target of linkTargets(sections)) {
+    if (target.startsWith('https://')) continue
     if (!target.startsWith('/')) {
-      throw new ContentError(`${source}: "${target}" is not an internal link. A link starts with /`)
+      throw new ContentError(
+        `${source}: "${target}" is neither a route nor an https address`,
+      )
     }
     if (!knownRoutes.includes(target)) {
       throw new ContentError(`${source}: "${target}" is not a route this application serves`)

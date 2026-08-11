@@ -4,7 +4,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { tools } from '../../src/data/toolRegistry.js'
-import { PAGES_DIRECTORY, buildPage, slugOf } from './build.js'
+import { APP_CONTENT_ROUTES, PAGES_DIRECTORY, buildPage, slugOf } from './build.js'
 
 const routes = tools.map((tool) => tool.route)
 
@@ -21,8 +21,9 @@ describe('the committed page files', () => {
     }
   })
 
-  it('serve no route the registry does not', () => {
-    const expected = routes.map((route) => `${slugOf(route)}.json`)
+  it('serve no route the application does not', () => {
+    // A page that is not a tool may carry content too. The About page is prose and nothing else.
+    const expected = [...routes, ...APP_CONTENT_ROUTES].map((route) => `${slugOf(route)}.json`)
     const files = fs.readdirSync(PAGES_DIRECTORY).filter((file) => file.endsWith('.json'))
 
     expect(files.sort()).toEqual(expected.sort())

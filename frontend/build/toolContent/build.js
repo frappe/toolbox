@@ -8,6 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { appRoutes } from '../appRoutes.js'
 import { ContentError, parseToolContent } from './parse.js'
 import { renderContent } from './render.js'
 
@@ -15,17 +16,25 @@ const APP_ROOT = path.resolve(import.meta.dirname, '../../..')
 const CONTENT_DIRECTORY = path.join(APP_ROOT, 'toolbox', 'content')
 export const PAGES_DIRECTORY = path.join(CONTENT_DIRECTORY, 'pages')
 
+// A page that is not a tool may carry content too. The heading of every route comes from
+// `toolbox/seo.py` now, so nothing here needs to know what a page is called: it only renders the
+// prose a Markdown file holds, and the client looks it up by route like any other.
+export const APP_CONTENT_ROUTES = ['/about']
+
 export async function buildToolContent() {
   const { tools } = await import('../../src/data/toolRegistry.js')
-  const routes = tools.map((tool) => tool.route)
   const written = []
+  // Which pages get a file, and which routes a link inside one may point at. They differ: every
+  // page can be linked to, and only some pages carry content.
+  const routes = [...tools.map((tool) => tool.route), ...APP_CONTENT_ROUTES]
+  const linkable = await appRoutes()
 
   checkForOrphans(readContentFiles(), routes)
   fs.mkdirSync(PAGES_DIRECTORY, { recursive: true })
 
-  for (const tool of tools) {
-    const page = buildPage(tool, routes)
-    const filePath = path.join(PAGES_DIRECTORY, `${slugOf(tool.route)}.json`)
+  for (const route of routes) {
+    const page = buildPage({ route }, linkable)
+    const filePath = path.join(PAGES_DIRECTORY, `${slugOf(route)}.json`)
     writeIfChanged(filePath, `${JSON.stringify(page, null, 2)}\n`)
     written.push(page)
   }

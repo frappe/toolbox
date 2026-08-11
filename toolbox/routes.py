@@ -22,7 +22,7 @@ WEB_PAGE = "toolbox"
 
 # Pages that are not tools. `all-tools` is absent on purpose: the root *is* the All Tools page,
 # so `/all-tools` redirects to `/` rather than serving a second copy of it.
-APP_PAGES = ("data-sources", "settings")
+APP_PAGES = ("about", "data-sources", "settings")
 
 TOOL_ROUTES = (
 	"area-converter",

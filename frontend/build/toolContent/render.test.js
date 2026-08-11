@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { parseToolContent } from './parse.js'
-import { renderContent, renderHeader } from './render.js'
+import { renderContent } from './render.js'
 
 function render(markdown) {
   return renderContent(parseToolContent(markdown, { source: 'test.md' }).sections)
@@ -17,26 +17,6 @@ It works.
 
 It does.
 `
-
-describe('the heading block', () => {
-  it('carries the name and the description of the tool', () => {
-    const header = renderHeader({ name: 'EMI Calculator', description: 'Work out an instalment.' })
-
-    expect(header).toContain('<h1 class="text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">EMI Calculator</h1>')
-    expect(header).toContain('Work out an instalment.')
-  })
-
-  it('tells a visitor with no JavaScript why the tool is missing', () => {
-    expect(renderHeader({ name: 'Calculator', description: 'Math.' })).toContain('<noscript>')
-  })
-
-  it('escapes the text it is given', () => {
-    const header = renderHeader({ name: '<script>x</script>', description: 'A "quoted" name.' })
-
-    expect(header).not.toContain('<script>')
-    expect(header).toContain('&lt;script&gt;')
-  })
-})
 
 describe('the content block', () => {
   it('renders nothing for a page that has no content', () => {

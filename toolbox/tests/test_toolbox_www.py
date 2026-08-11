@@ -8,6 +8,7 @@ import frappe
 from frappe.tests import UnitTestCase
 
 from toolbox import seo
+from toolbox.routes import TOOL_ROUTES
 from toolbox.www.toolbox import get_context
 
 
@@ -96,12 +97,22 @@ class TestServerRenderedMetadata(UnitTestCase):
 class TestServerRenderedContent(UnitTestCase):
 	"""A crawler runs no JavaScript, so the page carries its heading and its content already."""
 
-	def test_a_tool_page_carries_its_heading(self):
-		with requested("/weather"):
-			content = get_context().page_content
+	def test_every_page_is_given_its_heading(self):
+		"""The heading comes from seo.py, so a page that is not a tool has one too."""
+		for path, name in (("/weather", "Weather"), ("/data-sources", "Data Sources"), ("", "All Tools")):
+			with self.subTest(path=path):
+				with requested(path):
+					self.assertEqual(get_context().seo["name"], name)
 
-		self.assertIn("<h1", content.header)
-		self.assertIn("Weather", content.header)
+	def test_the_root_is_given_a_link_to_every_tool(self):
+		"""A crawler that runs no JavaScript reads an empty body at the root otherwise."""
+		with requested(""):
+			links = get_context().seo["tool_links"]
+		with requested("/weather"):
+			self.assertEqual(get_context().seo["tool_links"], [])
+
+		self.assertEqual(len(links), len(TOOL_ROUTES))
+		self.assertIn({"name": "Weather", "path": "/weather"}, links)
 
 	def test_a_written_page_carries_its_content(self):
 		with requested("/emi-calculator"):
@@ -116,7 +127,6 @@ class TestServerRenderedContent(UnitTestCase):
 		with requested("/emi-calculator"):
 			emi = get_context().page_content
 
-		self.assertNotEqual(calculator.header, emi.header)
 		self.assertNotEqual(calculator.content, emi.content)
 
 	def test_a_page_without_content_renders_none(self):

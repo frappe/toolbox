@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { ContentError, parseToolContent } from './parse.js'
-import { renderContent, renderHeader } from './render.js'
+import { renderContent } from './render.js'
 
 const APP_ROOT = path.resolve(import.meta.dirname, '../../..')
 const CONTENT_DIRECTORY = path.join(APP_ROOT, 'toolbox', 'content')
@@ -36,13 +36,7 @@ export async function buildToolContent() {
 
 export function buildPage(tool, knownRoutes = []) {
   const source = path.join(CONTENT_DIRECTORY, `${slugOf(tool.route)}.md`)
-  const page = {
-    route: tool.route,
-    header: renderHeader(tool),
-    content: '',
-    faqs: [],
-    steps: [],
-  }
+  const page = { route: tool.route, content: '', faqs: [], steps: [] }
   if (!fs.existsSync(source)) return page
 
   const markdown = fs.readFileSync(source, 'utf8')

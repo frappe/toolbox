@@ -98,6 +98,22 @@ class TestPageMetadata(UnitTestCase):
 
 		self.assertEqual(metadata["canonical"], "https://toolbox.localhost:8100/calculator")
 
+	def test_every_route_is_given_the_name_the_page_shows(self):
+		"""The server renders this as the `<h1>`, so it is what a crawler reads first."""
+		for route, page in seo.PAGES.items():
+			with self.subTest(route=route):
+				self.assertEqual(seo.page_metadata(route, BASE_URL)["name"], page.name)
+				self.assertTrue(page.name)
+
+	def test_only_the_root_lists_the_tools(self):
+		"""The front door is where a link to every tool costs least, and where it is needed."""
+		links = seo.page_metadata("/", BASE_URL)["tool_links"]
+
+		self.assertEqual([link["path"] for link in links], [f"/{route}" for route in TOOL_ROUTES])
+		self.assertEqual(links[0]["name"], seo.PAGES[links[0]["path"]].name)
+		self.assertEqual(seo.page_metadata("/weather", BASE_URL)["tool_links"], [])
+		self.assertEqual(seo.page_metadata("/settings", BASE_URL)["tool_links"], [])
+
 	def test_every_route_has_a_title_for_the_client(self):
 		self.assertEqual(set(seo.route_titles()), set(seo.PAGES))
 

@@ -22,14 +22,6 @@ class TestPageFiles(UnitTestCase):
 			with self.subTest(route=route):
 				self.assertIsNotNone(tool_content.page_content(f"/{route}"))
 
-	def test_every_page_carries_a_heading(self):
-		"""The tool needs JavaScript. The heading and the description do not."""
-		for route in TOOL_ROUTES:
-			with self.subTest(route=route):
-				content = tool_content.page_content(f"/{route}")
-				self.assertIn("<h1", content.header)
-				self.assertIn("<noscript>", content.header)
-
 	def test_every_tool_page_is_written(self):
 		"""A tool with no text answers a search with a heading and nothing else.
 

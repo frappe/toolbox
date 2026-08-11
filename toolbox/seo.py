@@ -187,10 +187,10 @@ PAGES: dict[str, Page] = {
 	),
 	"/volume-converter": Page(
 		name="Volume Converter",
-		title="Volume Converter — Litres, Gallons and Cups",
+		title="Volume Converter — Litres, Gallons and Ounces",
 		description=(
-			"Convert between litres, millilitres, gallons, cups and cubic metres. Free, and it tells "
-			"you which gallon it means."
+			"Convert between litres, millilitres, both gallons, US fluid ounces and the cubic "
+			"units. Free, and it tells you which gallon it means."
 		),
 		application_category="UtilitiesApplication",
 	),
@@ -364,6 +364,14 @@ PAGES: dict[str, Page] = {
 			"edit happens in your browser."
 		),
 		application_category="MultimediaApplication",
+	),
+	"/data-sources": Page(
+		name="Data Sources",
+		title="Where Toolbox Data Comes From",
+		description=(
+			"Every dataset and every API behind these tools, named: what it is, who publishes "
+			"it, the licence it carries, and the day the release in use was published."
+		),
 	),
 	"/settings": Page(
 		name="Settings",

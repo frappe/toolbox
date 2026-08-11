@@ -35,7 +35,7 @@ describe('app routes agree across the registry, Frappe, and the service worker',
   })
 
   it('routes.py does not route all-tools, because the root is that page', () => {
-    expect(pythonTuple('APP_PAGES')).toEqual(['settings'])
+    expect(pythonTuple('APP_PAGES')).toEqual(['data-sources', 'settings'])
   })
 
   it('the service worker claims every app route and nothing of Frappe', async () => {
@@ -43,6 +43,7 @@ describe('app routes agree across the registry, Frappe, and the service worker',
 
     expect(swRoutes).toContain('/')
     expect(swRoutes).toContain('/settings')
+    expect(swRoutes).toContain('/data-sources')
     for (const tool of tools) expect(swRoutes).toContain(tool.route)
 
     // Claiming these would hand Frappe's own pages the Toolbox shell.

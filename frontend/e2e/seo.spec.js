@@ -141,3 +141,18 @@ test('@smoke serves robots.txt from the app, not from an empty site field', asyn
   // A blanket allow would silently void every Disallow under a first-match parser.
   expect(body).not.toMatch(/^Allow:/m)
 })
+
+test('serves the data sources page, and offers it in the sitemap', async ({ page, request }) => {
+  const locations = [...(await (await request.get('/sitemap.xml')).text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    ([, location]) => new URL(location).pathname,
+  )
+  expect(locations).toContain('/data-sources')
+
+  // A hard refresh has to reach the app, which needs the route in toolbox/routes.py.
+  await page.goto('/data-sources')
+  await expect(page.getByRole('heading', { level: 1, name: 'Where the data comes from' })).toBeVisible()
+  // The page names WordNet four times over, so the assertion picks the release fact rather than
+  // any mention of it.
+  await expect(page.getByText('WordNet-3.1')).toBeVisible()
+  await expect(page.getByText('165,616')).toBeVisible()
+})

@@ -109,7 +109,7 @@ export function createReleaseInfo({ now = new Date(), randomSuffix } = {}) {
 // claim Frappe's own /app and /login pages.
 export async function readAppRoutes() {
   const { tools } = await import('../src/data/toolRegistry.js')
-  return ['/', '/settings', ...tools.map((tool) => tool.route)]
+  return ['/', '/data-sources', '/settings', ...tools.map((tool) => tool.route)]
 }
 
 export function renderServiceWorker(template, releaseInfo, appRoutes) {

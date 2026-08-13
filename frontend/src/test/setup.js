@@ -50,7 +50,7 @@ afterEach(() => {
 })
 
 vi.mock('frappe-ui', async () => {
-  const { defineComponent, h, ref } = await import('vue')
+  const { computed, defineComponent, h, inject, provide, ref } = await import('vue')
 
   const Dialog = defineComponent({
     name: 'Dialog',
@@ -595,6 +595,159 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // The settings dialog is a reka-ui Tabs set inside a Dialog. These mirror what the real
+  // components put in the document: the tablist/tab/tabpanel roles, the selected state reka
+  // writes as `data-state`, and the `hidden` attribute it puts on an inactive panel. The tab
+  // value travels by provide/inject here, the way reka's own context does.
+  const TAB_CONTEXT = Symbol('settings-tab')
+
+  const SettingsDialog = defineComponent({
+    name: 'SettingsDialog',
+    inheritAttrs: false,
+    props: {
+      modelValue: { type: Boolean, default: false },
+      tab: { type: [String, Number], default: '' },
+      size: { type: String, default: '4xl' },
+      shortcut: { type: Boolean, default: true },
+      unmountOnHide: { type: Boolean, default: true },
+    },
+    emits: ['update:modelValue', 'update:tab'],
+    setup(props, { attrs, slots, emit }) {
+      provide(TAB_CONTEXT, {
+        active: computed(() => props.tab),
+        select: (value) => emit('update:tab', value),
+      })
+      return () =>
+        props.modelValue
+          ? h(
+              'div',
+              { ...attrs, role: 'dialog', 'aria-modal': 'true', 'data-component': 'SettingsDialog' },
+              [slots.title?.(), slots.description?.(), slots.default?.()],
+            )
+          : null
+    },
+  })
+
+  const SettingsSidebar = defineComponent({
+    name: 'SettingsSidebar',
+    inheritAttrs: false,
+    setup(_, { attrs, slots }) {
+      return () => h('div', { ...attrs, role: 'tablist', 'aria-orientation': 'vertical' }, slots.default?.())
+    },
+  })
+
+  const SettingsNavGroup = defineComponent({
+    name: 'SettingsNavGroup',
+    inheritAttrs: false,
+    props: { label: { type: String, default: '' } },
+    setup(props, { attrs, slots }) {
+      return () =>
+        h('div', attrs, [
+          props.label || slots.label ? h('div', {}, slots.label?.() ?? props.label) : null,
+          h('div', {}, slots.default?.()),
+        ])
+    },
+  })
+
+  const SettingsNavItem = defineComponent({
+    name: 'SettingsNavItem',
+    inheritAttrs: false,
+    props: { value: { type: [String, Number], required: true } },
+    setup(props, { attrs, slots }) {
+      const tabs = inject(TAB_CONTEXT, null)
+      return () => {
+        const active = tabs?.active.value === props.value
+        return h(
+          'button',
+          {
+            ...attrs,
+            type: 'button',
+            role: 'tab',
+            'aria-selected': active ? 'true' : 'false',
+            'data-state': active ? 'active' : 'inactive',
+            onClick: () => tabs?.select(props.value),
+          },
+          [slots.prefix?.(), h('span', {}, slots.default?.()), slots.suffix?.()],
+        )
+      }
+    },
+  })
+
+  const SettingsContent = defineComponent({
+    name: 'SettingsContent',
+    inheritAttrs: false,
+    setup(_, { attrs, slots }) {
+      return () => h('div', attrs, slots.default?.())
+    },
+  })
+
+  const SettingsPanel = defineComponent({
+    name: 'SettingsPanel',
+    inheritAttrs: false,
+    props: { value: { type: [String, Number], required: true } },
+    setup(props, { attrs, slots }) {
+      const tabs = inject(TAB_CONTEXT, null)
+      return () => {
+        const active = tabs?.active.value === props.value
+        // reka hides an inactive panel with the `hidden` attribute, and unmounts its content
+        // unless the dialog is told not to. The default is to unmount, so the stub does.
+        if (!active) return h('div', { ...attrs, role: 'tabpanel', hidden: true, 'data-state': 'inactive' })
+        return h('div', { ...attrs, role: 'tabpanel', 'data-state': 'active' }, slots.default?.())
+      }
+    },
+  })
+
+  const SettingsHeader = defineComponent({
+    name: 'SettingsHeader',
+    inheritAttrs: false,
+    props: {
+      title: { type: String, default: '' },
+      description: { type: String, default: '' },
+    },
+    setup(props, { attrs, slots }) {
+      return () =>
+        h(
+          'div',
+          attrs,
+          slots.default?.() ?? [
+            props.title ? h('h2', {}, props.title) : null,
+            props.description ? h('p', {}, props.description) : null,
+            slots.actions ? h('div', {}, slots.actions()) : null,
+          ],
+        )
+    },
+  })
+
+  const SettingsBody = defineComponent({
+    name: 'SettingsBody',
+    inheritAttrs: false,
+    setup(_, { attrs, slots }) {
+      return () => h('div', attrs, slots.default?.())
+    },
+  })
+
+  const SettingsRow = defineComponent({
+    name: 'SettingsRow',
+    inheritAttrs: false,
+    props: {
+      title: { type: String, required: true },
+      description: { type: String, default: '' },
+      labelFor: { type: String, default: '' },
+    },
+    // The real component renders a `<label>` only when it can resolve a control to point at,
+    // and a `<div>` otherwise. It never renders a label with no `for`.
+    setup(props, { attrs, slots }) {
+      return () =>
+        h('div', attrs, [
+          h('div', {}, [
+            h(props.labelFor ? 'label' : 'div', props.labelFor ? { for: props.labelFor } : {}, props.title),
+            props.description ? h('div', {}, props.description) : null,
+          ]),
+          h('div', {}, slots.default?.()),
+        ])
+    },
+  })
+
   return {
     Alert,
     Badge,
@@ -609,6 +762,15 @@ vi.mock('frappe-ui', async () => {
     Icon,
     LoadingIndicator,
     LoadingText,
+    SettingsBody,
+    SettingsContent,
+    SettingsDialog,
+    SettingsHeader,
+    SettingsNavGroup,
+    SettingsNavItem,
+    SettingsPanel,
+    SettingsRow,
+    SettingsSidebar,
     Slider,
     TabButtons,
     TextInput,

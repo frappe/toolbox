@@ -100,12 +100,21 @@ test('@smoke shows the content once, under the tool', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Frequently asked questions' })).toHaveCount(1)
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
-  await expect(page.getByText('Why is an early instalment almost all interest?')).toBeVisible()
+
+  // Each section is closed on arrival, so the tool is not pushed up a wall of prose. The heading
+  // is the summary and stays readable, and the answer is in the document but not on screen.
+  const question = page.getByText('Why is an early instalment almost all interest?')
+  await expect(question).toHaveCount(1)
+  await expect(question).toBeHidden()
+
+  await page.getByRole('group').filter({ hasText: 'Frequently asked questions' }).first().click()
+  await expect(question).toBeVisible()
 })
 
 test('replaces the content when the visitor moves to another tool', async ({ page }) => {
   await page.goto('/emi-calculator')
-  await expect(page.getByText('equated monthly instalment')).toBeVisible()
+  // Closed, so the assertion is on the document rather than on what is painted.
+  await expect(page.getByText('equated monthly instalment')).toHaveCount(1)
 
   // "Calculator" is also the start of several other tool names, so the lookup is exact.
   await page
@@ -113,7 +122,7 @@ test('replaces the content when the visitor moves to another tool', async ({ pag
     .getByRole('link', { name: 'Calculator', exact: true })
     .click()
 
-  await expect(page.getByText('The calculator reads a whole expression')).toBeVisible()
+  await expect(page.getByText('The calculator reads a whole expression')).toHaveCount(1)
   await expect(page.getByText('equated monthly instalment')).toHaveCount(0)
 })
 

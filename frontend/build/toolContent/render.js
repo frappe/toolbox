@@ -18,12 +18,28 @@ export function renderContent(sections) {
   if (!sections.length) return ''
 
   const body = sections.map(renderSection).join('')
-  return `<div class="w-full border-t border-outline-gray-2"><div class="${COLUMN} gap-10 px-4 pt-10 pb-16 sm:px-8">${body}</div></div>`
+  return `<div class="w-full border-t border-outline-gray-2"><div class="${COLUMN} gap-2 px-4 pt-10 pb-16 sm:px-8">${body}</div></div>`
 }
 
+// A section is closed until somebody opens it. The tool is what a visitor came for, and the words
+// under it used to push it up a wall of prose.
+//
+// `<details>` and nothing else. The text stays in the document either way, which is what keeps it
+// readable to a crawler, and it opens with no JavaScript, which matters because the server writes
+// this block before the application has booted. Text that only arrives on a click would be neither.
+//
+// The heading stays visible as the summary, so the closed page reads as a list of what it covers.
 function renderSection(section) {
   const heading = `<h2 class="text-xl font-semibold tracking-tight text-ink-gray-9">${escape(section.title)}</h2>`
-  return `<section class="flex flex-col gap-4">${heading}${renderBlocks(section)}</section>`
+  // Two icons, and `display` decides which one shows. Rotating one was tried twice and lost the
+  // cascade both times: `group-open:rotate-180` resolves through Tailwind's `--tw-rotate` chain,
+  // which never reached this span, and a plain `transform` rule matched the element and still
+  // computed to an identity matrix. `display` is not fought over.
+  const marker =
+    `<span class="lucide-chevron-down size-5 shrink-0 text-ink-gray-5" data-disclosure-closed aria-hidden="true"></span>` +
+    `<span class="lucide-chevron-up size-5 shrink-0 text-ink-gray-5" data-disclosure-open aria-hidden="true"></span>`
+  const summary = `<summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-1 marker:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3">${heading}${marker}</summary>`
+  return `<details class="flex flex-col border-b border-outline-gray-2 pb-4">${summary}<div class="flex flex-col gap-4 pt-4">${renderBlocks(section)}</div></details>`
 }
 
 // A subheading opens a group that runs until the next one: a question and its answer, or an example

@@ -23,6 +23,22 @@ select {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The marker on a tool-content section: one icon for each state, swapped on `display`.
+   Rotating a single icon was tried twice and lost the cascade both times, through Tailwind's
+   `--tw-rotate` chain and then through a plain `transform` rule that matched the element and
+   still computed to an identity matrix. Nothing competes for `display` here. */
+[data-disclosure-open] {
+  display: none;
+}
+
+details[open] > summary [data-disclosure-closed] {
+  display: none;
+}
+
+details[open] > summary [data-disclosure-open] {
+  display: inline-block;
+}
+
 .mobile-nav-item {
   display: flex;
   min-width: 0;

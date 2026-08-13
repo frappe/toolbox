@@ -32,6 +32,28 @@ describe('the content block', () => {
     expect(html).not.toContain('<h1')
   })
 
+  it('closes each section, with its heading still readable as the summary', () => {
+    const html = render(MINIMAL)
+
+    // `<details>` and no JavaScript: the server writes this block before the application boots,
+    // and a disclosure that needs a script would not open there.
+    expect(html.match(/<details/g)).toHaveLength(2)
+    expect(html).not.toContain('<details open')
+    expect(html).toContain('<summary')
+    // The heading stays in the summary, so a closed page reads as a list of what it covers.
+    expect(html).toMatch(/<summary[^>]*><h2[^>]*>How it works<\/h2>/)
+  })
+
+  it('keeps the whole text in the document while a section is closed', () => {
+    // This is what makes a collapsed section safe. A crawler runs no JavaScript and reads the
+    // markup, so text hidden by `<details>` is still text it can read. Text that only arrived on
+    // a click would not be, and neither would it reach a visitor without a script.
+    const html = render(MINIMAL)
+
+    expect(html).toContain('It works.')
+    expect(html).toContain('It does.')
+  })
+
   it('renders a question and its answer as a heading and a paragraph', () => {
     const html = render(MINIMAL)
 

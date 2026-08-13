@@ -8,7 +8,7 @@ rather than set by the client after boot.
 
 This module imports nothing from Frappe. The copy is the product, it is worth testing on its own,
 and a plain function that takes a base URL is easier to test than one that reads a request. The
-same reasoning put the city folding rule in `toolbox/city_names.py`.
+same reasoning keeps it free of Frappe imports.
 
 `toolbox/tests/test_seo.py` fails when this module and `toolbox/routes.py` disagree about which
 routes exist. That is the tripwire `frontend/src/data/appRoutes.test.js` already applies to the
@@ -317,15 +317,6 @@ PAGES: dict[str, Page] = {
 		description=(
 			"Count down to a date and time, or for a duration you set. Free, and it keeps the "
 			"right time across a refresh or a change of date."
-		),
-		application_category="UtilitiesApplication",
-	),
-	"/weather": Page(
-		name="Weather",
-		title="Weather Forecast by City — Seven Day Outlook",
-		description=(
-			"Current conditions and a seven-day forecast for any city, from MET Norway. Search "
-			"for a city by the name it is known by locally: München, Roma, Bombay."
 		),
 		application_category="UtilitiesApplication",
 	),

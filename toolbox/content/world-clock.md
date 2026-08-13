@@ -85,5 +85,4 @@ UTC is the standard the world's clocks are set from, kept by atomic clocks and h
 Earth's rotation. The badge reads UTC for zero, which is why London reads UTC in January.
 
 Moving clocks forward in summer spread across Europe in 1916, to save fuel for lighting in wartime.
-Many countries have since dropped it, and India keeps one offset all year. For the sunrise and
-sunset behind it, use [Weather](/weather).
+Many countries have since dropped it, and India keeps one offset all year.

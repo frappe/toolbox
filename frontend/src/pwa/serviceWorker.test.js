@@ -126,14 +126,14 @@ describe('Toolbox service worker', () => {
   it('keeps provider caches and one legacy shell during the generated-cache migration', async () => {
     await harness.dispatchExtendable('install')
     await harness.caches.open('toolbox-shell-v2')
-    await harness.caches.open('toolbox-provider-weather-v1')
+    await harness.caches.open('toolbox-provider-currency-v1')
 
     await harness.dispatchExtendable('activate')
 
     expect(await harness.caches.keys()).toEqual([
       'toolbox-shell-release-a',
       'toolbox-shell-v2',
-      'toolbox-provider-weather-v1',
+      'toolbox-provider-currency-v1',
     ])
   })
 

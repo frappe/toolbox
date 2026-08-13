@@ -15,7 +15,6 @@ from toolbox.dataset_distribution import (
 	DatasetDistributionError,
 	_bundled_path,
 	_validate_url,
-	copy_bundled_asset,
 	download_asset,
 )
 from toolbox.india_business_data import PIN_DOCTYPE, RELEASE_DOCTYPE
@@ -82,17 +81,22 @@ class TestDatasetSyncUnit(UnitTestCase):
 			with self.subTest(url=bad), self.assertRaises(DatasetDistributionError):
 				_validate_url(bad)
 
-	def test_every_bundled_dataset_matches_its_manifest_checksum(self) -> None:
-		"""A dataset rebuilt without updating the manifest would fail on a visitor's install."""
+	def test_nothing_is_bundled_today_so_nothing_needs_its_checksum_read(self) -> None:
+		"""The City dataset was the only bundled one, and it went with Weather.
+
+		This used to copy each bundled file and check it against the checksum the manifest pins,
+		because a dataset rebuilt without updating the manifest fails on a visitor's install. With
+		no bundled dataset that loop would pass by reading nothing, so it asserts the empty set
+		instead: adding one fails here, and the failure says to bring the real check back.
+		"""
 		manifest = dataset_sync.load_manifest()
 		bundled = {name: entry for name, entry in manifest["datasets"].items() if entry.get("path")}
-		self.assertTrue(bundled, "the manifest should pin at least one bundled dataset")
 
-		for name, entry in bundled.items():
-			with self.subTest(dataset=name), TemporaryDirectory() as directory:
-				asset = Path(directory) / "asset"
-				copy_bundled_asset(entry["path"], entry["sha256"], asset)
-				self.assertEqual(asset.stat().st_size, entry["size"])
+		self.assertEqual(
+			bundled,
+			{},
+			"a bundled dataset must be copied and checked against its manifest checksum here",
+		)
 
 	def test_a_bundled_path_cannot_escape_the_app_s_data_directory(self) -> None:
 		for name in ("../hooks.py", "/etc/passwd", "nested/file.gz", "", "no-such-file.gz"):

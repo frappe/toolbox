@@ -60,7 +60,7 @@ Prose wraps. Two lines in a row are one paragraph, and a blank line starts the n
 ## Rules for the text
 
 1. Check every number in a worked example against the tool itself.
-2. Name the source of a fact. Weather reads MET Norway. Dictionary reads WordNet 3.1.
+2. Name the source of a fact. Dictionary reads WordNet 3.1. Currency Converter reads the ECB.
 3. State no rate, rule or law the tool does not itself compute. Tax rates change.
 4. Write in Simplified Technical English, the same as the rest of the repository.
 5. Answer the question a visitor arrived with. Do not sell the tool to them.

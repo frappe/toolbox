@@ -367,18 +367,6 @@ export const tools = [
     searchKeywords: ['days until', 'date countdown', 'new year', 'exam', 'deadline'],
   }),
   defineTool({
-    id: 'weather',
-    name: 'Weather',
-    description: 'View current conditions and forecasts with honest attribution.',
-    icon: 'lucide-cloud-sun',
-    category: 'information',
-    route: '/weather',
-    offlineCapability: 'cached',
-    releaseStatus: 'available',
-    externalDependencyStatus: 'none',
-    searchKeywords: ['forecast', 'temperature', 'rain', 'wind', 'humidity'],
-  }),
-  defineTool({
     id: 'dictionary',
     name: 'Dictionary',
     description: 'Look up English definitions, synonyms and antonyms from an openly licensed dataset.',

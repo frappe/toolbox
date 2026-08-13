@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import UnitTestCase
 
-from toolbox import currency, currency_history, data_sources, dictionary, hsn, india_business, weather
+from toolbox import currency, currency_history, data_sources, dictionary, hsn, india_business
 
 # Every endpoint a visitor's browser calls. Toolbox has no accounts, so each one has to answer a
 # Guest, and each one has to stay a read.
@@ -20,8 +20,6 @@ PUBLIC_ENDPOINTS = (
 	india_business.get_dataset_status,
 	india_business.search_pin,
 	india_business.search_ifsc,
-	weather.search_locations,
-	weather.get_forecast,
 )
 
 

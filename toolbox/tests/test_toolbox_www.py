@@ -62,11 +62,11 @@ class TestServerRenderedMetadata(UnitTestCase):
 	"""One template serves every route, so the head has to come from the path that was asked for."""
 
 	def test_the_head_describes_the_requested_tool(self):
-		with requested("/weather"):
+		with requested("/dictionary"):
 			context = get_context()
 
-		self.assertEqual(context.seo["title"], seo.PAGES["/weather"].title)
-		self.assertTrue(context.seo["canonical"].endswith("/weather"))
+		self.assertEqual(context.seo["title"], seo.PAGES["/dictionary"].title)
+		self.assertTrue(context.seo["canonical"].endswith("/dictionary"))
 
 	def test_two_routes_do_not_share_a_head(self):
 		"""The whole change exists because every route used to answer with the same title."""
@@ -91,7 +91,7 @@ class TestServerRenderedMetadata(UnitTestCase):
 			titles = get_context().boot["toolbox_page_titles"]
 
 		self.assertEqual(titles, seo.route_titles())
-		self.assertEqual(titles["/weather"], seo.PAGES["/weather"].title)
+		self.assertEqual(titles["/dictionary"], seo.PAGES["/dictionary"].title)
 
 
 class TestServerRenderedContent(UnitTestCase):
@@ -99,7 +99,7 @@ class TestServerRenderedContent(UnitTestCase):
 
 	def test_every_page_is_given_its_heading(self):
 		"""The heading comes from seo.py, so a page that is not a tool has one too."""
-		for path, name in (("/weather", "Weather"), ("/data-sources", "Data Sources"), ("", "All Tools")):
+		for path, name in (("/dictionary", "Dictionary"), ("/data-sources", "Data Sources"), ("", "All Tools")):
 			with self.subTest(path=path):
 				with requested(path):
 					self.assertEqual(get_context().seo["name"], name)
@@ -108,11 +108,11 @@ class TestServerRenderedContent(UnitTestCase):
 		"""A crawler that runs no JavaScript reads an empty body at the root otherwise."""
 		with requested(""):
 			links = get_context().seo["tool_links"]
-		with requested("/weather"):
+		with requested("/dictionary"):
 			self.assertEqual(get_context().seo["tool_links"], [])
 
 		self.assertEqual(len(links), len(TOOL_ROUTES))
-		self.assertIn({"name": "Weather", "path": "/weather"}, links)
+		self.assertIn({"name": "Dictionary", "path": "/dictionary"}, links)
 
 	def test_a_written_page_carries_its_content(self):
 		with requested("/emi-calculator"):

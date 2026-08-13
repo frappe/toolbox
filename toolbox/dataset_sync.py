@@ -9,9 +9,9 @@ differs from what is active on this site. A fresh install self-provisions; an ap
 that bumps a dataset pulls the new release. There are no runtime or scheduled network
 calls — only this one-time-per-version fetch of public reference data.
 
-A dataset entry names either a `url` to download or a `path` bundled inside the app. The
-city dataset is bundled because it is small and static, so Weather geocodes offline from
-the moment the app is installed.
+A dataset entry names either a `url` to download or a `path` bundled inside the app. Every
+dataset is downloaded today; `copy_bundled_asset` stays because a small, static dataset is
+better shipped in the repository than fetched.
 
 Design guarantees:
 - Idempotent: an unchanged dataset (pinned version == active version) is skipped, so a
@@ -40,7 +40,6 @@ IMPORT_METHODS = {
 	"PIN": "toolbox.india_business_data.import_pin_csv",
 	"IFSC": "toolbox.india_business_data.import_ifsc_csv",
 	"HSN": "toolbox.hsn_data.import_hsn_jsonl",
-	"City": "toolbox.city_data.import_city_jsonl",
 }
 
 

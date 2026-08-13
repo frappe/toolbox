@@ -56,7 +56,6 @@ TOOL_ROUTES = (
 	"time-unit-converter",
 	"timer",
 	"volume-converter",
-	"weather",
 	"weight-converter",
 	"world-clock",
 )
@@ -75,6 +74,11 @@ RETIRED_ROUTES = {
 	"health-calculators": "bmi-calculator",
 	"india-business-lookup": "pin-code-search",
 }
+
+# A tool that was removed rather than replaced. The site is published, so its URL keeps answering
+# rather than turning into a 404 for anyone who saved it. There is no equivalent tool to land on,
+# so it goes to All Tools, which is where a visitor can see what is there instead.
+REMOVED_ROUTES = ("weather",)
 
 
 def website_route_rules() -> list[dict[str, str]]:
@@ -108,5 +112,9 @@ def website_redirects() -> list[dict[str, object]]:
 	for retired, replacement in RETIRED_ROUTES.items():
 		redirects.append(permanent(f"/{retired}", f"/{replacement}"))
 		redirects.append(permanent(f"/toolbox/{retired}", f"/{replacement}"))
+
+	for removed in REMOVED_ROUTES:
+		redirects.append(permanent(f"/{removed}", "/"))
+		redirects.append(permanent(f"/toolbox/{removed}", "/"))
 
 	return redirects

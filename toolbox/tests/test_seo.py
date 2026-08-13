@@ -61,10 +61,10 @@ class TestPageMetadata(UnitTestCase):
 	"""The head Frappe renders for one route."""
 
 	def test_a_tool_names_itself(self):
-		metadata = seo.page_metadata("/weather", BASE_URL)
+		metadata = seo.page_metadata("/dictionary", BASE_URL)
 
-		self.assertEqual(metadata["title"], seo.PAGES["/weather"].title)
-		self.assertEqual(metadata["canonical"], "https://frappe.tools/weather")
+		self.assertEqual(metadata["title"], seo.PAGES["/dictionary"].title)
+		self.assertEqual(metadata["canonical"], "https://frappe.tools/dictionary")
 		self.assertEqual(metadata["robots"], "index, follow")
 		self.assertEqual(metadata["image"], f"{BASE_URL}{seo.CARD_IMAGE}")
 
@@ -77,9 +77,9 @@ class TestPageMetadata(UnitTestCase):
 
 	def test_the_path_frappe_passes_is_accepted_in_every_shape(self):
 		"""Frappe drops the leading slash for a route rule and passes an empty path for the root."""
-		for path in ("/weather", "weather", "/weather/", " /weather "):
+		for path in ("/dictionary", "dictionary", "/dictionary/", " /dictionary "):
 			with self.subTest(path=path):
-				self.assertEqual(seo.page_metadata(path, BASE_URL)["title"], seo.PAGES["/weather"].title)
+				self.assertEqual(seo.page_metadata(path, BASE_URL)["title"], seo.PAGES["/dictionary"].title)
 
 		for path in ("", "/"):
 			with self.subTest(path=path):
@@ -111,7 +111,7 @@ class TestPageMetadata(UnitTestCase):
 
 		self.assertEqual([link["path"] for link in links], [f"/{route}" for route in TOOL_ROUTES])
 		self.assertEqual(links[0]["name"], seo.PAGES[links[0]["path"]].name)
-		self.assertEqual(seo.page_metadata("/weather", BASE_URL)["tool_links"], [])
+		self.assertEqual(seo.page_metadata("/dictionary", BASE_URL)["tool_links"], [])
 		self.assertEqual(seo.page_metadata("/settings", BASE_URL)["tool_links"], [])
 
 	def test_every_route_has_a_title_for_the_client(self):
@@ -240,7 +240,7 @@ class TestHeadEscaping(UnitTestCase):
 		)
 
 	def test_a_hostile_host_cannot_break_out_of_an_attribute(self):
-		head = self.render("/weather")
+		head = self.render("/dictionary")
 
 		self.assertNotIn("<script>alert(1)</script>", head)
 		self.assertIn("&lt;script&gt;", head)

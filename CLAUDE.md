@@ -40,7 +40,7 @@ Nothing a visitor does is sent to the server. Do not add a preference, history, 
 
 Two keys live in `localStorage` today, and only two. `toolbox:theme:v1`, for the reason above, and the Currency Converter rate snapshot, which is the only thing that lets that tool convert on the first offline visit of a session. It holds public reference rates and names nobody.
 
-The Weather forecast snapshot was the third until issue #206 settled it. A forecast is keyed by the place it is for, so keeping it recorded where a visitor looked, which is usually where they live. It uses `sessionStorage` now and clears the old key when it loads, and the weather page says so. The rule the two follow: cached public data may outlive the session, a record of the visitor may not.
+The Weather forecast snapshot was the third until issue #206 settled it, and Weather itself is gone now. The rule that case established still holds: cached public data may outlive the session, a record of the visitor may not. A forecast was keyed by the place it was for, so keeping it recorded where a visitor looked.
 
 `frontend/src/test/setup.js` replaces both storages with one test double and clears both after each test. A suite that defines only one tests the other against jsdom's own copy, which nothing clears between tests.
 
@@ -235,7 +235,7 @@ Some tools share one view because they share the state behind it: the timer, the
 
 Sharing a view is all a family means. A page does not offer its siblings: one item in the sidebar is one page, and the sidebar is the only place a tool is listed. A strip of links across the family used to sit above each of these tools, and it listed the same tools the sidebar already listed. Do not add it back, and do not add tabs to a tool page.
 
-These 34 utilities are operational.
+These 33 utilities are operational.
 
 **Calculate:** Calculator · EMI · Compound Interest · SIP · CAGR · Future Value · Break-Even ·
 BMI · BMR · TDEE · Pace.
@@ -243,7 +243,7 @@ BMI · BMR · TDEE · Pace.
 Fuel Consumption · Currency.
 **India:** GST Calculator · HSN and SAC Lookup · PIN Code Search · IFSC Code Search.
 **Time:** Timer · Stopwatch · Countdown Timer · World Clock.
-**Information:** Weather · Dictionary · Script Conversion.
+**Information:** Dictionary · Script Conversion.
 **Media:** Audio Recorder · Audio Editor.
 
 Five of these were one tabbed tool each until the split: a tab has no URL, so one page competed
@@ -251,15 +251,11 @@ for several searches at once and nothing could link to the stopwatch.
 
 HSN and SAC lookup reads Toolbox's own imported release, so it needs no ERPNext or India Compliance install. The India Compliance project compiles the dataset, and it is not a runtime dependency. There is no client-side snapshot, so the lookup needs a connection and says so when it has none.
 
-All five datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, Dictionary 147,982, City 34,080 with 23,992 alternate names. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The city dataset is the one bundled in the repository rather than downloaded, because it is small and static.
+All four datasets are Active at production scale: PIN 165,616 rows, IFSC 181,719, HSN 18,687, and Dictionary 147,982. Each one ships as a checksummed release through `toolbox/data/manifest.json`. The City dataset went with Weather, and it was the only bundled one, so every dataset is downloaded today. `copy_bundled_asset` stays, because a small static dataset is still better shipped in the repository than fetched.
 
-A city carries the names it is known by locally, because GeoNames names a place in whichever language it judges most common: Munich, not München. Those names live in `Toolbox City Alias` and are matched by an indexed prefix, the same way the city's own name is. They are search keys only. The interface always shows the city's own name.
+Dictionary is a complete tool, not a placeholder. It reads the local WordNet 3.1 dataset, and answers three questions from it: what a word means, what else means it, and what it is the opposite of. The last two are gathered from every sense into one list for each part of speech, because WordNet records both against a single sense.
 
-`toolbox/city_names.py` owns the folding rule that turns a name or a query into a search key. The importer and the search must fold identically or a city becomes unreachable, so the rule has one home, and it imports nothing from Frappe because `scripts/build_city_dataset.py` uses it outside a bench.
-
-Weather and Dictionary are complete tools, not placeholders. Weather forecasts come from MET Norway and it geocodes from the local city dataset. Dictionary reads the local WordNet 3.1 dataset, and answers three questions from it: what a word means, what else means it, and what it is the opposite of. The last two are gathered from every sense into one list for each part of speech, because WordNet records both against a single sense.
-
-A failed call to MET Norway or the ECB answers 503 and records why in the Error Log, through `toolbox/provider_errors.py`. Use it for any new provider: it logs the cause once per provider per five minutes, with a deferred insert, because the caller raises next and an ordinary insert would go with the rollback.
+A failed call to the ECB answers 503 and records why in the Error Log, through `toolbox/provider_errors.py`. Use it for any new provider: it logs the cause once per provider per five minutes, with a deferred insert, because the caller raises next and an ordinary insert would go with the rollback.
 
 ## Active development priority
 

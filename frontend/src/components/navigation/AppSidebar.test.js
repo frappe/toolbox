@@ -72,15 +72,15 @@ describe('AppSidebar', () => {
 
   it('omits tools the user has hidden', async () => {
     const preferences = useToolboxPreferences()
-    const weather = toolsById.get('weather')
-    preferences.toggleHidden('weather')
+    const dictionary = toolsById.get('dictionary')
+    preferences.toggleHidden('dictionary')
 
     try {
       const wrapper = await mountSidebar()
-      expect(wrapper.findAll(`a[href="${weather.route}"]`)).toHaveLength(0)
+      expect(wrapper.findAll(`a[href="${dictionary.route}"]`)).toHaveLength(0)
       expect(wrapper.findAll(`a[href="${toolsById.get('calculator').route}"]`).length).toBeGreaterThan(0)
     } finally {
-      preferences.toggleHidden('weather')
+      preferences.toggleHidden('dictionary')
     }
   })
 })

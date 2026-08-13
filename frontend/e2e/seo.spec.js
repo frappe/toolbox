@@ -13,7 +13,7 @@ function head(html, pattern) {
 
 test('@smoke gives a crawler a different head for each route', async ({ request }) => {
   const responses = await Promise.all(
-    ['/', '/weather', '/gst-calculator'].map(async (path) => {
+    ['/', '/dictionary', '/gst-calculator'].map(async (path) => {
       const response = await request.get(path)
       expect(response.status(), path).toBe(200)
       return [path, await response.text()]
@@ -36,7 +36,7 @@ test('@smoke gives a crawler a different head for each route', async ({ request 
 })
 
 test('@smoke serves structured data a parser can read', async ({ request }) => {
-  const html = await (await request.get('/weather')).text()
+  const html = await (await request.get('/dictionary')).text()
   const block = head(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
 
   const documents = JSON.parse(block)
@@ -45,7 +45,7 @@ test('@smoke serves structured data a parser can read', async ({ request }) => {
     'WebApplication',
     'BreadcrumbList',
   ])
-  expect(documents[0].name).toBe('Weather')
+  expect(documents[0].name).toBe('Dictionary')
 })
 
 test('@smoke gives a crawler the heading and the content of the page', async ({ request }) => {
@@ -71,7 +71,7 @@ test('@smoke gives a crawler the front door, with a link to every tool', async (
 
   expect(body).toContain('<h1')
   expect(body).toContain('All Tools')
-  for (const path of ['/calculator', '/emi-calculator', '/weather', '/audio-editor']) {
+  for (const path of ['/calculator', '/emi-calculator', '/dictionary', '/audio-editor']) {
     expect(body, `${path} is not linked from the root`).toContain(`href="${path}"`)
   }
 })
@@ -144,7 +144,7 @@ test('@smoke offers every tool in the sitemap', async ({ request }) => {
   )
 
   expect(locations).toContain('/')
-  for (const path of ['/weather', '/calculator', '/dictionary', '/audio-editor']) {
+  for (const path of ['/world-clock', '/calculator', '/dictionary', '/audio-editor']) {
     expect(locations, `${path} is missing from the sitemap`).toContain(path)
   }
   // Advertising a page that carries noindex is a contradiction.

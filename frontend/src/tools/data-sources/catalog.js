@@ -25,25 +25,11 @@ export const DATASET_NOTES = {
     tools: ['Dictionary'],
     note: 'WordNet, the lexical database built at Princeton University. It carries senses, examples and the synonyms of each sense.',
   },
-  City: {
-    name: 'World cities',
-    tools: ['Weather'],
-    note: 'GeoNames cities of 15,000 people or more, with the names each is known by locally. It ships inside the application rather than being downloaded, because it is small and does not change.',
-  },
 }
 
 // A live call rather than a stored release. Refresh describes what the server does, not a promise
 // about the provider.
 export const LIVE_SOURCES = [
-  {
-    id: 'met-norway',
-    name: 'MET Norway',
-    url: 'https://api.met.no/',
-    license: 'CC BY 4.0',
-    tools: ['Weather'],
-    note: 'The Norwegian Meteorological Institute publishes the forecast, and its Sunrise service the sunrise and sunset times.',
-    refresh: 'Each place is fetched when it is asked for, kept for 20 minutes, and served from that copy for up to 6 hours if the provider cannot be reached.',
-  },
   {
     id: 'ecb',
     name: 'European Central Bank',

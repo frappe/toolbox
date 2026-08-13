@@ -159,47 +159,8 @@ describe('CalculatorView history', () => {
     expect(globalThis.sessionStorage.getItem('toolbox:calculator-history:v1')).toBe('[]')
   })
 
-  it('copies the current result only after an explicit action', async () => {
-    const wrapper = mount(CalculatorView)
-    await calculateExpression(wrapper, '9 / 4')
 
-    expect(writeText).not.toHaveBeenCalled()
-    await wrapper.get('[aria-label="Copy current result"]').trigger('click')
-    await flushPromises()
 
-    expect(writeText).toHaveBeenCalledWith('2.25')
-    expect(wrapper.get('[aria-label="Result copied"]').exists()).toBe(true)
-  })
-
-  it('clears copied state after calculating a different result', async () => {
-    const wrapper = mount(CalculatorView)
-    await calculateExpression(wrapper, '2 + 3')
-    await wrapper.get('[aria-label="Copy current result"]').trigger('click')
-    await flushPromises()
-    expect(wrapper.get('[aria-label="Result copied"]').exists()).toBe(true)
-
-    await calculateExpression(wrapper, '4 + 5')
-
-    expect(resultOutput(wrapper).text()).toBe('9')
-    expect(wrapper.get('[aria-label="Copy current result"]').exists()).toBe(true)
-    expect(wrapper.find('[aria-label="Result copied"]').exists()).toBe(false)
-  })
-
-  it('does not show copied state when copying the current result fails', async () => {
-    const wrapper = mount(CalculatorView)
-    await calculateExpression(wrapper, '2 + 3')
-    await wrapper.get('[aria-label="Copy current result"]').trigger('click')
-    await flushPromises()
-
-    await calculateExpression(wrapper, '4 + 5')
-    writeText.mockRejectedValueOnce(new Error('Clipboard denied'))
-    await wrapper.get('[aria-label="Copy current result"]').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.get('[aria-label="Copy current result"]').exists()).toBe(true)
-    expect(wrapper.find('[aria-label="Result copied"]').exists()).toBe(false)
-    expect(wrapper.get('[role="status"]').text()).toBe('Copy is unavailable in this browser.')
-  })
 })
 
 async function calculateExpression(wrapper, expression) {

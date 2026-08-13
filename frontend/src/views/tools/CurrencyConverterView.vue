@@ -24,7 +24,7 @@
 
           <div id="currency-feedback" class="pt-4"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" variant="outline" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
 
-          <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon-left="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /><Button label="Copy" variant="subtle" icon-left="lucide-copy" :disabled="converter.convertedAmount.value === null" @click="converter.copyResult()" /></div>
+          <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon-left="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /></div>
 
           <div v-if="converter.savedPairs.value.length" class="pt-6"><h3 class="text-sm font-medium text-ink-gray-8">Saved pairs</h3><div class="flex flex-wrap gap-2 pt-2"><Button v-for="pair in converter.savedPairs.value" :key="`${pair.baseCurrency}:${pair.quoteCurrency}`" variant="subtle" :label="`${pair.baseCurrency} → ${pair.quoteCurrency}`" @click="converter.usePair(pair)" /></div></div>
         </section>
@@ -50,7 +50,7 @@
           list-label="Currency conversion history"
           clear-label="Clear currency history"
           empty-title="No conversions yet"
-          empty-description="Converted amounts you copy or commit appear here."
+          empty-description="A conversion appears here once you finish typing an amount."
           reuse-title="Reuse this conversion"
           @reuse="converter.reuseHistory"
           @copy="copyHistoryEntry"
@@ -73,8 +73,6 @@
         @retry="rateChart.retry"
       />
     </div>
-
-    <p class="sr-only" role="status" aria-live="polite">{{ converter.copyStatus.value }}</p>
   </div>
 </template>
 <script setup>

@@ -65,8 +65,6 @@
         <FinancialResults
           :presentation="calculator.presentedResult.value"
           :format-value="formatValue"
-          :can-copy="Boolean(calculator.result.value)"
-          @copy="copyResult"
         />
         <ToolHistory
           :entries="calculator.historyEntries.value"
@@ -74,7 +72,7 @@
           list-label="Financial calculation history"
           clear-label="Clear financial history"
           empty-title="No results yet"
-          empty-description="Results you copy or commit appear here."
+          empty-description="A result appears here once you finish typing a value."
           reuse-title="Reuse these inputs"
           @reuse="calculator.reuseHistory"
           @copy="copyHistoryEntry"
@@ -86,9 +84,6 @@
 
     <p class="sr-only" role="status" aria-live="polite" data-testid="financial-result-status">
       {{ calculator.resultAnnouncement.value }}
-    </p>
-    <p class="sr-only" role="status" aria-live="polite" data-testid="financial-copy-status">
-      {{ calculator.copyStatus.value }}
     </p>
   </div>
 </template>
@@ -119,23 +114,6 @@ const copiedHistoryId = ref('')
 // tool follow the route rather than the mount.
 watch(variant, (id) => calculator.selectCalculator(id))
 watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
-
-function copyResult() {
-  const presentation = calculator.presentedResult.value
-  if (!presentation) return
-  const lines = [
-    calculator.activeCalculator.value.name,
-    `${presentation.primary.label}: ${formatValue.value(
-      presentation.primary.value,
-      presentation.primary.format,
-    )}`,
-    ...presentation.rows.map((row) => `${row.label}: ${formatValue.value(row.value, row.format)}`),
-    `Assumption: ${presentation.assumption}`,
-    'Estimate only. Not financial advice or a guarantee of returns.',
-  ]
-  void calculator.copyResult(lines.join('\n'))
-  calculator.recordHistory(formatValue.value)
-}
 
 async function copyHistoryEntry(entry) {
   try {

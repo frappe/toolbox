@@ -37,17 +37,6 @@
         :aria-label="presentation.chart.ariaLabel"
       />
 
-      <div class="pt-5">
-        <Button
-          class="h-11"
-          label="Copy result"
-          variant="solid"
-          icon-left="lucide-copy"
-          :disabled="!canCopy"
-          @click="emit('copy')"
-        />
-      </div>
-
       <AmortizationSchedule
         v-if="presentation.schedule"
         :schedule="presentation.schedule"
@@ -88,7 +77,7 @@
 </template>
 
 <script setup>
-import { Button, Icon } from 'frappe-ui'
+import { Icon } from 'frappe-ui'
 
 import AmortizationSchedule from './AmortizationSchedule.vue'
 import BreakEvenChart from './BreakEvenChart.vue'
@@ -97,8 +86,6 @@ import GrowthChart from './GrowthChart.vue'
 defineProps({
   presentation: { type: Object, default: null },
   formatValue: { type: Function, required: true },
-  canCopy: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['copy'])
 </script>

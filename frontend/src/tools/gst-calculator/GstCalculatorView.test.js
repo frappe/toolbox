@@ -99,21 +99,6 @@ describe('GstCalculatorView', () => {
     expect(amountInput.attributes('aria-invalid')).toBe('true')
   })
 
-  it('copies a structured summary and announces it', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(globalThis.navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
-    const wrapper = mountView()
-    await wrapper.get('#gst-amount').setValue('1000')
-    await buttonByText(wrapper, 'Copy summary').trigger('click')
-    await flushPromises()
-
-    expect(writeText).toHaveBeenCalledOnce()
-    expect(writeText.mock.calls[0][0]).toContain('CGST: INR 90.00')
-    expect(wrapper.get('[data-testid="gst-copy-status"]').text()).toBe('GST summary copied.')
-  })
 
   it('clears the amount while keeping the mode and rate', async () => {
     const wrapper = mountView()

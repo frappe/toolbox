@@ -131,21 +131,6 @@ describe('UnitConverterView', () => {
     expect(announcement.text()).toBe('')
   })
 
-  it('copies a valid result and announces success', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(globalThis.navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
-    const wrapper = mountView()
-    await valueInputs(wrapper)[0].setValue('1000')
-    const copyButton = wrapper.findAll('button').find((button) => button.text() === 'Copy result')
-    await copyButton.trigger('click')
-    await flushPromises()
-
-    expect(writeText).toHaveBeenCalledWith('1')
-    expect(wrapper.get('[data-testid="copy-status"]').text()).toBe('Copied 1 km.')
-  })
 
   it('records settled conversions in a history panel that persists locally', async () => {
     const firstWrapper = mountView()

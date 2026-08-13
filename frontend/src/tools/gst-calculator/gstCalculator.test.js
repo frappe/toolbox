@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   calculateGst,
-  createGstCopySummary,
-  formatGstCopySummary,
   getStandardGstRate,
   GST_MODES,
   GST_SUPPLY_TYPES,
@@ -199,98 +197,6 @@ describe('GST calculations', () => {
     [{ ...intraStateAdd, supplyType: 'local', amount: 100, rate: 18 }, 'INVALID_SUPPLY_TYPE'],
   ])('rejects invalid calculation input %#', (input, code) => {
     expectGstError(() => calculateGst(input), code)
-  })
-})
-
-describe('GST copy summary', () => {
-  it('builds immutable structured data and a deterministic plain-text summary', () => {
-    const result = calculateGst({ ...intraStateAdd, amount: 1_000, rate: 18 })
-    const summary = createGstCopySummary(result)
-
-    expect(summary).toEqual({
-      title: 'GST calculation',
-      fields: [
-        { label: 'Mode', value: 'Add GST' },
-        { label: 'Supply', value: 'Intra-state' },
-        { label: 'GST rate', value: '18%' },
-        { label: 'Taxable value', value: 'INR 1000.00' },
-        { label: 'CGST', value: 'INR 90.00' },
-        { label: 'SGST', value: 'INR 90.00' },
-        { label: 'IGST', value: 'INR 0.00' },
-        { label: 'Total GST', value: 'INR 180.00' },
-        { label: 'Final amount', value: 'INR 1180.00' },
-      ],
-    })
-    expect(Object.isFrozen(summary)).toBe(true)
-    expect(Object.isFrozen(summary.fields)).toBe(true)
-    expect(formatGstCopySummary(summary)).toBe(
-      [
-        'GST calculation',
-        'Mode: Add GST',
-        'Supply: Intra-state',
-        'GST rate: 18%',
-        'Taxable value: INR 1000.00',
-        'CGST: INR 90.00',
-        'SGST: INR 90.00',
-        'IGST: INR 0.00',
-        'Total GST: INR 180.00',
-        'Final amount: INR 1180.00',
-      ].join('\n'),
-    )
-  })
-
-  it('labels remove-mode totals as inclusive amounts', () => {
-    const result = calculateGst({
-      mode: 'remove',
-      supplyType: 'inter-state',
-      amount: 1_180,
-      rate: 18,
-    })
-    const summary = createGstCopySummary(result, { currencyCode: 'USD' })
-
-    expect(summary.fields.at(-1)).toEqual({ label: 'Inclusive amount', value: 'USD 1180.00' })
-  })
-
-  it('rejects malformed summary inputs', () => {
-    expectGstError(() => createGstCopySummary({}), 'INVALID_RESULT')
-    const result = calculateGst({ ...intraStateAdd, amount: 100, rate: 5 })
-    expectGstError(
-      () => createGstCopySummary(result, { currencyCode: 'inr' }),
-      'INVALID_CURRENCY_CODE',
-    )
-    expectGstError(() => formatGstCopySummary(null), 'INVALID_SUMMARY')
-  })
-
-  it.each([NaN, Infinity, -1, 101, 5.12345])(
-    'rejects a summary result with the invalid rate %s',
-    (rate) => {
-      const result = calculateGst({ ...intraStateAdd, amount: 100, rate: 5 })
-      expectGstError(() => createGstCopySummary({ ...result, rate }), 'INVALID_RESULT')
-    },
-  )
-
-  it('rejects summary results with contradictory paise totals', () => {
-    const result = calculateGst({ ...intraStateAdd, amount: 100, rate: 5 })
-
-    expectGstError(
-      () => createGstCopySummary({ ...result, totalGst: result.totalGst - 0.01 }),
-      'INVALID_RESULT',
-    )
-    expectGstError(
-      () =>
-        createGstCopySummary({
-          ...result,
-          inclusiveAmount: result.inclusiveAmount - 0.01,
-        }),
-      'INVALID_RESULT',
-    )
-  })
-
-  it('rejects a summary result with a tax split that contradicts its supply type', () => {
-    const result = calculateGst({ ...intraStateAdd, amount: 100, rate: 5 })
-    const interStateSplit = { ...result, cgst: 0, sgst: 0, igst: result.totalGst }
-
-    expectGstError(() => createGstCopySummary(interStateSplit), 'INVALID_RESULT')
   })
 })
 

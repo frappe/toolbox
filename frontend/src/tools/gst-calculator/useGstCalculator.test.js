@@ -163,26 +163,7 @@ describe('GST calculator state', () => {
     expect(calculator.selectedRateId.value).toBe(DEFAULT_GST_RATE_ID)
   })
 
-  it('copies the engine structured summary', async () => {
-    const calculator = useGstCalculator()
-    const clipboard = { writeText: vi.fn().mockResolvedValue(undefined) }
-    calculator.updateAmount('1000')
 
-    expect(await calculator.copyResult(clipboard)).toBe(true)
-    expect(clipboard.writeText).toHaveBeenCalledOnce()
-    expect(clipboard.writeText.mock.calls[0][0]).toContain('GST calculation\nMode: Add GST')
-    expect(clipboard.writeText.mock.calls[0][0]).toContain('Total GST: INR 180.00')
-    expect(calculator.copyStatus.value).toBe('GST summary copied.')
-  })
-
-  it('reports clipboard failures without clearing the result', async () => {
-    const calculator = useGstCalculator()
-    calculator.updateAmount('1000')
-
-    expect(await calculator.copyResult(null)).toBe(false)
-    expect(calculator.copyStatus.value).toContain('unavailable')
-    expect(calculator.result.value.totalGst).toBe(180)
-  })
 })
 
 describe('GST input and display helpers', () => {

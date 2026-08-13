@@ -35,20 +35,21 @@ export function useUnitConverter(options = {}) {
   const lastEditedSide = ref('from')
   const errorMessage = ref('')
   const inputHint = ref('')
-  const copyMessage = ref('')
   const conversionAnnouncement = ref('')
 
   const category = computed(() => getCategory(categoryId.value))
   const fromUnit = computed(() => getUnit(fromUnitId.value))
   const toUnit = computed(() => getUnit(toUnitId.value))
-  const copyValue = computed(() =>
+  // The derived side: the one the visitor did not type into. `recordHistory` and the announcement
+  // both declare their own `resultUnit`, so these carry a different name rather than shadow.
+  const derivedValue = computed(() =>
     lastEditedSide.value === 'from' ? toInput.value : fromInput.value,
   )
-  const copyUnit = computed(() =>
+  const derivedUnit = computed(() =>
     lastEditedSide.value === 'from' ? toUnit.value : fromUnit.value,
   )
-  const canCopy = computed(
-    () => !errorMessage.value && parseEditableNumber(copyValue.value).kind === 'valid',
+  const hasSettledConversion = computed(
+    () => !errorMessage.value && parseEditableNumber(derivedValue.value).kind === 'valid',
   )
 
   function setCategory(nextCategoryId) {
@@ -107,7 +108,7 @@ export function useUnitConverter(options = {}) {
   // Snapshot the current settled conversion into shared history. The source is the side the
   // user last edited; the result is the derived opposite side. De-duped against the last row.
   function recordHistory() {
-    if (!canCopy.value) return
+    if (!hasSettledConversion.value) return
     const fromSide = lastEditedSide.value === 'from'
     const sourceRaw = fromSide ? fromInput.value : toInput.value
     const sourceUnit = fromSide ? fromUnit.value : toUnit.value
@@ -149,21 +150,6 @@ export function useUnitConverter(options = {}) {
     const side = payload.side === 'to' ? 'to' : 'from'
     if (side === 'from') updateFromInput(String(payload.value ?? ''))
     else updateToInput(String(payload.value ?? ''))
-  }
-
-  async function copyResult(clipboard = globalThis.navigator?.clipboard) {
-    if (!canCopy.value) return false
-
-    try {
-      await clipboard?.writeText(copyValue.value)
-      if (!clipboard?.writeText) throw new Error('Clipboard unavailable')
-      copyMessage.value = `Copied ${copyValue.value} ${copyUnit.value.symbol}.`
-      recordHistory()
-      return true
-    } catch {
-      copyMessage.value = 'Could not copy the result. Select the value and copy it manually.'
-      return false
-    }
   }
 
   function setUnit(side, nextUnitId) {
@@ -218,7 +204,6 @@ export function useUnitConverter(options = {}) {
   function clearFeedback() {
     errorMessage.value = ''
     inputHint.value = ''
-    copyMessage.value = ''
     conversionAnnouncement.value = ''
   }
 
@@ -235,11 +220,10 @@ export function useUnitConverter(options = {}) {
     lastEditedSide,
     errorMessage,
     inputHint,
-    copyMessage,
     conversionAnnouncement,
-    copyValue,
-    copyUnit,
-    canCopy,
+    derivedValue,
+    derivedUnit,
+    hasSettledConversion,
     historyEntries: history.entries,
     recordHistory,
     reuseHistory,
@@ -253,7 +237,6 @@ export function useUnitConverter(options = {}) {
     swap,
     clearValues,
     reset,
-    copyResult,
   }
 }
 

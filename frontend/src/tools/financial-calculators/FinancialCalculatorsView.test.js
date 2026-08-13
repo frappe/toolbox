@@ -163,26 +163,6 @@ describe('FinancialCalculatorsView', () => {
     expect(wrapper.find('output').exists()).toBe(false)
   })
 
-  it('copies a structured result with the disclaimer', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(globalThis.navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
-    const wrapper = mountView()
-    await wrapper
-      .findAll('button')
-      .find((button) => button.text() === 'Copy result')
-      .trigger('click')
-    await flushPromises()
-
-    expect(writeText).toHaveBeenCalledOnce()
-    expect(writeText.mock.calls[0][0]).toContain('EMI')
-    expect(writeText.mock.calls[0][0]).toContain('Not financial advice')
-    expect(wrapper.get('[data-testid="financial-copy-status"]').text()).toBe(
-      'Financial result copied.',
-    )
-  })
 
   it('clears the inputs with a single Clear', async () => {
     const wrapper = mountView()

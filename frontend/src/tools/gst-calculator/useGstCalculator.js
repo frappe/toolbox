@@ -3,8 +3,6 @@ import { computed, ref } from 'vue'
 import { useToolHistory } from '@/composables/useToolHistory'
 import {
   calculateGst,
-  createGstCopySummary,
-  formatGstCopySummary,
   getStandardGstRate,
   GST_MODES,
   GST_SUPPLY_TYPES,
@@ -27,7 +25,6 @@ export function useGstCalculator(options = {}) {
   const errorMessage = ref('')
   const inputHint = ref('')
   const resultAnnouncement = ref('')
-  const copyStatus = ref('')
   const handoffApplied = ref(applyInitialRate(options.initialRate))
 
   const amountLabel = computed(() =>
@@ -36,7 +33,6 @@ export function useGstCalculator(options = {}) {
   const finalAmountLabel = computed(() =>
     mode.value === GST_MODES.ADD ? 'Final amount' : 'Inclusive amount',
   )
-  const canCopy = computed(() => Boolean(result.value))
 
   function setMode(nextMode) {
     if (!Object.values(GST_MODES).includes(nextMode)) return
@@ -86,24 +82,8 @@ export function useGstCalculator(options = {}) {
     clearFeedback()
   }
 
-  async function copyResult(clipboard = globalThis.navigator?.clipboard) {
-    if (!result.value) return false
-
-    try {
-      if (!clipboard?.writeText) throw new Error('Clipboard unavailable')
-      const summary = createGstCopySummary(result.value)
-      await clipboard.writeText(formatGstCopySummary(summary))
-      copyStatus.value = 'GST summary copied.'
-      recordHistory()
-      return true
-    } catch {
-      copyStatus.value = 'Copy is unavailable in this browser.'
-      return false
-    }
-  }
-
-  // Record the current GST result. De-dupes against the last row so recording on both the
-  // amount-commit and a copy of the same calculation never doubles an entry.
+  // Record the current GST result. It de-dupes against the last row, which mattered when a copy
+  // recorded one as well as the amount-commit, and still guards a repeated commit.
   function recordHistory() {
     const current = result.value
     if (!current) return
@@ -205,7 +185,6 @@ export function useGstCalculator(options = {}) {
     errorMessage.value = ''
     inputHint.value = ''
     resultAnnouncement.value = ''
-    copyStatus.value = ''
   }
 
   return {
@@ -219,10 +198,8 @@ export function useGstCalculator(options = {}) {
     errorMessage,
     inputHint,
     resultAnnouncement,
-    copyStatus,
     handoffApplied,
     finalAmountLabel,
-    canCopy,
     historyEntries: history.entries,
     recordHistory,
     reuseHistory,
@@ -235,7 +212,6 @@ export function useGstCalculator(options = {}) {
     updateCustomRate,
     clear,
     reset,
-    copyResult,
   }
 }
 

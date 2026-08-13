@@ -76,26 +76,8 @@
             {{ converter.inputHint.value }}
           </p>
 
-          <div class="flex flex-col gap-3 px-2 pb-1 pt-4 sm:flex-row sm:items-center">
-            <div class="flex flex-wrap gap-2">
-              <Button
-                label="Copy result"
-                variant="solid"
-                icon-left="lucide-copy"
-                :disabled="!converter.canCopy.value"
-                @click="converter.copyResult()"
-              />
-              <Button label="Clear" variant="subtle" @click="converter.clearValues" />
-            </div>
-            <p
-              v-if="converter.copyMessage.value"
-              class="text-sm text-ink-gray-6 sm:ml-auto sm:text-right"
-              role="status"
-              aria-live="polite"
-              data-testid="copy-status"
-            >
-              {{ converter.copyMessage.value }}
-            </p>
+          <div class="flex flex-wrap gap-2 px-2 pb-1 pt-4">
+            <Button label="Clear" variant="subtle" @click="converter.clearValues" />
           </div>
         </div>
       </section>
@@ -107,7 +89,7 @@
           list-label="Unit conversion history"
           clear-label="Clear unit history"
           empty-title="No conversions yet"
-          empty-description="Converted values you copy or commit appear here."
+          empty-description="A conversion appears here once you finish typing a value."
           reuse-title="Reuse this conversion"
           @reuse="converter.reuseHistory"
           @copy="copyHistoryEntry"

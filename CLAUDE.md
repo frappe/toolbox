@@ -257,7 +257,9 @@ A city carries the names it is known by locally, because GeoNames names a place 
 
 `toolbox/city_names.py` owns the folding rule that turns a name or a query into a search key. The importer and the search must fold identically or a city becomes unreachable, so the rule has one home, and it imports nothing from Frappe because `scripts/build_city_dataset.py` uses it outside a bench.
 
-Weather and Dictionary are complete tools, not placeholders. Weather forecasts come from MET Norway and it geocodes from the local city dataset. Dictionary reads the local WordNet 3.1 dataset.
+Weather and Dictionary are complete tools, not placeholders. Weather forecasts come from MET Norway and it geocodes from the local city dataset. Dictionary reads the local WordNet 3.1 dataset, and answers three questions from it: what a word means, what else means it, and what it is the opposite of. The last two are gathered from every sense into one list for each part of speech, because WordNet records both against a single sense.
+
+A failed call to MET Norway or the ECB answers 503 and records why in the Error Log, through `toolbox/provider_errors.py`. Use it for any new provider: it logs the cause once per provider per five minutes, with a deferred insert, because the caller raises next and an ordinary insert would go with the rollback.
 
 ## Active development priority
 
@@ -277,21 +279,21 @@ Routes moved to the site root, and each one renders its own metadata for search 
 
 ## Next development steps
 
-1. Add synonyms and antonyms as sections inside Dictionary. Synonyms need no new data. 110,635 entries already carry them.
+1. Add administrator import and release-status controls for the datasets. Every dataset is imported and Active at production scale, but an import and its release status both need a bench shell today.
 
-2. Add administrator import and release-status controls for the datasets.
-
-3. Run `yarn verify` and the full browser matrix before a release.
+2. Run `yarn verify` and the full browser matrix before a release.
 
 ## Last verified baseline
 
-The isolated Frappe test site passed 169 tests.
+The isolated Frappe test site passed 204 tests.
 
-The frontend passed 625 tests across 82 files. The production Vite build passed.
+The frontend passed 712 tests across 90 files. The production Vite build passed.
 
-The full Playwright matrix passed 305 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium. It runs fully parallel: with no shared account there is nothing for specs to race on.
+The full Playwright matrix passed 332 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium, in 4 minutes. It runs fully parallel: with no shared account there is nothing for specs to race on.
 
 Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
+
+Run it on its own. Two matrices at once, or one alongside a build, starve the single web server, and every spec then fails on a 30-second navigation timeout that reads like a real regression. Check the durations before believing such a failure: a real one finishes fast.
 
 ## Skill usage (always)
 

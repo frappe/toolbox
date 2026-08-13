@@ -15,6 +15,7 @@ for (const path of [
   // the check that it actually did: the route set is injected at build time, and a route the
   // worker does not claim serves nothing at all on an offline reload.
   '/stopwatch',
+  '/time-zone-converter',
 ]) {
   const heading = headingFor(path)
 

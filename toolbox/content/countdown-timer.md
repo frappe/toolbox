@@ -60,7 +60,7 @@ a countdown is usually watched for at the end.
 Your device's own. The date and time you pick is treated as the clock time where you are, and the
 browser turns it into a moment using your zone's rules. To count down to a time given in another
 country, work out what that time is where you are with the
-[World Clock](/world-clock), then enter that.
+[Time Zone Converter](/time-zone-converter), then enter that.
 
 ### How far ahead can the target be?
 

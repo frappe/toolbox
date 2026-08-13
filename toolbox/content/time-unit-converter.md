@@ -62,8 +62,8 @@ number of days. Every unit here has one fixed length, which is why the list stop
 ### Does this convert a clock time between time zones?
 
 No. It converts a length of time, not a point in time. One hour is 60 minutes wherever you are.
-For the time of day in another city, and the offset between two cities, use the
-[World Clock](/world-clock).
+To read one clock time in another city, use the [Time Zone Converter](/time-zone-converter). For
+the time in those cities right now, use the [World Clock](/world-clock).
 
 ### Does the converter work offline, and is anything I type stored?
 

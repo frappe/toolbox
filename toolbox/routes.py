@@ -54,6 +54,7 @@ TOOL_ROUTES = (
 	"tdee-calculator",
 	"temperature-converter",
 	"time-unit-converter",
+	"time-zone-converter",
 	"timer",
 	"volume-converter",
 	"weight-converter",

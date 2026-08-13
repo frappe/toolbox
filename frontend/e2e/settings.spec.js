@@ -6,6 +6,13 @@ import { tools } from '../src/data/toolRegistry'
 // label ran into the next control, and the r of "Calculator" touched the EMI checkbox.
 //
 // jsdom has no layout, so a unit test cannot see this. The check is geometric on purpose.
+// Settings is a dialog with its own sidebar. The tool list is its second panel, and reka unmounts
+// an inactive panel, so every check here opens that tab first, the same as a visitor.
+async function openSidebarTools(page) {
+  await page.getByRole('tab', { name: 'Sidebar tools' }).click()
+  await expect(page.getByRole('heading', { name: 'Sidebar tools' })).toBeVisible()
+}
+
 async function checkboxBoxes(page) {
   return page.evaluate(() =>
     [...document.querySelectorAll('input[type=checkbox]')]
@@ -43,7 +50,7 @@ for (const [width, height] of [
   test(`keeps every sidebar-tool checkbox clear of the next at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height })
     await page.goto('/settings')
-    await expect(page.getByRole('heading', { name: 'Sidebar tools' })).toBeVisible()
+    await openSidebarTools(page)
 
     const boxes = await checkboxBoxes(page)
 
@@ -55,6 +62,7 @@ for (const [width, height] of [
 
 test('brings the hidden tools back when the settings are reset', async ({ page }) => {
   await page.goto('/settings')
+  await openSidebarTools(page)
   const calculator = page.getByRole('checkbox', { name: 'Calculator', exact: true })
   const emi = page.getByRole('checkbox', { name: 'EMI Calculator', exact: true })
 
@@ -76,11 +84,42 @@ test('brings the hidden tools back when the settings are reset', async ({ page }
 test('keeps the tool list inside the page on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.goto('/settings')
-  await expect(page.getByRole('heading', { name: 'Sidebar tools' })).toBeVisible()
+  await openSidebarTools(page)
 
   const overflows = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   )
 
   expect(overflows).toBe(false)
+})
+
+test('opens settings as a dialog over the page, and leaves the route when it closes', async ({ page }) => {
+  // The dialog stays behind the /settings route: the route is linked from the navigation, it is
+  // published, and the server answers it with `noindex, follow`. A dialog with no URL would lose
+  // the link, the bookmark and that header.
+  await page.goto('/calculator')
+  await page.getByRole('button', { name: 'Toolbox menu' }).click()
+  // The brand menu is a Dropdown, so its entries carry `role="menuitem"` rather than `link`,
+  // even though each one is an anchor.
+  await page.getByRole('menuitem', { name: 'Settings' }).click()
+
+  await expect(page).toHaveURL(/\/settings$/)
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Preferences' })).toHaveAttribute('aria-selected', 'true')
+
+  await page.keyboard.press('Escape')
+
+  // Back to the tool the visitor came from, rather than leaving the URL naming a closed dialog.
+  await expect(page).toHaveURL(/\/calculator$/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})
+
+test('sends a visitor who arrived at settings directly to All Tools when it closes', async ({ page }) => {
+  await page.goto('/settings')
+  await expect(page.getByRole('dialog')).toBeVisible()
+
+  await page.keyboard.press('Escape')
+
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'All tools' })).toBeVisible()
 })

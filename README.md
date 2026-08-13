@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="toolbox/public/pwa/toolbox-192.png" alt="" width="96" height="96" />
+
 # Toolbox
 
 Common calculators, converters, lookups, and everyday utilities — private by default.

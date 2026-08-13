@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { tools } from '@/data/toolRegistry'
@@ -92,8 +93,17 @@ const routes = [
 // trailing slash rather than appending unconditionally, which would give `//` at the root.
 const routerBase = __FRONTEND_ROUTE__.endsWith('/') ? __FRONTEND_ROUTE__ : `${__FRONTEND_ROUTE__}/`
 
+// The shell scrolls `#main-content`, not the window, so the router's own `{ top: 0 }` scrolled
+// nothing and a page opened wherever the page before it had been left. Scroll the container
+// instead, and return nothing so the router does not also scroll the window. The container is
+// absent on the first navigation, which runs before the application mounts.
+async function scrollToTop() {
+  await nextTick()
+  document.getElementById('main-content')?.scrollTo({ top: 0 })
+}
+
 export default createRouter({
   history: createWebHistory(routerBase),
   routes,
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: scrollToTop,
 })

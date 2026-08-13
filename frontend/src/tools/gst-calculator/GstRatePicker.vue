@@ -1,5 +1,9 @@
 <template>
-  <fieldset>
+  <!-- `min-w-0`: a browser gives a fieldset `min-inline-size: min-content`, so it refuses to
+       shrink below its own content. The rate strip below sits in an `overflow-x-auto` wrapper that
+       is meant to scroll on a narrow screen, and it never could: the wrapper grew with the
+       fieldset instead of being constrained by it, so the strip ran off the page. -->
+  <fieldset class="min-w-0">
     <legend class="text-sm font-medium text-ink-gray-7">GST rate</legend>
     <div class="overflow-x-auto pt-2">
       <TabButtons

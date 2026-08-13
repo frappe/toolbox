@@ -22,7 +22,7 @@
       >
         <h2 id="gst-inputs-heading" class="sr-only">GST calculation inputs</h2>
 
-        <fieldset>
+        <fieldset class="min-w-0">
           <legend class="text-sm font-medium text-ink-gray-7">Calculation</legend>
           <div class="overflow-x-auto pt-2">
             <TabButtons
@@ -57,7 +57,7 @@
           </FormControl>
         </div>
 
-        <fieldset class="pt-5">
+        <fieldset class="min-w-0 pt-5">
           <legend class="text-sm font-medium text-ink-gray-7">Place of supply</legend>
           <div class="overflow-x-auto pt-2">
             <TabButtons

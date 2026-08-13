@@ -331,10 +331,10 @@ PAGES: dict[str, Page] = {
 	),
 	"/dictionary": Page(
 		name="Dictionary",
-		title="English Dictionary — Word Meanings and Definitions",
+		title="English Dictionary — Meanings, Synonyms and Antonyms",
 		description=(
-			"Look up what an English word means, with its part of speech and example use, from "
-			"the openly licensed WordNet dataset."
+			"Look up what an English word means, with its part of speech, example use, synonyms "
+			"and antonyms, from the openly licensed WordNet dataset."
 		),
 		application_category="ReferenceApplication",
 	),

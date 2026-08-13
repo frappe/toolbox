@@ -66,31 +66,25 @@
           </ol>
         </div>
 
-        <!-- One word input answers two questions. The meaning comes first, because this is a
-             dictionary, and the synonyms of every sense are gathered into one list under it. -->
-        <section class="pt-8" aria-labelledby="dictionary-synonyms-heading">
-          <h3 id="dictionary-synonyms-heading" class="text-sm font-semibold uppercase tracking-wide text-ink-gray-5">
-            Synonyms
-          </h3>
-          <div v-if="synonymGroups.length" class="space-y-3 pt-3">
-            <div v-for="group in synonymGroups" :key="group.pos">
-              <p v-if="synonymGroups.length > 1" class="text-xs text-ink-gray-5">{{ group.label }}</p>
-              <div class="flex flex-wrap gap-2 pt-1.5">
-                <Button
-                  v-for="synonym in group.words"
-                  :key="synonym"
-                  variant="subtle"
-                  size="sm"
-                  :label="synonym"
-                  @click="dict.selectWord(synonym)"
-                />
-              </div>
-            </div>
-          </div>
-          <p v-else class="pt-2 text-sm leading-6 text-ink-gray-6">
-            WordNet records no synonyms for this word.
-          </p>
-        </section>
+        <!-- One word input answers three questions. The meaning comes first, because this is a
+             dictionary, and what else means it and what it is the opposite of follow, each
+             gathered from every sense into one list. -->
+        <div class="space-y-8 pt-8">
+          <RelatedWordsSection
+            heading="Synonyms"
+            heading-id="dictionary-synonyms-heading"
+            :groups="synonymGroups"
+            empty-message="WordNet records no synonyms for this word."
+            @select="dict.selectWord"
+          />
+          <RelatedWordsSection
+            heading="Antonyms"
+            heading-id="dictionary-antonyms-heading"
+            :groups="antonymGroups"
+            empty-message="WordNet records no antonyms for this word. Most words have none: an opposite is recorded between two particular words, not for every meaning."
+            @select="dict.selectWord"
+          />
+        </div>
 
         <div v-if="activeSource" class="mt-8 border-t border-outline-gray-2 pt-5 text-xs leading-5 text-ink-gray-5">
           <a class="font-medium underline underline-offset-2" :href="activeSource.url" target="_blank" rel="noreferrer">{{ activeSource.attribution }}</a>
@@ -143,14 +137,14 @@ import { Button, Icon, LoadingIndicator } from 'frappe-ui'
 
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { countSynonyms, groupSynonyms } from '@/tools/dictionary/synonyms'
+import RelatedWordsSection from '@/tools/dictionary/RelatedWordsSection.vue'
+import { byPartOfSpeech, partOfSpeechLabel } from '@/tools/dictionary/partsOfSpeech'
+import { countRelatedWords, groupRelatedWords } from '@/tools/dictionary/relatedWords'
 import { useDictionary } from '@/tools/dictionary/useDictionary'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
 const categoryName = getToolCategoryName('dictionary')
 const TOOL_ID = 'dictionary'
-const POS_LABELS = { noun: 'Noun', verb: 'Verb', adjective: 'Adjective', adverb: 'Adverb' }
-const POS_ORDER = ['noun', 'verb', 'adjective', 'adverb']
 
 const preferences = useToolboxPreferences()
 const dict = useDictionary()
@@ -164,17 +158,14 @@ const groupedSenses = computed(() => {
     groups.get(pos).push(sense)
   }
   return [...groups.entries()]
-    .map(([pos, senses]) => ({ pos, label: POS_LABELS[pos] ?? capitalize(pos), senses }))
-    .sort((a, b) => posRank(a.pos) - posRank(b.pos))
+    .map(([pos, senses]) => ({ pos, label: partOfSpeechLabel(pos), senses }))
+    .sort(byPartOfSpeech)
 })
 
-// A synonym is recorded against one sense, so a word with thirteen senses answers the question
-// thirteen times over with repeats. This is the one list a visitor asked for.
-const synonymGroups = computed(() =>
-  groupSynonyms(dict.senses.value, dict.word.value)
-    .map((group) => ({ ...group, label: POS_LABELS[group.pos] ?? capitalize(group.pos) }))
-    .sort((a, b) => posRank(a.pos) - posRank(b.pos)),
-)
+// Both relations are recorded against one sense, so a word with thirteen senses answers the
+// question thirteen times over with repeats. These are the two lists a visitor asked for.
+const synonymGroups = computed(() => relatedGroups('synonyms'))
+const antonymGroups = computed(() => relatedGroups('antonyms'))
 
 const activeSource = computed(() => dict.source.value ?? dict.datasetStatus.value?.source ?? null)
 const activeSourceUpdatedAt = computed(() => dict.sourceUpdatedAt.value || dict.datasetStatus.value?.sourceUpdatedAt || '')
@@ -183,8 +174,12 @@ const announcement = computed(() => {
   const state = dict.state.value
   if (state === 'loading') return `Looking up ${dict.query.value}.`
   if (state === 'ready') {
-    const synonyms = countSynonyms(synonymGroups.value)
-    return `${dict.word.value}: ${dict.senses.value.length} definitions, ${synonyms} synonyms.`
+    const synonyms = countRelatedWords(synonymGroups.value)
+    const antonyms = countRelatedWords(antonymGroups.value)
+    // Most words have no antonym at all, and "0 antonyms" on every lookup is noise to somebody
+    // who hears the whole line read out.
+    const opposites = antonyms ? `, ${antonyms} antonyms` : ''
+    return `${dict.word.value}: ${dict.senses.value.length} definitions, ${synonyms} synonyms${opposites}.`
   }
   if (state === 'missing') return `No exact match for ${dict.word.value}.`
   if (state === 'unavailable') return 'The dictionary dataset is not active.'
@@ -197,13 +192,8 @@ onMounted(() => {
   void dict.loadStatus()
 })
 
-function posRank(pos) {
-  const index = POS_ORDER.indexOf(pos)
-  return index === -1 ? POS_ORDER.length : index
-}
-
-function capitalize(value) {
-  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value
+function relatedGroups(field) {
+  return groupRelatedWords(dict.senses.value, field, dict.word.value).sort(byPartOfSpeech)
 }
 
 function formatDate(value) {

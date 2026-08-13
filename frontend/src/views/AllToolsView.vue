@@ -16,14 +16,20 @@
           <span class="text-sm text-ink-gray-6">{{ group.tools.length }}</span>
         </div>
         <!-- A row for each tool rather than a card. Thirty-four bordered boxes is a page a
-             visitor scrolls past, and a hover tint shows the target just as well. -->
+             visitor scrolls past, and a hover tint shows the target just as well.
+
+             The row carries `min-w-0` as well as the text column inside it. A grid item gets
+             `min-width: auto`, so without it the row cannot shrink below its own content and grows
+             past its column: 440px inside a 343px column on a 375px phone. The shell clips rather
+             than scrolls, so the description was cut mid-word and `truncate` never fired, because
+             the paragraph believed it had the room. -->
         <div class="grid gap-1 pt-2 sm:grid-cols-2 lg:grid-cols-3">
           <RouterLink
             v-for="tool in group.tools"
             :key="tool.id"
             :to="tool.route"
             data-tool-card
-            class="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+            class="group flex min-w-0 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-surface-gray-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
           >
             <!-- The tile and the row hover share a token, so the tile takes the next step up on
                  hover. Without that it disappears into the row it sits on. -->

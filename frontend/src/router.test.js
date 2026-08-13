@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { tools } from '@/data/toolRegistry'
 import router from './router'
@@ -71,5 +71,42 @@ describe('generated routes', () => {
     const componentModule = await route.components.default()
 
     expect(componentModule.default.__name).toBe(componentName)
+  })
+})
+
+describe('scroll behavior', () => {
+  // The shell scrolls `#main-content`, so a behavior that scrolls the window leaves a page
+  // opening wherever the page before it was left.
+  const scrollBehavior = router.options.scrollBehavior
+
+  afterEach(() => {
+    document.getElementById('main-content')?.remove()
+  })
+
+  function mountContainer() {
+    const main = document.createElement('main')
+    main.id = 'main-content'
+    main.scrollTo = vi.fn()
+    document.body.append(main)
+    return main
+  }
+
+  it('scrolls the shell container back to the top', async () => {
+    const main = mountContainer()
+
+    await scrollBehavior()
+
+    expect(main.scrollTo).toHaveBeenCalledWith({ top: 0 })
+  })
+
+  it('returns nothing, so the router does not scroll the window as well', async () => {
+    mountContainer()
+
+    await expect(scrollBehavior()).resolves.toBeUndefined()
+  })
+
+  it('does nothing before the shell has rendered', async () => {
+    // The first navigation runs before the application mounts, so the container does not exist.
+    await expect(scrollBehavior()).resolves.toBeUndefined()
   })
 })

@@ -53,14 +53,6 @@
                 {{ result || '—' }}
               </output>
             </div>
-            <Button
-              class="size-11 shrink-0"
-              variant="ghost"
-            :icon="copiedCurrentResultValue === result ? 'lucide-check' : 'lucide-copy'"
-            :disabled="!result"
-            :aria-label="copiedCurrentResultValue === result ? 'Result copied' : 'Copy current result'"
-              @click="copyCurrentResult"
-            />
           </div>
 
           <CalculatorKeypad @insert="insertKey" @action="handleKeypadAction" />
@@ -105,7 +97,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { Button, Icon, TabButtons, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
@@ -123,7 +115,6 @@ const angleTabs = [
 ]
 const expressionField = ref(null)
 const copiedEntryId = ref('')
-const copiedCurrentResultValue = ref(null)
 const copyStatus = ref('')
 const preferences = useToolboxPreferences()
 const history = useCalculatorHistory()
@@ -141,9 +132,6 @@ const calculator = useCalculator({ onCalculated: history.add })
 const { expression, result, errorMessage, angleMode } = calculator
 
 onMounted(() => preferences.recordRecent('calculator'))
-watch([expression, result, angleMode], () => {
-  copiedCurrentResultValue.value = null
-})
 
 // TextInput exposes its underlying <input> as `el`.
 function expressionElement() {
@@ -212,21 +200,7 @@ async function reuseHistoryEntry(entry) {
 }
 
 async function copyHistoryEntry(entry) {
-  if (await copyText(entry.value)) {
-    copiedEntryId.value = entry.id
-    copiedCurrentResultValue.value = null
-  }
-}
-
-async function copyCurrentResult() {
-  if (!result.value) return
-  const value = result.value
-  if (await copyText(value)) {
-    copiedCurrentResultValue.value = value
-    copiedEntryId.value = ''
-  } else {
-    copiedCurrentResultValue.value = null
-  }
+  if (await copyText(entry.value)) copiedEntryId.value = entry.id
 }
 
 async function copyText(value) {

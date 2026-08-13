@@ -120,7 +120,7 @@ describe('unit converter state', () => {
     expect(converter.toUnitId.value).toBe('meter')
     expect(converter.fromInput.value).toBe('100')
     expect(converter.toInput.value).toBe('1')
-    expect(converter.copyValue.value).toBe('1')
+    expect(converter.derivedValue.value).toBe('1')
   })
 
   it('surfaces formula errors without replacing the previous result', () => {
@@ -154,25 +154,7 @@ describe('unit converter state', () => {
     expect(converter.fromInput.value).toBe('2')
   })
 
-  it('copies only a valid converted result', async () => {
-    const converter = useUnitConverter()
-    const clipboard = { writeText: vi.fn().mockResolvedValue(undefined) }
 
-    expect(await converter.copyResult(clipboard)).toBe(false)
-    converter.updateFromInput('1000')
-    expect(await converter.copyResult(clipboard)).toBe(true)
-    expect(clipboard.writeText).toHaveBeenCalledWith('1')
-    expect(converter.copyMessage.value).toBe('Copied 1 km.')
-  })
-
-  it('reports clipboard failures without changing the conversion', async () => {
-    const converter = useUnitConverter()
-    converter.updateFromInput('1000')
-
-    expect(await converter.copyResult(null)).toBe(false)
-    expect(converter.copyMessage.value).toContain('Could not copy')
-    expect(converter.toInput.value).toBe('1')
-  })
 })
 
 describe('editable number parsing and formatting', () => {

@@ -102,8 +102,6 @@
         <GstResults
           :result="calculator.result.value"
           :final-amount-label="calculator.finalAmountLabel.value"
-          :can-copy="calculator.canCopy.value"
-          @copy="calculator.copyResult()"
         />
         <ToolHistory
           :entries="calculator.historyEntries.value"
@@ -111,7 +109,7 @@
           list-label="GST calculation history"
           clear-label="Clear GST history"
           empty-title="No calculations yet"
-          empty-description="GST results you copy or commit appear here."
+          empty-description="A GST result appears here once you finish typing an amount."
           reuse-title="Reuse these inputs"
           @reuse="calculator.reuseHistory"
           @copy="copyHistoryEntry"
@@ -123,9 +121,6 @@
 
     <p class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="gst-result-status">
       {{ calculator.resultAnnouncement.value }}
-    </p>
-    <p class="sr-only" role="status" aria-live="polite" data-testid="gst-copy-status">
-      {{ calculator.copyStatus.value }}
     </p>
   </div>
 </template>

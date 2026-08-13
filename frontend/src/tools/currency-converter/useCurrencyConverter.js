@@ -12,7 +12,6 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
   const snapshotRefreshedAt = ref(snapshot?.snapshotRefreshedAt ?? '')
   const loadState = ref(snapshot ? 'snapshot' : 'idle')
   const errorMessage = ref('')
-  const copyStatus = ref('')
   const amount = ref('1000') // the source amount (kept for the stable public contract)
   const destinationAmount = ref('')
   const lastEdited = ref('source') // which box the user typed in; the other side is derived
@@ -82,19 +81,16 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
 
   function swapCurrencies() {
     ;[sourceCurrency.value, destinationCurrency.value] = [destinationCurrency.value, sourceCurrency.value]
-    copyStatus.value = ''
   }
 
   function updateSourceAmount(value) {
     amount.value = value
     lastEdited.value = 'source'
-    copyStatus.value = ''
   }
 
   function updateDestinationAmount(value) {
     destinationAmount.value = value
     lastEdited.value = 'destination'
-    copyStatus.value = ''
   }
 
   function parseAmount(raw) {
@@ -118,19 +114,6 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     const pairs = preferences.savedCurrencyPairs.value.filter(({ baseCurrency, quoteCurrency }) => `${baseCurrency}:${quoteCurrency}` !== pairKey.value)
     if (!isPairSaved.value) pairs.unshift({ baseCurrency: sourceCurrency.value, quoteCurrency: destinationCurrency.value })
     preferences.setSavedCurrencyPairs(pairs)
-  }
-
-  async function copyResult(clipboard = globalThis.navigator?.clipboard) {
-    if (convertedAmount.value === null || sourceValue.value === null) return false
-    try {
-      await clipboard.writeText(`${formatAmount(sourceValue.value)} ${sourceCurrency.value} = ${formatAmount(convertedAmount.value)} ${destinationCurrency.value} (ECB reference rate, ${rateData.value.rateDate})`)
-      copyStatus.value = 'Conversion copied.'
-      recordHistory()
-      return true
-    } catch {
-      copyStatus.value = 'Copy is unavailable in this browser.'
-      return false
-    }
   }
 
   // A settled, valid conversion is worth keeping; recording de-dupes against the last row,
@@ -165,7 +148,7 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     if (!currencies.value.some(({ code }) => code === destinationCurrency.value) || destinationCurrency.value === sourceCurrency.value) destinationCurrency.value = sourceCurrency.value === 'USD' ? 'INR' : 'USD'
   }
 
-  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, copyStatus, currencies, convertedAmount, amountError, isPairSaved, savedPairs: preferences.savedCurrencyPairs, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, toggleSavedPair, copyResult, formatAmount, historyEntries: history.entries, recordHistory, reuseHistory, removeHistory: history.remove, clearHistory: history.clear }
+  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, currencies, convertedAmount, amountError, isPairSaved, savedPairs: preferences.savedCurrencyPairs, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, toggleSavedPair, formatAmount, historyEntries: history.entries, recordHistory, reuseHistory, removeHistory: history.remove, clearHistory: history.clear }
 }
 
 export async function fetchReferenceRates(fetchImpl = globalThis.fetch) {

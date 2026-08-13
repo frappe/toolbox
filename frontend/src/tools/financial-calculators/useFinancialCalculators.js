@@ -33,7 +33,6 @@ export function useFinancialCalculators(options = {}) {
   )
   const result = ref(null)
   const errorMessage = ref('')
-  const copyStatus = ref('')
   const activeCalculator = computed(() => financialCalculatorsById.get(activeId.value))
   const activeInputs = computed(() => inputValues[activeId.value])
   const presentedResult = computed(() =>
@@ -65,19 +64,6 @@ export function useFinancialCalculators(options = {}) {
   function reset() {
     Object.assign(activeInputs.value, createDefaultFinancialInputs(activeCalculator.value))
     recalculate()
-  }
-
-  async function copyResult(summary, clipboard = globalThis.navigator?.clipboard) {
-    if (!result.value || !summary) return false
-    try {
-      if (!clipboard?.writeText) throw new Error('Clipboard unavailable')
-      await clipboard.writeText(summary)
-      copyStatus.value = 'Financial result copied.'
-      return true
-    } catch {
-      copyStatus.value = 'Copy is unavailable in this browser.'
-      return false
-    }
   }
 
   function recalculate() {
@@ -121,7 +107,6 @@ export function useFinancialCalculators(options = {}) {
 
   function clearFeedback() {
     errorMessage.value = ''
-    copyStatus.value = ''
   }
 
   recalculate()
@@ -134,7 +119,6 @@ export function useFinancialCalculators(options = {}) {
     result,
     presentedResult,
     errorMessage,
-    copyStatus,
     resultAnnouncement,
     historyEntries: computed(() => history.value.entries.value),
     recordHistory,
@@ -145,6 +129,5 @@ export function useFinancialCalculators(options = {}) {
     updateInput,
     clear,
     reset,
-    copyResult,
   }
 }

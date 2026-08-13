@@ -24,6 +24,23 @@ const QUIET = {
   sourceUpdatedAt: '',
 }
 
+// Senses of "right" that carry an opposite, taken from the release as written. WordNet records
+// ten of them across four parts of speech, and "wrong" five times over.
+const RIGHT = {
+  schemaVersion: 1,
+  state: 'ready',
+  word: 'right',
+  senses: [
+    { pos: 'noun', definition: 'anything in accord with principles of justice', examples: [], synonyms: ['rightfulness'], antonyms: ['wrong'] },
+    { pos: 'noun', definition: 'location near or direction toward the right side', examples: [], synonyms: [], antonyms: ['left'] },
+    { pos: 'verb', definition: 'make reparations or amends for', examples: [], synonyms: ['redress'], antonyms: ['wrong'] },
+    { pos: 'adjective', definition: 'free from error', examples: [], synonyms: ['correct'], antonyms: ['wrong'] },
+    { pos: 'adjective', definition: 'of or belonging to the political right', examples: [], synonyms: [], antonyms: ['left', 'center'] },
+  ],
+  source: null,
+  sourceUpdatedAt: '',
+}
+
 async function lookUp(response) {
   lookup.mockResolvedValue(response)
   const wrapper = mount(DictionaryView, { attachTo: document.body })
@@ -69,5 +86,40 @@ describe('the synonyms of a word', () => {
     const wrapper = await lookUp(QUIET)
 
     expect(wrapper.get('[role="status"]').text()).toBe('quiet: 3 definitions, 4 synonyms.')
+  })
+})
+
+describe('the antonyms of a word', () => {
+  it('answers once for an opposite recorded against several senses', async () => {
+    const wrapper = await lookUp(RIGHT)
+    const section = wrapper.get('section[aria-labelledby="dictionary-antonyms-heading"]')
+
+    // Six recorded antonyms, "wrong" three times, become three lists and five chips. The same
+    // word appears under two parts of speech, because there it is a different opposite.
+    expect(section.findAll('button').map((button) => button.text())).toEqual([
+      'wrong',
+      'left',
+      'wrong',
+      'wrong',
+      'left',
+      'center',
+    ])
+    expect(section.text()).toContain('Noun')
+    expect(section.text()).toContain('Adjective')
+  })
+
+  it('says so for the many words that have no opposite', async () => {
+    const wrapper = await lookUp(QUIET)
+
+    expect(wrapper.get('section[aria-labelledby="dictionary-antonyms-heading"]').text()).toContain(
+      'WordNet records no antonyms for this word',
+    )
+  })
+
+  it('counts the opposites for a screen reader, and stays quiet when there are none', async () => {
+    expect((await lookUp(RIGHT)).get('[role="status"]').text()).toBe(
+      'right: 5 definitions, 3 synonyms, 6 antonyms.',
+    )
+    expect((await lookUp(QUIET)).get('[role="status"]').text()).not.toContain('antonyms')
   })
 })

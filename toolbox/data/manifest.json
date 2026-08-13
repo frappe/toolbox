@@ -13,11 +13,11 @@
     "Dictionary": {
       "compression": "gzip",
       "format": "jsonl",
-      "sha256": "09e4b4e4c0fb15b6891861ffb51590e16d715aa23f6f07aebc9c7bbd456e5b10",
-      "size": 8581579,
+      "sha256": "2ad8f582344294ecfacb6250abd14197c770ca18a5ac2cc7ddfab6b2baaa2ba3",
+      "size": 8725107,
       "sourceUpdatedAt": "2011-06-30",
-      "url": "https://github.com/frappe/toolbox/releases/download/datasets/dictionary-WordNet-3.1.jsonl.gz",
-      "version": "WordNet-3.1"
+      "url": "https://github.com/frappe/toolbox/releases/download/datasets/dictionary-WordNet-3.1-antonyms.jsonl.gz",
+      "version": "WordNet-3.1-antonyms"
     },
     "HSN": {
       "compression": "gzip",

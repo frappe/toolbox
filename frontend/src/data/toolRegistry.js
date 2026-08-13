@@ -381,14 +381,14 @@ export const tools = [
   defineTool({
     id: 'dictionary',
     name: 'Dictionary',
-    description: 'Look up English definitions from an openly licensed dataset.',
+    description: 'Look up English definitions, synonyms and antonyms from an openly licensed dataset.',
     icon: 'lucide-book-open',
     category: 'information',
     route: '/dictionary',
     offlineCapability: 'server-dataset',
     releaseStatus: 'available',
     externalDependencyStatus: 'none',
-    searchKeywords: ['word', 'definition', 'meaning', 'spelling', 'pronunciation'],
+    searchKeywords: ['word', 'definition', 'meaning', 'spelling', 'pronunciation', 'synonym', 'antonym', 'opposite', 'thesaurus'],
   }),
   defineTool({
     id: 'script-conversion',

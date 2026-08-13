@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Toolbox">
-  <rect width="64" height="64" rx="14" fill="#171717"/>
-  <path d="M18 24h28v22H18z" fill="#fff"/>
-  <path d="M25 18h14v8H25z" fill="none" stroke="#fff" stroke-width="4"/>
-  <path d="M18 31h28" stroke="#171717" stroke-width="3"/>
-  <path d="M29 29h6v6h-6z" fill="#fff" stroke="#171717" stroke-width="2"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 235 235" role="img" aria-label="Toolbox"><defs><clipPath id="tile"><path d="M167.852 0 C204.932 0 235 30.068 235 67.148 L235 167.852 C235 204.932 204.932 235 167.852 235 L67.148 235 C30.068 235 0 204.932 0 167.852 L0 67.148 C0 30.068 30.068 0 67.148 0Z"/></clipPath></defs><g clip-path="url(#tile)"><g fill="#171717"><path d="M167.852 0 C204.932 0 235 30.068 235 67.148 L235 167.852 C235 204.932 204.932 235 167.852 235 L67.148 235 C30.068 235 0 204.932 0 167.852 L0 67.148 C0 30.068 30.068 0 67.148 0Z"/></g><g fill="#ffffff"><circle cx="99.803" cy="99.803" r="46"/><polygon points="112.856,125.838 168.01,180.993 180.993,168.01 125.838,112.856"/></g><g fill="#171717"><polygon points="113.238,80.711 70.557,38.03 38.03,70.557 80.711,113.238"/></g></g></svg>

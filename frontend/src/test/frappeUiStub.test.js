@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { Alert, Button, Dropdown, Slider, TabButtons } from 'frappe-ui'
+import { Alert, Button, Dropdown, Icon, Slider, TabButtons } from 'frappe-ui'
 import { describe, expect, it, vi } from 'vitest'
 
 // Guards the stub contract itself (#145).
@@ -144,5 +144,27 @@ describe('TabButtons stub renders a routed option as a link', () => {
     expect(routed.attributes('aria-checked')).toBe('true')
     expect(plain.element.tagName).toBe('BUTTON')
     expect(plain.attributes('href')).toBeUndefined()
+  })
+})
+
+describe('Icon stub renders the name the way the real component does', () => {
+  it('puts a lucide name on the class, and invents no attribute for it', () => {
+    // The real component is `:class="[name]"`. The stub drew a `data-icon` attribute instead, so
+    // a test could assert on something no visitor ever receives, and could not assert on the
+    // class that ships.
+    const wrapper = mount(Icon, { props: { name: 'lucide-panel-right-open' } })
+
+    expect(wrapper.classes()).toContain('lucide-panel-right-open')
+    expect(wrapper.attributes('data-icon')).toBeUndefined()
+    expect(wrapper.attributes('aria-hidden')).toBe('true')
+  })
+
+  it('keeps a class the caller passed alongside the icon name', () => {
+    const wrapper = mount(Icon, {
+      props: { name: 'lucide-panel-right-open' },
+      attrs: { class: 'rotate-180' },
+    })
+
+    expect(wrapper.classes()).toEqual(expect.arrayContaining(['lucide-panel-right-open', 'rotate-180']))
   })
 })

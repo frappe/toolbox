@@ -94,10 +94,18 @@
         :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="$emit('toggle-collapse')"
       >
+        <!--
+          The panel icon and the rotate are what frappe-ui's own SidebarCollapseToggle draws, and
+          what Frappe Drive shows. That component cannot be used here: it reads the collapsed state
+          through `inject(sidebarCollapsedKey)`, which only a frappe-ui Sidebar provides, and
+          adopting that whole component is a larger change than matching one control. It falls back
+          to a no-op outside a Sidebar, so it would render a toggle that does nothing.
+        -->
         <span class="flex size-7 shrink-0 items-center justify-center">
           <Icon
-            :name="collapsed ? 'lucide-chevrons-right' : 'lucide-chevrons-left'"
-            class="size-4"
+            name="lucide-panel-right-open"
+            class="size-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none"
+            :class="{ 'rotate-180': collapsed }"
           />
         </span>
         <span v-if="!collapsed" class="min-w-0 flex-1 truncate text-left">Collapse</span>

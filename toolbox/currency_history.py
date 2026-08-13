@@ -19,9 +19,10 @@ from typing import Callable
 import frappe
 import requests
 from frappe import _
-from frappe.exceptions import ServiceUnavailableError
 from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
+
+from toolbox.provider_errors import provider_unavailable
 
 # Query only the two spot currencies vs EUR at daily frequency, as CSV.
 ECB_DATA_URL = "https://data-api.ecb.europa.eu/service/data/EXR/D.{keys}.EUR.SP00.A"
@@ -155,9 +156,11 @@ class CurrencyHistoryService:
 				response = self._build(base, quote, range_key)
 				self.cache.set_value(cache_key, response, expires_in_sec=CACHE_TTL_SECONDS)
 				return response
-		except LockError:
-			raise ServiceUnavailableError(
-				_("Historical rates are temporarily unavailable. Please try again later.")
+		except LockError as error:
+			raise provider_unavailable(
+				_("Historical rates are temporarily unavailable. Please try again later."),
+				provider="European Central Bank (history lock)",
+				cause=error,
 			) from None
 
 	def _build(self, base: str, quote: str, range_key: str) -> dict[str, object]:
@@ -165,9 +168,11 @@ class CurrencyHistoryService:
 		wanted = [code for code in {base, quote} if code != "EUR"]
 		try:
 			observations = self.provider.fetch(wanted, start)
-		except CurrencyHistoryError:
-			raise ServiceUnavailableError(
-				_("Historical rates are temporarily unavailable. Please try again later.")
+		except CurrencyHistoryError as error:
+			raise provider_unavailable(
+				_("Historical rates are temporarily unavailable. Please try again later."),
+				provider="European Central Bank (history)",
+				cause=error,
 			) from None
 
 		points = _cross_rate_series(base, quote, observations)

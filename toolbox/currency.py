@@ -9,11 +9,11 @@ from typing import Callable
 
 import frappe
 from frappe import _
-from frappe.exceptions import ServiceUnavailableError
 from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
 
 from toolbox.currency_provider import CurrencyProviderError, EcbReferenceRateProvider
+from toolbox.provider_errors import provider_unavailable
 
 CACHE_KEY = "currency:ecb:reference-rates:v1"
 LOCK_KEY = "currency:ecb:refresh-lock:v1"
@@ -51,28 +51,37 @@ class CurrencyRateService:
 				if cached and self._is_fresh(cached):
 					return self._public_response(cached, "cached")
 				return self._refresh(cached)
-		except LockError:
+		except LockError as error:
 			cached = self._get_cached()
 			if cached:
 				return self._public_response(cached, "stale")
-			raise ServiceUnavailableError(
-				_("Currency reference rates are temporarily unavailable. Please try again later.")
+			raise provider_unavailable(
+				_("Currency reference rates are temporarily unavailable. Please try again later."),
+				provider="European Central Bank (rate lock)",
+				cause=error,
 			) from None
 
 	def _refresh(self, cached: dict[str, object] | None) -> dict[str, object]:
 		try:
 			provider_result = self.provider.fetch(cached.get("validators") if cached else None)
-		except CurrencyProviderError:
+		except CurrencyProviderError as error:
 			if cached:
 				return self._public_response(cached, "stale")
-			raise ServiceUnavailableError(
-				_("Currency reference rates are temporarily unavailable. Please try again later.")
+			raise provider_unavailable(
+				_("Currency reference rates are temporarily unavailable. Please try again later."),
+				provider="European Central Bank",
+				cause=error,
 			) from None
 
 		checked_at = self.clock().isoformat()
 		if provider_result["notModified"]:
 			if not cached:
-				raise ServiceUnavailableError(_("Currency reference rates are temporarily unavailable."))
+				raise provider_unavailable(
+					_("Currency reference rates are temporarily unavailable."),
+					provider="European Central Bank",
+					note="The ECB answered 304 Not Modified, and there is no cached table to reuse. "
+					"A conditional request was sent with validators that outlived their table.",
+				)
 			cached["providerCheckedAt"] = checked_at
 			self._store(cached)
 			return self._public_response(cached, "cached")

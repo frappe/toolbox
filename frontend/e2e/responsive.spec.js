@@ -63,24 +63,42 @@ for (const path of [
   })
 }
 
-test('truncates a tool description rather than letting it run off the screen', async ({ page }) => {
-  await page.goto('/')
+// A character budget is a proxy: the same count of wide letters takes more room than narrow ones.
+// This measures what actually renders, at the narrowest column the grid produces, which is where a
+// summary would be cut first.
+for (const [width, height, layout] of [
+  [1440, 900, 'three columns'],
+  [820, 1180, 'two columns'],
+  [375, 812, 'one column'],
+]) {
+  test(`shows every tool summary in full at ${width}px, ${layout}`, async ({ page }) => {
+    await page.setViewportSize({ width, height })
+    await page.goto('/')
 
-  const cut = await page.evaluate(() => {
-    const limit = document.querySelector('#main-content').clientWidth
-    const rows = [...document.querySelectorAll('[data-tool-card]')]
-    return {
-      rows: rows.length,
-      pastEdge: rows.filter((row) => row.getBoundingClientRect().right > limit + 1).length,
-      // A truncated description is narrower than its text: that is the ellipsis doing its job.
-      truncated: rows.filter((row) => {
-        const description = row.querySelector('p')
-        return description.scrollWidth > description.clientWidth
-      }).length,
-    }
+    const rows = await page.evaluate(() => {
+      const main = document.querySelector('#main-content')
+      // Both edges in the same frame. `getBoundingClientRect` is relative to the viewport and
+      // `clientWidth` is not, so comparing one against the other reports an overflow whenever the
+      // sidebar offsets the container.
+      const rightEdge = main.getBoundingClientRect().left + main.clientWidth
+      return [...document.querySelectorAll('[data-tool-card]')].map((row) => {
+        const summary = row.querySelector('p')
+        // `scrollWidth` equals `clientWidth` on a block that fits, so it cannot say how much room
+        // is left. Measuring the text itself can.
+        const range = document.createRange()
+        range.selectNodeContents(summary)
+        return {
+          text: summary.textContent,
+          textWidth: range.getBoundingClientRect().width,
+          available: summary.clientWidth,
+          pastEdge: row.getBoundingClientRect().right > rightEdge + 1,
+        }
+      })
+    })
+
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.filter((row) => row.pastEdge)).toEqual([])
+    const cut = rows.filter((row) => row.textWidth > row.available)
+    expect(cut.map((row) => row.text), 'these summaries do not fit their column').toEqual([])
   })
-
-  expect(cut.rows).toBeGreaterThan(0)
-  expect(cut.pastEdge).toBe(0)
-  expect(cut.truncated).toBeGreaterThan(0)
-})
+}

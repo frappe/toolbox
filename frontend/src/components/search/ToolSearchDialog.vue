@@ -35,7 +35,7 @@
             <span class="flex items-center gap-2">
               <span class="truncate text-sm font-medium text-ink-gray-9">{{ tool.name }}</span>
             </span>
-            <span class="mt-0.5 block truncate text-sm text-ink-gray-5">{{ tool.description }}</span>
+            <span class="mt-0.5 block truncate text-sm text-ink-gray-5">{{ tool.summary }}</span>
           </span>
           <Icon name="lucide-arrow-up-right" class="size-4 shrink-0 text-ink-gray-4" />
         </button>

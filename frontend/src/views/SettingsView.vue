@@ -99,7 +99,10 @@
       <div class="space-y-6 pt-4">
         <div v-for="category in toolGroups" :key="category.id">
           <p class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">{{ category.name }}</p>
-          <div class="mt-2 space-y-2">
+          <!-- A grid, not `space-y`. The frappe-ui Checkbox root is `inline-flex`, so vertical
+               margin between siblings does nothing for it: the boxes flowed inline with no
+               horizontal gap and each label ran into the next control. -->
+          <div class="grid gap-x-6 gap-y-2 pt-2 sm:grid-cols-2 lg:grid-cols-3">
             <Checkbox
               v-for="tool in category.tools"
               :key="tool.id"

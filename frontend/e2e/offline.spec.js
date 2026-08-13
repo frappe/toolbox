@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { currencyApiPattern, mockCurrencyRates } from './currency-fixture'
+import { currencyApiPattern, currencyHistoryApiPattern, mockCurrencyRates } from './currency-fixture'
 import { headingFor } from './toolPages'
 
 test.use({ allowOfflineNetworkErrors: true })
@@ -56,6 +56,11 @@ test('@smoke keeps Calculator functional while offline', async ({ context, page 
   }
 })
 
+// This one leaves the page loaded and moves inside the application instead of reloading. The
+// snapshot is read when the view mounts, so an in-app navigation away and back exercises it just
+// as a reload does, without depending on Firefox being willing to reload: while any page.route
+// handler is installed it answers NS_ERROR_OFFLINE and fails the navigation itself, before the
+// service worker is asked for the page. See #214 and the README.
 test('uses the last Currency reference-rate snapshot offline', async ({ context, page }) => {
   await mockCurrencyRates(page)
   await page.goto('/currency-converter')
@@ -65,11 +70,20 @@ test('uses the last Currency reference-rate snapshot offline', async ({ context,
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
   await page.unroute(currencyApiPattern)
+  await page.unroute(currencyHistoryApiPattern)
   await context.setOffline(true)
   try {
-    await page.reload({ waitUntil: 'domcontentloaded' })
+    // The sidebar opens the category of the tool being shown, so the hop stays inside Convert.
+    // Both hops load a route chunk the worker has to serve, so this also proves the application
+    // still navigates with no network.
+    const navigation = page.getByRole('navigation', { name: 'Toolbox navigation' })
+    await navigation.getByRole('link', { name: 'Length Converter', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Length Converter', level: 1 })).toBeVisible()
+    await navigation.getByRole('link', { name: 'Currency Converter', exact: true }).click()
+
     await expect(destination).toHaveValue('12')
-    await expect(page.getByText('offline snapshot', { exact: true })).toBeVisible()
+    // The prose below the tool says these words too, so the lookup is scoped to the state line.
+    await expect(page.getByTestId('rate-state')).toContainText('offline snapshot')
   } finally {
     await context.setOffline(false)
   }

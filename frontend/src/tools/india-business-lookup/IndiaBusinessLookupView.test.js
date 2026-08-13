@@ -56,20 +56,9 @@ describe('IndiaBusinessLookupView', () => {
     expect(ifsc.text()).toContain('IFSC dataset is not available yet')
   })
 
-  it('links to its sibling rather than switching a tab', () => {
+  it('lists no sibling on the page, because the sidebar already lists them', () => {
     const wrapper = mountAt('pin-code-search')
-    const strip = wrapper.findAll('nav a')
 
-    expect(strip).toHaveLength(2)
-    expect(strip.map((link) => link.attributes('href'))).toEqual([
-      '/pin-code-search',
-      '/ifsc-code-search',
-    ])
-    // The page you are on is named, rather than left to colour alone.
-    expect(strip.map((link) => link.attributes('aria-current'))).toEqual(['page', undefined])
+    expect(wrapper.findAll('nav a')).toHaveLength(0)
   })
-
-  // Arrow-key navigation across the TabButtons strip is exercised in a real
-  // browser by india-business-lookup.spec.js; reka's roving focus does not
-  // drive reliably under jsdom.
 })

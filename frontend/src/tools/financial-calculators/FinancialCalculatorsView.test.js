@@ -62,8 +62,8 @@ async function selectCalculator(wrapper, variant) {
   await flushPromises()
 }
 
-function activeTabLabel(wrapper) {
-  return wrapper.find('nav a[aria-current="page"]').text()
+function activeCalculatorName(wrapper) {
+  return wrapper.find('h1').text()
 }
 
 describe('FinancialCalculatorsView', () => {
@@ -88,12 +88,12 @@ describe('FinancialCalculatorsView', () => {
 
     // Each calculator keeps its own history now, so the SIP page does not show an EMI result.
     await selectCalculator(wrapper, 'sip')
-    expect(activeTabLabel(wrapper)).toBe('SIP Calculator')
+    expect(activeCalculatorName(wrapper)).toBe('SIP Calculator')
     expect(wrapper.find('[aria-label="Financial calculation history"]').exists()).toBe(false)
 
     // Back on EMI, the row is still there and still reusable.
     await selectCalculator(wrapper, 'emi')
-    expect(activeTabLabel(wrapper)).toBe('EMI Calculator')
+    expect(activeCalculatorName(wrapper)).toBe('EMI Calculator')
     await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
     await flushPromises()
 

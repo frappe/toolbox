@@ -18,15 +18,7 @@
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
       <section class="min-w-0" aria-labelledby="converter-heading">
         <h2 id="converter-heading" class="sr-only">Convert units</h2>
-        <div class="overflow-x-auto">
-          <ToolFamilyNav
-            label="Measurement category"
-            :links="siblingLinks"
-            :current-route="currentRoute"
-          />
-        </div>
-
-        <div class="mt-5 max-w-md rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
+        <div class="max-w-md rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
           <p
             class="sr-only"
             role="status"
@@ -131,7 +123,6 @@
 import { computed, ref, watch } from 'vue'
 import { Alert, Button, Icon } from 'frappe-ui'
 
-import ToolFamilyNav from '@/components/ToolFamilyNav.vue'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
@@ -141,7 +132,7 @@ import { getToolCategoryName } from '@/data/toolRegistry'
 
 // Nine converters with nine routes, rendered here together because they share the conversion
 // field and the recent-pairs list: a value already typed survives a move between measurements.
-const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const converter = useUnitConverter({ initialCategoryId: variant.value })
 const preferences = useToolboxPreferences()

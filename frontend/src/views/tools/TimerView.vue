@@ -9,11 +9,7 @@
       </div>
     </header>
 
-    <div class="mt-8 overflow-x-auto">
-      <ToolFamilyNav label="Timekeeping tool" :links="siblingLinks" :current-route="currentRoute" />
-    </div>
-
-    <div class="pt-5">
+    <div class="pt-8">
       <section v-if="variant === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
@@ -58,7 +54,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
-import ToolFamilyNav from '@/components/ToolFamilyNav.vue'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import TimeDisplay from '@/tools/timer/TimeDisplay.vue'
@@ -71,7 +66,7 @@ const timerMinutes = ref('5'), timerLabel = ref(''), countdownMode = ref('durati
 const preferences = useToolboxPreferences(), workspace = useTimerWorkspace()
 // The timer, the stopwatch and the countdown are three tools with three routes, rendered here
 // together because they share one workspace: a timer keeps running while you use the stopwatch.
-const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const stopwatchElapsed = workspace.stopwatchElapsed
 const timerAction = computed(() => workspace.state.timer.status === 'running' ? 'Pause' : workspace.state.timer.status === 'paused' ? 'Resume' : 'Start')

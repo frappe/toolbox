@@ -444,10 +444,6 @@ export function isToolAvailable(tool) {
   return tool.releaseStatus === 'available'
 }
 
-export function getFamily(familyId) {
-  return tools.filter((tool) => tool.family === familyId)
-}
-
 function defineTool(tool) {
   return Object.freeze({
     featureFlag: null,

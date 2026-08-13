@@ -3,19 +3,19 @@ import { expect, test } from './fixtures'
 test('@smoke calculates BMI, BMR, maintenance calories, and pace', async ({ page }) => {
   await page.goto('/bmi-calculator')
   const result = page.getByRole('region', { name: 'Result' })
-  const strip = page.getByRole('navigation', { name: 'Health calculator' })
+  const sidebar = page.getByRole('navigation', { name: 'Toolbox navigation' })
   await expect(result.getByRole('status', { name: 'Primary health result' })).toHaveText('22.9')
   await expect(result).toContainText('Healthy weight')
 
-  await strip.getByRole('link', { name: 'BMR Calculator' }).click()
+  await sidebar.getByRole('link', { name: 'BMR Calculator' }).click()
   await expect(result.getByRole('status', { name: 'Primary health result' })).toHaveText('1,649 kcal/day')
   await expect(result).toContainText('Mifflin–St Jeor')
 
-  await strip.getByRole('link', { name: 'TDEE Calculator' }).click()
+  await sidebar.getByRole('link', { name: 'TDEE Calculator' }).click()
   await expect(result.getByRole('status', { name: 'Primary health result' })).toHaveText('2,556 kcal/day')
   await expect(result).toContainText('Moderately active × 1.55')
 
-  await strip.getByRole('link', { name: 'Pace Calculator' }).click()
+  await sidebar.getByRole('link', { name: 'Pace Calculator' }).click()
   await expect(result.getByRole('status', { name: 'Primary health result' })).toHaveText('06:00 per km')
 
   await expect(page).toHaveURL(/\/pace-calculator$/)
@@ -25,16 +25,16 @@ test('carries the body measurements from one calculator to the next', async ({ p
   // This is why the four share a view even though each has its own route. The comment here used to
   // claim it while the test asserted only the URL, and the measurements did not carry at all.
   await page.goto('/bmi-calculator')
-  const strip = page.getByRole('navigation', { name: 'Health calculator' })
+  const sidebar = page.getByRole('navigation', { name: 'Toolbox navigation' })
   await page.getByLabel('Height').fill('180')
   await page.getByLabel('Weight').fill('82')
 
-  await strip.getByRole('link', { name: 'BMR Calculator' }).click()
+  await sidebar.getByRole('link', { name: 'BMR Calculator' }).click()
   await expect(page.getByLabel('Height')).toHaveValue('180')
   await expect(page.getByLabel('Weight')).toHaveValue('82')
 
   await page.getByLabel('Age').fill('41')
-  await strip.getByRole('link', { name: 'TDEE Calculator' }).click()
+  await sidebar.getByRole('link', { name: 'TDEE Calculator' }).click()
   await expect(page.getByLabel('Age')).toHaveValue('41')
   await expect(page.getByLabel('Height')).toHaveValue('180')
 })

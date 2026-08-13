@@ -29,37 +29,22 @@ describe('useToolFamily', () => {
     expect(variant.value).toBe('stopwatch')
   })
 
-  it('lists the siblings as real links, so a crawler can follow them', () => {
-    const { siblingLinks } = familyFor('timer')
-
-    expect(siblingLinks.value).toEqual([
-      { label: 'Timer', value: 'timer', route: '/timer' },
-      { label: 'Stopwatch', value: 'stopwatch', route: '/stopwatch' },
-      { label: 'Countdown Timer', value: 'countdown', route: '/countdown-timer' },
-    ])
-  })
-
-  it('gives a tool outside a family no siblings and no variant', () => {
-    const { variant, siblingLinks } = familyFor('calculator')
+  it('gives a tool outside a family no variant', () => {
+    const { variant } = familyFor('calculator')
 
     expect(variant.value).toBeNull()
-    expect(siblingLinks.value).toEqual([])
   })
 
   it('survives a route that names no tool', () => {
-    const { tool, variant, siblingLinks } = familyFor(undefined)
+    const { tool, variant } = familyFor(undefined)
 
     expect(tool.value).toBeUndefined()
     expect(variant.value).toBeNull()
-    expect(siblingLinks.value).toEqual([])
   })
-})
 
-describe('currentRoute', () => {
-  it('reports the path, which is what marks a link as the page you are on', () => {
-    route.path = '/stopwatch'
-    const { currentRoute } = familyFor('stopwatch')
-
-    expect(currentRoute.value).toBe('/stopwatch')
+  it('offers the siblings nowhere, because the sidebar is the only tool list', () => {
+    // A page used to carry a strip of links to the rest of its family, which listed the same
+    // tools the sidebar already lists. Removing it is the point of this contract.
+    expect(Object.keys(familyFor('timer'))).toEqual(['tool', 'variant'])
   })
 })

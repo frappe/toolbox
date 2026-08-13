@@ -49,7 +49,7 @@ test('carries the value already typed to the next measurement', async ({ page })
   await expect(page.getByRole('textbox', { name: 'To value' })).toHaveValue('212')
 
   await page
-    .getByRole('navigation', { name: 'Measurement category' })
+    .getByRole('navigation', { name: 'Toolbox navigation' })
     .getByRole('link', { name: 'Speed Converter' })
     .click()
 

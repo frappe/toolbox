@@ -15,15 +15,7 @@
       </div>
     </header>
 
-    <div class="mt-8 overflow-x-auto">
-      <ToolFamilyNav
-        label="Financial calculator"
-        :links="siblingLinks"
-        :current-route="currentRoute"
-      />
-    </div>
-
-    <div class="grid gap-8 pt-5 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
+    <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section
         class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6"
         :aria-labelledby="`${calculator.activeId.value}-inputs-heading`"
@@ -105,7 +97,6 @@
 import { computed, ref, watch } from 'vue'
 import { Button, ErrorMessage, Icon } from 'frappe-ui'
 
-import ToolFamilyNav from '@/components/ToolFamilyNav.vue'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import ToolHistory from '@/components/history/ToolHistory.vue'
@@ -118,7 +109,7 @@ import { getToolCategoryName } from '@/data/toolRegistry'
 const preferences = useToolboxPreferences()
 // Six calculators with six routes, rendered here together because they keep what was typed into
 // each: a visitor can compare an EMI against a SIP without entering the numbers twice.
-const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const calculator = useFinancialCalculators({ initialId: variant.value })
 const formatValue = computed(() => createFinancialFormatter(preferences.settings))

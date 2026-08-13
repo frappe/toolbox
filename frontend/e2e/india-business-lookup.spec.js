@@ -37,7 +37,7 @@ test('@smoke gives the PIN and IFSC searches a page each', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'PIN Code Search', level: 1 })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: 'PIN code, office, district, or state' })).toBeVisible()
 
-  await page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' }).click()
+  await page.getByRole('navigation', { name: 'Toolbox navigation' }).getByRole('link', { name: 'IFSC Code Search' }).click()
   await expect(page).toHaveURL(new RegExp(`${ifscRoute}$`))
   await expect(page.getByRole('heading', { name: 'IFSC Code Search', level: 1 })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' })).toBeVisible()
@@ -60,7 +60,7 @@ test('moves between the two searches from the keyboard', async ({ page }) => {
   // any link, and Tab reaches each one.
   await mockStatus(page)
   await page.goto(pinRoute)
-  const ifscTab = page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' })
+  const ifscTab = page.getByRole('navigation', { name: 'Toolbox navigation' }).getByRole('link', { name: 'IFSC Code Search' })
 
   await ifscTab.focus()
   await ifscTab.press('Enter')
@@ -113,7 +113,7 @@ test('searches the IFSC release', async ({ page }) => {
   )
   await page.goto(pinRoute)
 
-  await page.getByRole('navigation', { name: 'Business lookup type' }).getByRole('link', { name: 'IFSC Code Search' }).click()
+  await page.getByRole('navigation', { name: 'Toolbox navigation' }).getByRole('link', { name: 'IFSC Code Search' }).click()
   await page.getByRole('searchbox', { name: 'IFSC, bank, branch, city, or state' }).fill('HDFC0000001')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
   await expect(page.getByRole('list', { name: 'Search results' })).toContainText('HDFC Bank — Fort')

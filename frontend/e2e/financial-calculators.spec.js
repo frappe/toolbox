@@ -28,7 +28,7 @@ test('calculates investment growth and rejects an impossible break-even margin',
   await expect(page.getByRole('status', { name: 'Primary financial result' })).toHaveText('10.00%')
 
   await page
-    .getByRole('navigation', { name: 'Financial calculator' })
+    .getByRole('navigation', { name: 'Toolbox navigation' })
     .getByRole('link', { name: 'Break-Even Calculator' })
     .click()
   await expect(page).toHaveURL(/\/break-even-calculator$/)

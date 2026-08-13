@@ -233,7 +233,7 @@ Each tool page also sends its heading and its content in the HTML, inside the el
 
 Some tools share one view because they share the state behind it: the timer, the stopwatch and the countdown keep one workspace; the six financial calculators keep what was typed into each; the nine converters keep the value already entered. Each still has its own route, heading and metadata. The registry marks them with `family`, naming the view, and `variant`, naming which of its tools to render. `useToolFamily` reads the pair from the route, and the router throws if a family has no registered view.
 
-The strip between tools in a family is `components/ToolFamilyNav.vue`, a nav of links. Do not use frappe-ui `TabButtons` for it. TabButtons can render an option as a RouterLink, but the option stays inside a reka radiogroup, which handles Space itself and cancels Enter, so neither key reaches the anchor and the strip becomes reachable by mouse alone.
+Sharing a view is all a family means. A page does not offer its siblings: one item in the sidebar is one page, and the sidebar is the only place a tool is listed. A strip of links across the family used to sit above each of these tools, and it listed the same tools the sidebar already listed. Do not add it back, and do not add tabs to a tool page.
 
 These 34 utilities are operational.
 

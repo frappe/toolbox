@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   getCategory,
-  getFamily,
   getToolsByCategory,
   isToolAvailable,
   toolCategories,
@@ -67,15 +66,6 @@ describe('tool registry', () => {
       // duplicate content the split exists to avoid.
       expect(new Set(variants).size, family).toBe(variants.length)
     }
-  })
-
-  it('groups a family through getFamily in registry order', () => {
-    expect(getFamily('timer').map((tool) => tool.id)).toEqual([
-      'timer',
-      'stopwatch',
-      'countdown-timer',
-    ])
-    expect(getFamily('not-a-family')).toEqual([])
   })
 
   it('marks dependency-validation tools with a flag and external dependency', () => {

@@ -9,11 +9,7 @@
       </div>
     </header>
 
-    <div class="-mx-1 overflow-x-auto px-1 pt-8">
-      <ToolFamilyNav label="Health calculator" :links="siblingLinks" :current-route="currentRoute" />
-    </div>
-
-    <div class="grid gap-8 pt-5 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
+    <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" :aria-labelledby="`${calculator.activeId.value}-health-heading`">
         <h2 :id="`${calculator.activeId.value}-health-heading`" class="text-lg font-semibold text-ink-gray-9">{{ calculator.activeCalculator.value.name }}</h2>
         <p class="pt-1 text-sm leading-6 text-ink-gray-6">{{ calculator.activeCalculator.value.description }}</p>
@@ -33,7 +29,6 @@
 <script setup>
 import { computed, watch } from 'vue'
 import { Button, ErrorMessage, Icon } from 'frappe-ui'
-import ToolFamilyNav from '@/components/ToolFamilyNav.vue'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import HealthInput from '@/tools/health-calculators/HealthInput.vue'
@@ -43,7 +38,7 @@ import { getToolCategoryName } from '@/data/toolRegistry'
 const preferences = useToolboxPreferences()
 // Four calculators with four routes, rendered here together because they share the body
 // measurements a visitor types: moving from BMI to BMR keeps the height and weight already given.
-const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const calculator = useHealthCalculators(variant.value)
 

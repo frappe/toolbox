@@ -11,10 +11,6 @@
       </div>
     </header>
 
-    <div class="mt-8 overflow-x-auto">
-      <ToolFamilyNav label="Business lookup type" :links="siblingLinks" :current-route="currentRoute" />
-    </div>
-
     <section class="pt-8">
       <BusinessDatasetPanel :key="variant" :dataset-type="variant" :label="datasetLabel" :metadata="datasetStatus?.[variant]" />
     </section>
@@ -25,7 +21,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Icon } from 'frappe-ui'
 
-import ToolFamilyNav from '@/components/ToolFamilyNav.vue'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import BusinessDatasetPanel from '@/tools/india-business-lookup/BusinessDatasetPanel.vue'
@@ -37,7 +32,7 @@ import { getToolCategoryName } from '@/data/toolRegistry'
 const DATASET_LABELS = { pin: 'PIN code', ifsc: 'IFSC' }
 
 const preferences = useToolboxPreferences()
-const { tool, variant, siblingLinks, currentRoute } = useToolFamily()
+const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const datasetStatus = ref(null)
 const datasetLabel = computed(() => DATASET_LABELS[variant.value])

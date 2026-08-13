@@ -168,6 +168,6 @@ describe('UnitConverterView', () => {
     await clearButton.trigger('click')
     expect(valueInputs(wrapper).map((input) => input.element.value)).toEqual(['', ''])
     // A single Clear empties the values but keeps the user's category.
-    expect(wrapper.find('nav a[aria-current="page"]').text()).toBe('Temperature Converter')
+    expect(wrapper.find('h1').text()).toBe('Temperature Converter')
   })
 })

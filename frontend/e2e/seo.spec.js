@@ -107,7 +107,7 @@ test('replaces the content when the visitor moves to another tool', async ({ pag
   await page.goto('/emi-calculator')
   await expect(page.getByText('equated monthly instalment')).toBeVisible()
 
-  // A tool name is a link in the sidebar and in the family strip, so the lookup is scoped.
+  // "Calculator" is also the start of several other tool names, so the lookup is exact.
   await page
     .getByRole('navigation', { name: 'Toolbox navigation' })
     .getByRole('link', { name: 'Calculator', exact: true })

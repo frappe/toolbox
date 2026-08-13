@@ -1,12 +1,14 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { getFamily, toolsById } from '@/data/toolRegistry'
+import { toolsById } from '@/data/toolRegistry'
 
 // Some tools share a view because they share the state behind it: a running timer has to survive
 // a move to the stopwatch. Each still has its own route, its own heading and its own entry in
-// `toolbox/seo.py`, so a visitor arriving from a search engine lands on one tool, not on a tab
-// strip they have to read before they can start.
+// `toolbox/seo.py`, so a visitor arriving from a search engine lands on one tool.
+//
+// Sharing a view is all it means. The siblings are not offered on the page: one item in the
+// sidebar is one page, and the sidebar is the only place a tool is listed.
 //
 // The view asks this which of its tools it is rendering, and gets the registry entry back. The
 // heading and the description come from the registry rather than from a second list in the
@@ -16,19 +18,5 @@ export function useToolFamily() {
   const tool = computed(() => toolsById.get(route.meta.toolId))
   const variant = computed(() => tool.value?.variant ?? null)
 
-  // The strip that used to switch tabs now navigates, so these describe links rather than
-  // options. `ToolFamilyNav` renders them, and `currentRoute` is what marks one as the page you
-  // are on.
-  const siblingLinks = computed(() => {
-    const family = tool.value?.family
-    if (!family) return []
-
-    return getFamily(family).map((sibling) => ({
-      label: sibling.name,
-      value: sibling.variant,
-      route: sibling.route,
-    }))
-  })
-
-  return { tool, variant, siblingLinks, currentRoute: computed(() => route.path) }
+  return { tool, variant }
 }

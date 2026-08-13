@@ -2,13 +2,16 @@ import { computed, ref, watch } from 'vue'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { getForecast, searchLocations } from './api'
-import { loadForecastSnapshot, saveForecastSnapshot, validForecastData } from './forecastSnapshot'
+import { forgetStoredForecast, loadForecastSnapshot, saveForecastSnapshot, validForecastData } from './forecastSnapshot'
 
 export const SEARCH_MIN_LENGTH = 2
 export const SEARCH_DEBOUNCE_MS = 300
 
 export function useWeather({ preferences = useToolboxPreferences(), storage, searchApi = searchLocations, forecastApi = getForecast, now } = {}) {
   const snapshot = loadForecastSnapshot(storage)
+  // The forecast lived in localStorage until it moved to the session. Drop what that left behind
+  // on a returning visitor's machine.
+  forgetStoredForecast()
   const query = ref('')
   const results = ref([])
   const searching = ref(false)

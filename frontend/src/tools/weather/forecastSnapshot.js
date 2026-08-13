@@ -1,17 +1,41 @@
 export const WEATHER_FORECAST_SNAPSHOT_KEY = 'toolbox:weather-forecast:v1'
 const WEATHER_ATTRIBUTION = 'Weather data from MET Norway'
 
-export function loadForecastSnapshot(storage = globalThis.localStorage) {
+// `sessionStorage`, because this snapshot is keyed by the place it is for. The rate snapshot next
+// door caches public numbers and names nobody, so it stays in `localStorage` and keeps the
+// converter working on a first offline visit. A forecast records where somebody looked, which is
+// usually where they live, and that is a record of the visitor rather than of the data (#206).
+function defaultStorage() {
+  try {
+    return globalThis.sessionStorage ?? null
+  } catch {
+    return null
+  }
+}
+
+export function loadForecastSnapshot(storage = defaultStorage()) {
   try { return validateForecastSnapshot(JSON.parse(storage?.getItem(WEATHER_FORECAST_SNAPSHOT_KEY))) } catch { return null }
 }
 
-export function saveForecastSnapshot(place, data, storage = globalThis.localStorage, now = () => Date.now()) {
+export function saveForecastSnapshot(place, data, storage = defaultStorage(), now = () => Date.now()) {
   try {
     const snapshot = validateForecastSnapshot({ version: 1, snapshotRefreshedAt: new Date(now()).toISOString(), place, data })
     if (!snapshot) return null
     storage?.setItem(WEATHER_FORECAST_SNAPSHOT_KEY, JSON.stringify(snapshot))
     return snapshot
   } catch { return null }
+}
+
+// A visitor who looked up the weather before this moved carries the old key on their machine, and
+// nothing would ever read it again. Clearing it keeps the promise the site makes about what it
+// stores, and it is the record of a place that the promise is about.
+export function forgetStoredForecast(storage = safeLocalStorage()) {
+  try {
+    storage?.removeItem(WEATHER_FORECAST_SNAPSHOT_KEY)
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function validateForecastSnapshot(value) {
@@ -58,6 +82,14 @@ function validSource(value) {
 
 function validSeries(value, maximum, validItem) {
   return Array.isArray(value) && value.length > 0 && value.length <= maximum && value.every(validItem)
+}
+
+function safeLocalStorage() {
+  try {
+    return globalThis.localStorage ?? null
+  } catch {
+    return null
+  }
 }
 
 function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value) }

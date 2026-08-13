@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { ToolboxPreferencesStore } from '@/composables/useToolboxPreferences'
 import { SEARCH_DEBOUNCE_MS, useWeather } from './useWeather'
+import { WEATHER_FORECAST_SNAPSHOT_KEY } from './forecastSnapshot'
 import { getForecast, searchLocations } from './api'
 
 vi.mock('./api', () => ({ searchLocations: vi.fn(), getForecast: vi.fn() }))
@@ -85,6 +86,14 @@ describe('weather workspace forecast', () => {
     expect(weather.loadState.value).toBe('offline')
     expect(weather.forecast.value).not.toBeNull()
     expect(weather.errorMessage.value).toContain('offline copy')
+  })
+
+  it('drops the forecast a visitor kept from before the move to the session', () => {
+    globalThis.localStorage.setItem(WEATHER_FORECAST_SNAPSHOT_KEY, JSON.stringify({ version: 1, snapshotRefreshedAt: '2026-08-03T09:00:00Z', place, data: forecast }))
+
+    createWeather()
+
+    expect(globalThis.localStorage.getItem(WEATHER_FORECAST_SNAPSHOT_KEY)).toBeNull()
   })
 
   it('errors honestly when a new place has no data to fall back on', async () => {

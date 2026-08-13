@@ -55,15 +55,19 @@ absent, and the page leaves the line out rather than print a number nobody compu
 
 ### Does it work without an internet connection?
 
-Partly. The application is stored in your browser after your first visit, so the page opens and
-shows the last forecast it saved, labeled as an offline copy. A new search and a new forecast need a
-connection.
+Partly. The application is stored in your browser after your first visit, so the page opens. It
+shows the last forecast it saved, labeled as an offline copy, for as long as the browser session
+lasts. Close the browser and that copy is gone, so a later visit with no connection opens the page
+and no forecast. A new search and a new forecast need a connection.
 
 ### Is my search kept anywhere?
 
 No. The name reaches the Toolbox server, which matches it against the bundled city data and answers.
 Nothing is written down and there is no account. The coordinate reaches MET rounded to four decimal
 places, with nothing that identifies you.
+
+The offline copy is the one thing kept in your browser, and it names the place it is for. It is
+kept for the browser session and no longer, for that reason.
 
 ### Why do some days show no sunrise?
 

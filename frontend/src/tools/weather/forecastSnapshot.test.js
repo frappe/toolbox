@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { loadForecastSnapshot, saveForecastSnapshot, validateForecastSnapshot, validForecastData } from './forecastSnapshot'
+import { forgetStoredForecast, loadForecastSnapshot, saveForecastSnapshot, validateForecastSnapshot, validForecastData, WEATHER_FORECAST_SNAPSHOT_KEY } from './forecastSnapshot'
 
 const place = { id: 1273294, name: 'Paris', latitude: 48.85, longitude: 2.35, country: 'France', countryCode: 'FR', admin1: 'Île-de-France', timezone: 'Europe/Paris' }
 const data = {
@@ -17,6 +17,21 @@ describe('offline forecast snapshots', () => {
     const values = new Map(), storage = { getItem: (key) => values.get(key), setItem: (key, value) => values.set(key, value) }
     expect(saveForecastSnapshot(place, data, storage, () => Date.UTC(2026, 7, 3))).toMatchObject({ version: 1, place, data })
     expect(loadForecastSnapshot(storage)).toMatchObject({ place, data })
+  })
+
+  it('keeps the forecast for the session only, because it names a place', () => {
+    saveForecastSnapshot(place, data, undefined, () => Date.UTC(2026, 7, 3))
+
+    expect(globalThis.sessionStorage.getItem(WEATHER_FORECAST_SNAPSHOT_KEY)).toContain('Paris')
+    expect(globalThis.localStorage.getItem(WEATHER_FORECAST_SNAPSHOT_KEY)).toBeNull()
+    expect(loadForecastSnapshot()).toMatchObject({ place, data })
+  })
+
+  it('clears the forecast a visitor was left with before the move', () => {
+    globalThis.localStorage.setItem(WEATHER_FORECAST_SNAPSHOT_KEY, JSON.stringify({ version: 1, place, data }))
+
+    expect(forgetStoredForecast()).toBe(true)
+    expect(globalThis.localStorage.getItem(WEATHER_FORECAST_SNAPSHOT_KEY)).toBeNull()
   })
 
   it('accepts nullable optional readings from the provider', () => {

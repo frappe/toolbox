@@ -1,6 +1,11 @@
 export const CURRENCY_SNAPSHOT_KEY = 'toolbox:currency-reference-rates:v1'
 const ECB_SOURCE_URL = 'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html'
 
+// `localStorage`, deliberately, and one of the two keys that outlive the session. The other is the
+// theme. This one holds a table of public reference rates that names nobody, and it is the only
+// thing that lets the converter convert on the first offline visit of a new session, which is the
+// visit that matters. The weather snapshot went to the session instead, because it is keyed by the
+// place it is for (#206).
 export function loadRateSnapshot(storage = globalThis.localStorage) {
   try { return validateRateSnapshot(JSON.parse(storage?.getItem(CURRENCY_SNAPSHOT_KEY))) } catch { return null }
 }

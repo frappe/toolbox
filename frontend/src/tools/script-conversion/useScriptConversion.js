@@ -8,7 +8,9 @@ import { downloadTextFile } from '@/utils/fileExport'
 export function useScriptConversion() {
   const source = ref('itrans')
   const target = ref('devanagari')
-  const input = ref('')
+  // Opens on a word rather than an empty box, so the two scripts are on screen before anything is
+  // typed. "namaste" in ITRANS is the transliteration this pair exists to show.
+  const input = ref('namaste')
   const copied = ref(false)
 
   const output = computed(() => convertScript(input.value, source.value, target.value))

@@ -35,14 +35,18 @@ describe('GST calculator history', () => {
 })
 
 describe('GST calculator state', () => {
-  it('starts in add, intra-state mode with the standard 18% rate', () => {
+  it('opens in add, intra-state mode at 18%, on a worked example', () => {
     const calculator = useGstCalculator()
 
     expect(calculator.mode.value).toBe(GST_MODES.ADD)
     expect(calculator.supplyType.value).toBe(GST_SUPPLY_TYPES.INTRA_STATE)
     expect(calculator.selectedRateId.value).toBe(DEFAULT_GST_RATE_ID)
     expect(calculator.amountLabel.value).toBe('Base amount')
-    expect(calculator.result.value).toBeNull()
+    // It used to open on an empty amount and no result, while every other calculator showed one.
+    expect(calculator.amountInput.value).toBe('1000')
+    expect(calculator.result.value).toMatchObject({ totalGst: 180, finalAmount: 1180 })
+    // The announcement is a polite live region, and this result is not something a visitor did.
+    expect(calculator.resultAnnouncement.value).toBe('')
   })
 
   it('calculates add-mode intra-state GST immediately', () => {

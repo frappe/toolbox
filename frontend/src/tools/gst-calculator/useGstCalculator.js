@@ -18,7 +18,9 @@ export function useGstCalculator(options = {}) {
   const history = options.history ?? useToolHistory('gst-calculator')
   const mode = ref(GST_MODES.ADD)
   const supplyType = ref(GST_SUPPLY_TYPES.INTRA_STATE)
-  const amountInput = ref('')
+  // Opens on a worked example, the same as every calculator. It computes in the browser.
+  const DEFAULT_AMOUNT = '1000'
+  const amountInput = ref(DEFAULT_AMOUNT)
   const selectedRateId = ref(DEFAULT_GST_RATE_ID)
   const customRateInput = ref('')
   const result = ref(null)
@@ -26,6 +28,11 @@ export function useGstCalculator(options = {}) {
   const inputHint = ref('')
   const resultAnnouncement = ref('')
   const handoffApplied = ref(applyInitialRate(options.initialRate))
+
+  // Convert the seeded amount once, and say nothing about it: the announcement is a polite live
+  // region, and a result the visitor did not ask for should not talk over a screen reader.
+  recalculate()
+  resultAnnouncement.value = ''
 
   const amountLabel = computed(() =>
     mode.value === GST_MODES.ADD ? 'Base amount' : 'GST-inclusive amount',

@@ -74,9 +74,10 @@ test('re-times every location with the converter and copies the meeting times', 
     .filter({ hasText: 'Asia/Kolkata' })
   await expect(kolkata).toBeVisible()
 
-  // The converter shows one chosen wall-clock moment across every card. Anchoring the input to
-  // Kolkata's own zone makes its card read back exactly 09:00, independent of the runner's clock.
-  await page.getByRole('radio', { name: 'Time converter' }).click()
+  // The converter is its own tool now, at its own URL. It reads the same list of cities, which is
+  // why the Kolkata card added above is still there. Anchoring the input to Kolkata's own zone
+  // makes its card read back exactly 09:00, independent of the runner's clock.
+  await page.goto('/time-zone-converter')
   await page.getByLabel("In this city's time").click()
   await page.getByRole('option', { name: 'Kolkata' }).click()
   const dateTime = page.getByLabel('Date and time')
@@ -109,14 +110,9 @@ test('launches directly and remains useful offline', async ({ browserName, conte
       .filter({ hasText: 'Asia/Kolkata' })
     await expect(kolkata).toBeVisible()
 
-    // Time math is pure and client-side, so the converter keeps working with no network.
-    await page.getByRole('radio', { name: 'Time converter' }).click()
-    await page.getByLabel("In this city's time").click()
-    await page.getByRole('option', { name: 'Kolkata' }).click()
-    const dateTime = page.getByLabel('Date and time')
-    await dateTime.fill('2026-01-01 09:00:00')
-    await dateTime.press('Enter')
-    await expect(kolkata.locator('p.font-mono')).toContainText('09:00')
+    // The clock keeps ticking with no network: the zone rules are already in the browser.
+    // The converter has its own route now, and offline.spec.js launches it offline.
+    await expect(kolkata.locator('p.font-mono')).toContainText(/\d{2}:\d{2}/)
   } finally {
     await context.setOffline(false)
   }

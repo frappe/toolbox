@@ -226,7 +226,16 @@ PAGES: dict[str, Page] = {
 		title="Time Unit Converter — Seconds, Hours and Days",
 		description=(
 			"Convert between seconds, minutes, hours, days and weeks. For converting a time between "
-			"zones, use the World Clock."
+			"zones, use the Time Zone Converter."
+		),
+		application_category="UtilitiesApplication",
+	),
+	"/time-zone-converter": Page(
+		name="Time Zone Converter",
+		title="Time Zone Converter — One Time in Every City",
+		description=(
+			"Enter a date and time in one city and read it in every other city you follow. Free, "
+			"and it uses the browser's own IANA time-zone data, so it works offline."
 		),
 		application_category="UtilitiesApplication",
 	),
@@ -284,12 +293,14 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="BusinessApplication",
 	),
+	# The title named the converter until it became a tool of its own. Two pages competing for the
+	# same words is the duplicate content the split exists to avoid.
 	"/world-clock": Page(
 		name="World Clock",
-		title="World Clock and Time Zone Converter",
+		title="World Clock — Current Time in Cities Worldwide",
 		description=(
-			"Compare the time in cities worldwide, convert a time between zones, and copy the "
-			"result as a list of meeting times. Daylight saving is applied for you."
+			"See the current time in the cities you follow, side by side, with the offset and "
+			"whether daylight saving applies. Free, and it works offline."
 		),
 		application_category="UtilitiesApplication",
 	),

@@ -1,15 +1,15 @@
 ## How it works
 
-Every card shows one moment, seen from one place. In Clocks that moment is now, refreshed every 30
-seconds. In Time converter it is a moment you choose. Your own zone comes from the browser, which
-reports the setting your device holds, as an IANA identifier such as `Asia/Kolkata`. No address
-lookup is involved.
+Every card shows the same moment, seen from one place. That moment is now, refreshed every 30
+seconds. Your own zone comes from the browser, which reports the setting your device holds, as an
+IANA identifier such as `Asia/Kolkata`. No address lookup is involved.
 
 1. Add a city or a time zone. Type a name and pick a result.
 2. Reorder a card, mark it with a star, or remove it. Up to 12 are kept.
-3. Switch to Time converter, pick a date and time, and name the city whose clock it is on. Every
-   card then shows that moment.
-4. Press Copy times to put every card on the clipboard, one line each.
+3. Press Copy times to put every card on the clipboard, one line each.
+
+To read a moment other than now, use the [Time Zone Converter](/time-zone-converter). It keeps the
+same list of cities.
 
 The offset is worked out for the moment on screen, not looked up in a table. The tool writes that
 moment out in the zone, reads it back, and compares the two. The difference is the offset, taken
@@ -49,8 +49,8 @@ card's name. Every Same day, Previous day or Next day line is measured against i
 ### Why does a city show a different offset in summer?
 
 Because it moves its clocks. London is UTC in January and UTC+01:00 in July. The offset is worked
-out for the moment on screen, so a card in the converter shows the offset that applied on the date
-you chose.
+out for the moment on screen, so a card shows the offset that applies now. The
+[Time Zone Converter](/time-zone-converter) shows the offset that applied on the date you chose.
 
 ### Why does a card say Daylight saving time in January?
 

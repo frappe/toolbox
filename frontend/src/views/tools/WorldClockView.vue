@@ -6,16 +6,12 @@
       </span>
       <div class="min-w-0 flex-1">
         <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">World Clock</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">See the current time across the cities you care about.</p>
+        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ tool.name }}</h1>
+        <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }}</p>
       </div>
     </header>
 
-    <div class="mt-8 overflow-x-auto">
-      <TabButtons :options="modeOptions" :model-value="clock.mode.value" size="md" aria-label="World clock mode" @update:model-value="setMode" />
-    </div>
-
-    <div v-if="clock.mode.value === 'convert'" class="mt-5 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
+    <div v-if="clock.mode.value === 'convert'" class="mt-8 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
       <FormControl type="datetime" size="md" label="Date and time" :model-value="clock.convertDateTime.value" @update:model-value="setConvertDateTime" />
       <FormControl type="select" size="md" label="In this city's time" :options="zoneOptions" :model-value="clock.convertZone.value" @update:model-value="clock.convertZone.value = $event" />
       <p class="text-sm leading-6 text-ink-gray-5 sm:col-span-2">The cards below show that exact moment in every city.</p>
@@ -80,35 +76,36 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { Badge, Button, FormControl, Icon, TabButtons } from 'frappe-ui'
+import { computed, ref, watch } from 'vue'
+import { Badge, Button, FormControl, Icon } from 'frappe-ui'
 
 import SearchSelect from '@/components/search/SearchSelect.vue'
+import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useWorldClock } from '@/tools/world-clock/useWorldClock'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
-const categoryName = getToolCategoryName('world-clock')
-const TOOL_ID = 'world-clock'
+// Two tools, one view. World Clock reads the current time and Time Zone Converter reads a chosen
+// one, over the same list of cities: a city added on either page is there on the other. The mode
+// used to be a tab, which had no URL, so "time zone converter" could not be searched for.
+const { tool, variant } = useToolFamily()
 const preferences = useToolboxPreferences()
 const clock = useWorldClock()
 const copyStatus = ref('')
-const modeOptions = [
-  { value: 'clocks', label: 'Clocks' },
-  { value: 'convert', label: 'Time converter' },
-]
+const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 
 // Zone picker over the cities already added (label shown, IANA zone stored).
 const zoneOptions = computed(() => clock.locations.value.map((location) => ({ label: location.label, value: location.zone })))
 
-onMounted(() => preferences.recordRecent(TOOL_ID))
-
-function setMode(id) {
-  if (id === 'convert' && !clock.convertDateTime.value) {
+// A move between the two does not remount this view, so the mode and the recent tool follow the
+// route rather than the mount.
+watch(variant, (mode) => {
+  if (mode === 'convert' && !clock.convertDateTime.value) {
     clock.convertDateTime.value = currentLocalDateTime()
   }
-  clock.mode.value = id
-}
+  clock.mode.value = mode
+}, { immediate: true })
+watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
 
 // DateTimePicker emits "YYYY-MM-DD HH:mm:ss"; the converter parses a datetime-local
 // string ("YYYY-MM-DDTHH:mm"), so normalise before storing.

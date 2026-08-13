@@ -8,7 +8,6 @@ const implementedToolViews = {
   'currency-converter': () => import('@/views/tools/CurrencyConverterView.vue'),
   'hsn-sac-lookup': () => import('@/views/tools/HsnSacLookupView.vue'),
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
-  'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
   'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),
@@ -19,6 +18,7 @@ const implementedToolViews = {
 // and its own page, and the view reads `meta.variant` to know which of them it is rendering.
 const familyViews = {
   timer: () => import('@/views/tools/TimerView.vue'),
+  'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
   'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
   'financial-calculators': () => import('@/views/tools/FinancialCalculatorsView.vue'),

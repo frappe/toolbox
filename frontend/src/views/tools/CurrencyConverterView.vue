@@ -22,7 +22,7 @@
             <CurrencyPicker v-model="converter.destinationCurrency.value" label="Destination currency" picker-id="destination-currency" :currencies="converter.currencies.value" />
           </div>
 
-          <div id="currency-feedback" class="pt-4"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
+          <div id="currency-feedback" class="pt-4"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" variant="outline" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
 
           <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon-left="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /><Button label="Copy" variant="subtle" icon-left="lucide-copy" :disabled="converter.convertedAmount.value === null" @click="converter.copyResult()" /></div>
 

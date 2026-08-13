@@ -113,6 +113,14 @@ describe('Alert stub declares no default slot', () => {
     expect(wrapper.text()).toContain('Heads up')
     expect(wrapper.text()).not.toContain('this renders nowhere')
   })
+
+  it('consumes variant rather than drawing it as an attribute', () => {
+    // The real component reads `variant` to choose a fill or a border and renders no such
+    // attribute. A stub that let it fall through to `attrs` would draw one.
+    const wrapper = mount(Alert, { props: { title: 'Heads up', variant: 'outline' } })
+
+    expect(wrapper.attributes('variant')).toBeUndefined()
+  })
 })
 
 describe('TabButtons stub renders a routed option as a link', () => {

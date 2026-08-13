@@ -477,6 +477,10 @@ vi.mock('frappe-ui', async () => {
     props: {
       title: { type: String, default: '' },
       theme: { type: String, default: '' },
+      // Declared so it is consumed rather than falling through to `attrs`. The real component
+      // reads `variant` to choose a fill or a border and renders no such DOM attribute, and a
+      // stub must never render an output the real component omits.
+      variant: { type: String, default: 'subtle' },
       description: { type: String, default: '' },
       dismissible: { type: Boolean, default: true },
       modelValue: { type: Boolean, default: true },

@@ -47,7 +47,11 @@
       </section>
     </div>
 
-    <Alert class="mt-8" theme="yellow" :dismissible="false" title="Browsers and operating systems can suspend background tabs. Toolbox restores the correct time when you return, but it cannot guarantee that an alarm sounds while suspended." />
+    <!-- Outline, not the filled subtle variant. frappe-ui fills a subtle Alert with the `-2`
+         surface, which is a pale tint in light mode but a saturated block in dark mode: amber-2
+         is 30.3% lightness against a 23.9% page, so it read as a brown slab. The amber icon
+         carries the warning on its own, and this is a standing caveat rather than an error. -->
+    <Alert class="mt-8" theme="yellow" variant="outline" :dismissible="false" title="Browsers and operating systems can suspend background tabs. Toolbox restores the correct time when you return, but it cannot guarantee that an alarm sounds while suspended." />
   </div>
 </template>
 

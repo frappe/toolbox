@@ -91,8 +91,16 @@ export class ToolboxPreferencesStore {
     this.persist()
   }
 
+  // Everything the Settings page controls, which is the typed preferences and the tool list.
+  // It used to reset the preferences alone, so a visitor who had hidden a tool pressed Reset and
+  // watched nothing happen: the hidden tools are the larger half of that page.
+  //
+  // Saved currency pairs, saved cities and recent tools are left alone. They are not settings,
+  // they are not shown here, and losing them to a button pressed about a number format would be
+  // a surprise. Each has its own control where it is used.
   resetSettings() {
     Object.assign(this.settings, defaultSettings)
+    this.hiddenIds.value = []
     this.persist()
   }
 

@@ -113,6 +113,29 @@ describe('ToolboxPreferencesStore', () => {
     expect({ ...store.settings }).toEqual(defaultSettings)
   })
 
+  it('brings back the hidden tools on reset, not just the typed settings', () => {
+    const store = new ToolboxPreferencesStore()
+    store.toggleHidden('calculator')
+    store.toggleHidden('emi-calculator')
+    store.updateSetting('decimalPrecision', 6)
+
+    store.resetSettings()
+
+    expect(store.hiddenIds.value).toEqual([])
+    expect(store.settings.decimalPrecision).toBe(defaultSettings.decimalPrecision)
+  })
+
+  it('keeps a visitor\'s saved lists through a reset, because they are not settings', () => {
+    const store = new ToolboxPreferencesStore()
+    store.setSavedCurrencyPairs([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
+    store.recordRecent('calculator')
+
+    store.resetSettings()
+
+    expect(store.savedCurrencyPairs.value).toHaveLength(1)
+    expect(store.recentToolIds.value).toEqual(['calculator'])
+  })
+
   it('defaults the theme to system and rejects an unsupported theme', () => {
     const store = new ToolboxPreferencesStore()
     expect(store.settings.theme).toBe('system')

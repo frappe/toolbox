@@ -51,6 +51,26 @@ for (const [width, height] of [
   })
 }
 
+test('brings the hidden tools back when the settings are reset', async ({ page }) => {
+  await page.goto('/settings')
+  const calculator = page.getByRole('checkbox', { name: 'Calculator', exact: true })
+  const emi = page.getByRole('checkbox', { name: 'EMI Calculator', exact: true })
+
+  await calculator.uncheck()
+  await emi.uncheck()
+  await expect(page.getByRole('button', { name: 'Reset settings' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Reset settings' }).click()
+
+  await expect(calculator).toBeChecked()
+  await expect(emi).toBeChecked()
+  // The sidebar reads the same list, and it is what a hidden tool disappears from.
+  const stored = await page.evaluate(
+    () => JSON.parse(sessionStorage.getItem('toolbox:preferences:v1') ?? '{}').hiddenToolIds,
+  )
+  expect(stored).toEqual([])
+})
+
 test('keeps the tool list inside the page on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.goto('/settings')

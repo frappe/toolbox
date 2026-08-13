@@ -7,10 +7,10 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import UnitTestCase
 
-from toolbox import city_data, dictionary_data, hsn_data, india_business_data
+from toolbox import dictionary_data, hsn_data, india_business_data
 from toolbox.dataset_lock import LOCK_TIMEOUT, dataset_import_lock
 
-IMPORT_MODULES = (city_data, dictionary_data, hsn_data, india_business_data)
+IMPORT_MODULES = (dictionary_data, hsn_data, india_business_data)
 
 
 @contextmanager

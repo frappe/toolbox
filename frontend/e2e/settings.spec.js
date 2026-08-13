@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { tools } from '../src/data/toolRegistry'
 
 // The frappe-ui Checkbox root is `inline-flex`, so vertical margin between siblings does nothing
 // for it. The tool list used `space-y-2` and the boxes flowed inline with no horizontal gap: each
@@ -46,7 +47,8 @@ for (const [width, height] of [
 
     const boxes = await checkboxBoxes(page)
 
-    expect(boxes.length).toBe(34)
+    // From the registry, so removing a tool does not turn this into a failure to maintain.
+    expect(boxes.length).toBe(tools.length)
     expect(crowdedNeighbours(boxes)).toEqual([])
   })
 }

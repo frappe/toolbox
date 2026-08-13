@@ -51,7 +51,6 @@ export class ToolboxPreferencesStore {
     this.hiddenIds = ref(initial.hiddenToolIds)
     this.recentToolIds = ref(initial.recentToolIds)
     this.savedCurrencyPairs = ref(initial.savedCurrencyPairs)
-    this.savedWeatherLocations = ref(initial.savedWeatherLocations)
     this.savedWorldClockLocations = ref(initial.savedWorldClockLocations)
     this.settings = reactive(initial.settings)
   }
@@ -114,18 +113,12 @@ export class ToolboxPreferencesStore {
     this.persist()
   }
 
-  setSavedWeatherLocations(locations) {
-    this.savedWeatherLocations.value = normalizeObjectList(locations).slice(0, 12)
-    this.persist()
-  }
-
   snapshot() {
     return {
       version: 1,
       hiddenToolIds: [...this.hiddenIds.value],
       recentToolIds: [...this.recentToolIds.value],
       savedCurrencyPairs: [...this.savedCurrencyPairs.value],
-      savedWeatherLocations: [...this.savedWeatherLocations.value],
       savedWorldClockLocations: [...this.savedWorldClockLocations.value],
       settings: { ...this.settings },
     }
@@ -156,7 +149,6 @@ export function createDefaultPreferences() {
     hiddenToolIds: [],
     recentToolIds: [],
     savedCurrencyPairs: [],
-    savedWeatherLocations: [],
     savedWorldClockLocations: [],
     settings: { ...defaultSettings },
   }
@@ -172,7 +164,6 @@ export function normalizePreferences(value) {
     hiddenToolIds: normalizeToolIds(value.hiddenToolIds),
     recentToolIds: normalizeToolIds(value.recentToolIds).slice(0, MAX_RECENT_TOOLS),
     savedCurrencyPairs: normalizeCurrencyPairs(value.savedCurrencyPairs),
-    savedWeatherLocations: normalizeObjectList(value.savedWeatherLocations),
     savedWorldClockLocations: normalizeObjectList(value.savedWorldClockLocations),
     settings: normalizeSettings(value.settings),
   }

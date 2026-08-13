@@ -12,7 +12,6 @@ const EMPTY = {
   hiddenToolIds: [],
   recentToolIds: [],
   savedCurrencyPairs: [],
-  savedWeatherLocations: [],
   savedWorldClockLocations: [],
   settings: {},
 }

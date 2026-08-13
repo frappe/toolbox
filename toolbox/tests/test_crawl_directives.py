@@ -83,7 +83,7 @@ class TestRobots(UnitTestCase):
 	def test_frappe_s_own_surfaces_are_not_crawled(self):
 		rules = self.rules()
 
-		self.assertFalse(rules.can_fetch("*", "/api/method/toolbox.weather.forecast"))
+		self.assertFalse(rules.can_fetch("*", "/api/method/toolbox.dictionary.lookup"))
 		self.assertFalse(rules.can_fetch("*", "/app/user"))
 
 	def test_settings_stays_crawlable_so_its_noindex_is_read(self):

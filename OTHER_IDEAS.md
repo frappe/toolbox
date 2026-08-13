@@ -9,6 +9,34 @@ wait for a decision.
 
 Each entry names the reason. When the reason stops being true, the idea becomes available again.
 
+## Tools removed on 2026-08-13
+
+### Weather
+
+Removed after the first QA pass over the live site. The list is long, and Weather is the one tool
+on it that a visitor already owns: a phone shows the forecast on its lock screen, and a search
+engine answers "weather in Pune" above every result. It failed the product test the other tools
+pass, which is that the tool must beat what the visitor already has.
+
+It was also the most expensive tool to keep. It is the only one that calls a provider for every
+visitor, the only one carrying a licence obligation to a named third party, and the only reader of
+the bundled city dataset. Removing it takes all of that with it:
+
+- the MET Norway forecast provider, its symbol map and its Sunrise cache
+- the GeoNames city release, 34,080 cities and 23,992 alternate names, 928 KB in the repository
+- the `Toolbox City Record` and `Toolbox City Alias` DocTypes, and their tables
+- `city_names.py`, which owned the folding rule shared by the importer, the search and the build
+  script
+
+World Clock is not affected. It carries its own list of cities in the frontend and never asked the
+server for one.
+
+**What it would take to bring it back.** All of the above is in the history, and the reasoning for
+each piece is recorded in the two entries below, "Weather without a license problem" and "City
+names in a language other than English". Neither of those problems came back. What would have to
+change is the product answer: a reason for a visitor to open Toolbox for a forecast rather than the
+device already in their hand.
+
 ## Tools removed on 2026-08-09
 
 Toolbox changed from an authenticated single-owner application to a free public website on

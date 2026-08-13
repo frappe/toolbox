@@ -9,7 +9,6 @@ const implementedToolViews = {
   'hsn-sac-lookup': () => import('@/views/tools/HsnSacLookupView.vue'),
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
   'world-clock': () => import('@/views/tools/WorldClockView.vue'),
-  weather: () => import('@/views/tools/WeatherView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
   'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),

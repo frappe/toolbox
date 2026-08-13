@@ -27,8 +27,8 @@ stock, manufacturing and payroll on.
 ### Is it really free, and does it stay free?
 
 Yes, and it costs almost nothing to run, which is what makes that promise safe. The tools compute
-in your browser. The five datasets are files that ship with the site. Only Weather and the currency
-rates call anything at all.
+in your browser. The four datasets are files that ship with the site. Only the currency rates call
+anything at all.
 
 ### Do you track me?
 

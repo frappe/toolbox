@@ -39,7 +39,6 @@ describe('ToolboxPreferencesStore', () => {
         hiddenToolIds: [],
         recentToolIds: [],
         savedCurrencyPairs: [],
-        savedWeatherLocations: [],
         savedWorldClockLocations: [],
         settings: defaultSettings,
       })
@@ -58,7 +57,6 @@ describe('ToolboxPreferencesStore', () => {
         null,
         'bad',
       ],
-      savedWeatherLocations: 'bad',
       savedWorldClockLocations: [{ zone: 'Asia/Kolkata' }],
       settings: { decimalPrecision: 4, timeFormat: 'invalid', unknown: true },
     }
@@ -68,7 +66,6 @@ describe('ToolboxPreferencesStore', () => {
       tools.slice(0, MAX_RECENT_TOOLS).map((tool) => tool.id),
     )
     expect(store.savedCurrencyPairs.value).toEqual([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
-    expect(store.savedWeatherLocations.value).toEqual([])
     expect(store.savedWorldClockLocations.value).toEqual([{ zone: 'Asia/Kolkata' }])
     expect(store.settings.decimalPrecision).toBe(4)
     expect(store.settings.timeFormat).toBe(defaultSettings.timeFormat)
@@ -88,15 +85,15 @@ describe('ToolboxPreferencesStore', () => {
   it('toggles hidden tools and ignores unknown ids', () => {
     const store = new ToolboxPreferencesStore()
 
-    store.toggleHidden('weather')
+    store.toggleHidden('dictionary')
     store.toggleHidden('missing')
-    expect(store.isHidden('weather')).toBe(true)
+    expect(store.isHidden('dictionary')).toBe(true)
     expect(store.isHidden('missing')).toBe(false)
-    expect(store.hiddenIds.value).toEqual(['weather'])
-    expect(store.snapshot().hiddenToolIds).toEqual(['weather'])
+    expect(store.hiddenIds.value).toEqual(['dictionary'])
+    expect(store.snapshot().hiddenToolIds).toEqual(['dictionary'])
 
-    store.toggleHidden('weather')
-    expect(store.isHidden('weather')).toBe(false)
+    store.toggleHidden('dictionary')
+    expect(store.isHidden('dictionary')).toBe(false)
     expect(store.hiddenIds.value).toEqual([])
   })
 
@@ -157,16 +154,6 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.snapshot().savedWorldClockLocations).toEqual(locations.slice(0, 12))
   })
 
-  it('bounds the weather location list', () => {
-    const store = new ToolboxPreferencesStore()
-    const places = Array.from({ length: 14 }, (_, index) => ({ name: `City ${index}`, latitude: index, longitude: index }))
-
-    store.setSavedWeatherLocations(places)
-
-    expect(store.savedWeatherLocations.value).toHaveLength(12)
-    expect(store.snapshot().savedWeatherLocations).toEqual(places.slice(0, 12))
-  })
-
   it('tolerates a null options argument', () => {
     // Several call sites pass an explicit null, which a default parameter does not cover.
     expect(() => new ToolboxPreferencesStore(null)).not.toThrow()
@@ -181,11 +168,11 @@ describe('ToolboxPreferencesStore storage split', () => {
     const local = fakeStorage()
     const store = new ToolboxPreferencesStore({ session, local })
 
-    store.toggleHidden('weather')
+    store.toggleHidden('dictionary')
     store.recordRecent('calculator')
 
     const stored = JSON.parse(session.getItem(PREFERENCES_STORAGE_KEY))
-    expect(stored.hiddenToolIds).toEqual(['weather'])
+    expect(stored.hiddenToolIds).toEqual(['dictionary'])
     expect(stored.recentToolIds).toEqual(['calculator'])
     expect(local.getItem(PREFERENCES_STORAGE_KEY)).toBeNull()
   })
@@ -223,7 +210,7 @@ describe('ToolboxPreferencesStore storage split', () => {
     }
     const store = new ToolboxPreferencesStore({ session: blocked, local: blocked })
 
-    expect(() => store.toggleHidden('weather')).not.toThrow()
-    expect(store.isHidden('weather')).toBe(true)
+    expect(() => store.toggleHidden('dictionary')).not.toThrow()
+    expect(store.isHidden('dictionary')).toBe(true)
   })
 })

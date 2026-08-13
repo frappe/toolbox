@@ -35,7 +35,7 @@ describe('the data sources page', () => {
   it('names every dataset, and the tools that stand on it', async () => {
     const wrapper = await render({ schemaVersion: 1, datasets: [PIN] })
 
-    for (const name of ['Indian post offices', 'Indian bank branches', 'English dictionary', 'World cities']) {
+    for (const name of ['Indian post offices', 'Indian bank branches', 'English dictionary']) {
       expect(wrapper.text()).toContain(name)
     }
     expect(wrapper.text()).toContain('PIN Code Search')
@@ -62,10 +62,10 @@ describe('the data sources page', () => {
 
     expect(wrapper.text()).toContain('could not reach the server')
     expect(wrapper.text()).toContain('WordNet')
-    expect(wrapper.text()).toContain('MET Norway')
+    expect(wrapper.text()).toContain('Indian post offices')
   })
 
-  it('names the two services called while a tool is used, and their refresh', async () => {
+  it('names the service called while a tool is used, and its refresh', async () => {
     const wrapper = await render({ schemaVersion: 1, datasets: [] })
 
     expect(wrapper.text()).toContain('European Central Bank')

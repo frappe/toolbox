@@ -9,15 +9,15 @@ afterEach(() => {
 
 describe('resolveTitle', () => {
   it('repeats the title the server rendered', () => {
-    globalThis.toolbox_page_titles = { '/weather': 'Weather Forecast by City — Ten Day Outlook' }
+    globalThis.toolbox_page_titles = { '/dictionary': 'English Dictionary — Meanings, Synonyms and Antonyms' }
 
-    expect(resolveTitle('/weather')).toBe('Weather Forecast by City — Ten Day Outlook')
+    expect(resolveTitle('/dictionary')).toBe('English Dictionary — Meanings, Synonyms and Antonyms')
   })
 
   it('falls back to the registry when the offline shell brought no boot payload', () => {
-    const weather = tools.find((tool) => tool.route === '/weather')
+    const dictionary = tools.find((tool) => tool.route === '/dictionary')
 
-    expect(resolveTitle('/weather')).toBe(`${weather.name} | Toolbox`)
+    expect(resolveTitle('/dictionary')).toBe(`${dictionary.name} | Toolbox`)
   })
 
   it('names the site for a route that is not a tool', () => {

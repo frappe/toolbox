@@ -130,8 +130,12 @@ vi.mock('frappe-ui', async () => {
     props: {
       name: { type: String, required: true },
     },
+    // The real component renders a lucide name as a class (`:class="[name]"`). The stub drew a
+    // `data-icon` attribute instead, which the real component never emits, so a test could assert
+    // on something no visitor ever gets and could not assert on the class that ships.
     setup(props, { attrs }) {
-      return () => h('span', { ...attrs, 'aria-hidden': 'true', 'data-icon': props.name })
+      return () =>
+        h('span', { ...attrs, class: [attrs.class, props.name], 'aria-hidden': 'true' })
     },
   })
 

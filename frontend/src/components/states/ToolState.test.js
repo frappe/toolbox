@@ -25,7 +25,8 @@ describe('ToolState', () => {
     expect(state.attributes('role')).toBe(role)
     expect(state.attributes('aria-labelledby')).toBe(title.attributes('id'))
     expect(state.attributes('aria-live')).toBeUndefined()
-    expect(wrapper.get(`[data-icon="${icon}"]`).exists()).toBe(true)
+    // The real Icon renders its lucide name as a class, so that is what is asserted.
+    expect(wrapper.get(`.${icon}`).exists()).toBe(true)
     expect(wrapper.text()).toContain(baseProps.title)
     expect(wrapper.text()).toContain(baseProps.message)
   })
@@ -39,7 +40,7 @@ describe('ToolState', () => {
     expect(state.attributes('role')).toBe('status')
     expect(state.attributes('aria-live')).toBe('polite')
     expect(wrapper.get('[data-loading-indicator]').exists()).toBe(true)
-    expect(wrapper.find('[data-icon]').exists()).toBe(false)
+    expect(wrapper.find('[class*="lucide-"]').exists()).toBe(false)
   })
 
   it('omits provenance until details are provided', () => {

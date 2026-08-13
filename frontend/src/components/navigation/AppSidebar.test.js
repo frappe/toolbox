@@ -60,10 +60,16 @@ describe('AppSidebar', () => {
     await toggle.trigger('click')
     expect(expanded.emitted('toggle-collapse')).toHaveLength(1)
 
+    // The panel icon, turned around when collapsed, is what frappe-ui's own
+    // SidebarCollapseToggle draws. Two chevrons were a different control from the rest of Frappe.
+    expect(toggle.find('.lucide-panel-right-open').exists()).toBe(true)
+    expect(toggle.find('.rotate-180').exists()).toBe(false)
+
     const collapsed = await mountSidebar({ collapsible: true, collapsed: true })
     // Section headings collapse to dividers, and tool links fall back to icon + aria-label.
     expect(collapsed.findAll('h2')).toHaveLength(0)
-    expect(collapsed.get('button[aria-label="Expand sidebar"]').exists()).toBe(true)
+    const collapsedToggle = collapsed.get('button[aria-label="Expand sidebar"]')
+    expect(collapsedToggle.find('.lucide-panel-right-open.rotate-180').exists()).toBe(true)
     const calculator = toolsById.get('calculator')
     expect(collapsed.get(`a[href="${calculator.route}"]`).attributes('aria-label')).toBe(
       calculator.name,

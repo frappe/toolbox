@@ -4,7 +4,7 @@
 import json
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import frappe
 import requests
@@ -339,6 +339,19 @@ class TestWeatherForecastService(UnitTestCase):
 		provider.forecast.side_effect = WeatherProviderError("failed")
 		with self.assertRaises(ServiceUnavailableError):
 			WeatherForecastService(12.97, 77.59, provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
+
+	def test_records_why_the_forecast_failed(self) -> None:
+		"""A 503 alone cannot say whether MET Norway is down or this host has no network."""
+		provider = Mock()
+		provider.forecast.side_effect = WeatherProviderError("the service is unavailable")
+
+		with patch("toolbox.provider_errors.frappe.log_error") as log_error, patch(
+			"toolbox.provider_errors.frappe.cache", FakeCache()
+		), self.assertRaises(ServiceUnavailableError):
+			WeatherForecastService(12.97, 77.59, provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
+
+		self.assertIn("MET Norway", log_error.call_args.kwargs["title"])
+		self.assertIn("the service is unavailable", log_error.call_args.kwargs["message"])
 
 	def test_returns_stale_cache_when_another_refresh_holds_the_lock(self) -> None:
 		cache = FakeCache()

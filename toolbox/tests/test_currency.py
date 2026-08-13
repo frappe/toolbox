@@ -3,7 +3,7 @@
 
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import frappe
 import requests
@@ -121,6 +121,31 @@ class TestCurrencyRateService(UnitTestCase):
 		provider.fetch.side_effect = CurrencyProviderError("failed")
 		with self.assertRaises(ServiceUnavailableError):
 			CurrencyRateService(provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
+
+	def test_records_why_the_rates_failed(self) -> None:
+		"""A 503 alone cannot say whether the ECB is down or this host has no network."""
+		provider = Mock()
+		provider.fetch.side_effect = CurrencyProviderError("the ECB feed is unavailable")
+
+		with patch("toolbox.provider_errors.frappe.log_error") as log_error, patch(
+			"toolbox.provider_errors.frappe.cache", FakeCache()
+		), self.assertRaises(ServiceUnavailableError):
+			CurrencyRateService(provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
+
+		self.assertIn("European Central Bank", log_error.call_args.kwargs["title"])
+		self.assertIn("the ECB feed is unavailable", log_error.call_args.kwargs["message"])
+
+	def test_records_a_conditional_request_that_has_nothing_to_reuse(self) -> None:
+		"""304 with no cached table is a contradiction, and the only sign of it was a 503."""
+		provider = Mock()
+		provider.fetch.return_value = {"notModified": True, "validators": {"etag": '"rates"'}}
+
+		with patch("toolbox.provider_errors.frappe.log_error") as log_error, patch(
+			"toolbox.provider_errors.frappe.cache", FakeCache()
+		), self.assertRaises(ServiceUnavailableError):
+			CurrencyRateService(provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
+
+		self.assertIn("304", log_error.call_args.kwargs["message"])
 
 	def test_returns_stale_cache_when_another_refresh_holds_the_lock(self) -> None:
 		cache = FakeCache()

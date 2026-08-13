@@ -10,7 +10,6 @@ from typing import Callable
 
 import frappe
 from frappe import _
-from frappe.exceptions import ServiceUnavailableError
 from frappe.query_builder import Order
 from frappe.rate_limiter import rate_limit
 from redis.exceptions import LockError
@@ -19,6 +18,7 @@ from toolbox.city_data import ALIAS_DOCTYPE, CITY_DOCTYPE
 from toolbox.city_data import DATASET_TYPE as CITY_DATASET_TYPE
 from toolbox.city_names import search_name
 from toolbox.india_business_data import RELEASE_DOCTYPE
+from toolbox.provider_errors import provider_unavailable
 from toolbox.weather_forecast import WeatherProviderError
 from toolbox.weather_provider import MetNoProvider
 
@@ -174,22 +174,26 @@ class WeatherForecastService:
 				if cached and self._is_fresh(cached):
 					return self._public_response(cached, "cached")
 				return self._refresh(cached)
-		except LockError:
+		except LockError as error:
 			cached = self._get_cached()
 			if cached:
 				return self._public_response(cached, "stale")
-			raise ServiceUnavailableError(
-				_("Weather forecasts are temporarily unavailable. Please try again later.")
+			raise provider_unavailable(
+				_("Weather forecasts are temporarily unavailable. Please try again later."),
+				provider="MET Norway (forecast lock)",
+				cause=error,
 			) from None
 
 	def _refresh(self, cached: dict[str, object] | None) -> dict[str, object]:
 		try:
 			data = self.provider.forecast(self.latitude, self.longitude, self.tz)
-		except WeatherProviderError:
+		except WeatherProviderError as error:
 			if cached:
 				return self._public_response(cached, "stale")
-			raise ServiceUnavailableError(
-				_("Weather forecasts are temporarily unavailable. Please try again later.")
+			raise provider_unavailable(
+				_("Weather forecasts are temporarily unavailable. Please try again later."),
+				provider="MET Norway",
+				cause=error,
 			) from None
 
 		stored = {

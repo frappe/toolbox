@@ -42,9 +42,14 @@ test('@smoke sends the retired converter route to length', async ({ request }) =
   }
 })
 
-test('carries the value already typed to the next measurement', async ({ page }) => {
-  // The nine share a view because they share the conversion field, so a move keeps the value.
+test('opens each measurement on its own worked example', async ({ page }) => {
+  // The name of this test used to say the typed value carried to the next measurement, while its
+  // assertions only checked the URL. It never carried, and it should not: 100 degrees does not
+  // mean 100 kilometres per hour. Each measurement opens on an example of its own instead.
   await page.goto('/temperature-converter')
+  await expect(page.getByRole('textbox', { name: 'From value' })).toHaveValue('0')
+  await expect(page.getByRole('textbox', { name: 'To value' })).toHaveValue('32')
+
   await page.getByRole('textbox', { name: 'From value' }).fill('100')
   await expect(page.getByRole('textbox', { name: 'To value' })).toHaveValue('212')
 
@@ -55,4 +60,6 @@ test('carries the value already typed to the next measurement', async ({ page })
 
   await expect(page).toHaveURL(/\/speed-converter$/)
   await expect(page.getByRole('heading', { name: 'Speed Converter', level: 1 })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'From value' })).toHaveValue('100')
+  await expect(page.getByRole('textbox', { name: 'To value' })).toHaveValue('62.1371192237')
 })

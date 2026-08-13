@@ -10,14 +10,34 @@ import {
 } from './useUnitConverter'
 
 describe('unit converter state', () => {
-  it('starts with the length defaults and empty fields', () => {
+  it('opens on the length defaults, already converted', () => {
+    // A converter used to open on two empty boxes while every calculator opened on a worked
+    // example. It now shows what it does before anything is typed.
     const converter = useUnitConverter()
 
     expect(converter.categoryId.value).toBe(DEFAULT_CATEGORY_ID)
     expect(converter.fromUnitId.value).toBe(DEFAULT_UNIT_PAIRS.length.fromUnitId)
     expect(converter.toUnitId.value).toBe(DEFAULT_UNIT_PAIRS.length.toUnitId)
-    expect(converter.fromInput.value).toBe('')
-    expect(converter.toInput.value).toBe('')
+    expect(converter.fromInput.value).toBe('1000')
+    expect(converter.toInput.value).toBe('1')
+  })
+
+  it('says nothing about the example it opened on', () => {
+    // The announcement is a polite live region. The seeded conversion is not something the
+    // visitor did, so announcing it talks over a screen reader on every page load.
+    const converter = useUnitConverter()
+
+    expect(converter.conversionAnnouncement.value).toBe('')
+
+    converter.setCategory('temperature')
+    expect(converter.conversionAnnouncement.value).toBe('')
+
+    converter.reset()
+    expect(converter.conversionAnnouncement.value).toBe('')
+
+    // A conversion the visitor asks for still announces.
+    converter.updateFromInput('100')
+    expect(converter.conversionAnnouncement.value).toContain('Converted value: 212')
   })
 
   it('converts immediately in either direction', () => {
@@ -88,10 +108,11 @@ describe('unit converter state', () => {
 
     // Reset used to return to length. Each measurement is its own tool at its own URL now, so
     // moving to another one from a Reset button would leave the page and the URL disagreeing.
+    // It returns to the worked example the page opened on, units included.
     expect(converter.categoryId.value).toBe('temperature')
     expect(converter.toUnitId.value).toBe('fahrenheit')
-    expect(converter.fromInput.value).toBe('')
-    expect(converter.toInput.value).toBe('')
+    expect(converter.fromInput.value).toBe('0')
+    expect(converter.toInput.value).toBe('32')
   })
 
   it('starts on the measurement the route asks for, with its own units', () => {

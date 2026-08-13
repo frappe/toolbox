@@ -5,18 +5,32 @@ import { convert, UnitConversionError } from './converter'
 import { conversionRegistry, getCategory, getUnit } from './registry'
 
 export const DEFAULT_CATEGORY_ID = 'length'
+// Each measurement opens on a worked example rather than on two empty boxes, so a visitor sees
+// what the tool does before typing. The amount is chosen to be a quantity somebody recognises,
+// and every one of them converts in the browser, so none of this costs a request.
 export const DEFAULT_UNIT_PAIRS = Object.freeze({
-  length: Object.freeze({ fromUnitId: 'meter', toUnitId: 'kilometer' }),
-  area: Object.freeze({ fromUnitId: 'square-meter', toUnitId: 'square-foot' }),
-  volume: Object.freeze({ fromUnitId: 'liter', toUnitId: 'us-gallon' }),
-  mass: Object.freeze({ fromUnitId: 'kilogram', toUnitId: 'pound' }),
-  temperature: Object.freeze({ fromUnitId: 'celsius', toUnitId: 'fahrenheit' }),
-  speed: Object.freeze({ fromUnitId: 'kilometer-per-hour', toUnitId: 'mile-per-hour' }),
-  time: Object.freeze({ fromUnitId: 'minute', toUnitId: 'hour' }),
-  'digital-storage': Object.freeze({ fromUnitId: 'megabyte', toUnitId: 'gigabyte' }),
+  length: Object.freeze({ fromUnitId: 'meter', toUnitId: 'kilometer', fromInput: '1000' }),
+  area: Object.freeze({ fromUnitId: 'square-meter', toUnitId: 'square-foot', fromInput: '100' }),
+  volume: Object.freeze({ fromUnitId: 'liter', toUnitId: 'us-gallon', fromInput: '1' }),
+  mass: Object.freeze({ fromUnitId: 'kilogram', toUnitId: 'pound', fromInput: '1' }),
+  temperature: Object.freeze({ fromUnitId: 'celsius', toUnitId: 'fahrenheit', fromInput: '0' }),
+  speed: Object.freeze({
+    fromUnitId: 'kilometer-per-hour',
+    toUnitId: 'mile-per-hour',
+    fromInput: '100',
+  }),
+  time: Object.freeze({ fromUnitId: 'minute', toUnitId: 'hour', fromInput: '90' }),
+  // 1000, not 1024: these are the decimal units, so 1024 would open on 1.024 GB and read as a
+  // rounding artefact rather than an example.
+  'digital-storage': Object.freeze({
+    fromUnitId: 'megabyte',
+    toUnitId: 'gigabyte',
+    fromInput: '1000',
+  }),
   'fuel-consumption': Object.freeze({
     fromUnitId: 'liter-per-100-kilometers',
     toUnitId: 'mile-per-us-gallon',
+    fromInput: '8',
   }),
 })
 
@@ -30,7 +44,7 @@ export function useUnitConverter(options = {}) {
   const categoryId = ref(initialCategoryId)
   const fromUnitId = ref(DEFAULT_UNIT_PAIRS[initialCategoryId].fromUnitId)
   const toUnitId = ref(DEFAULT_UNIT_PAIRS[initialCategoryId].toUnitId)
-  const fromInput = ref('')
+  const fromInput = ref(DEFAULT_UNIT_PAIRS[initialCategoryId].fromInput)
   const toInput = ref('')
   const lastEditedSide = ref('from')
   const errorMessage = ref('')
@@ -52,6 +66,10 @@ export function useUnitConverter(options = {}) {
     () => !errorMessage.value && parseEditableNumber(derivedValue.value).kind === 'valid',
   )
 
+  // Convert the seeded amount once, so the page opens showing both sides rather than a number
+  // with nothing beside it. Function declarations hoist, so this reads before it is defined.
+  seedDefaultValue()
+
   function setCategory(nextCategoryId) {
     const defaults = DEFAULT_UNIT_PAIRS[nextCategoryId]
     if (!defaults) return
@@ -59,7 +77,19 @@ export function useUnitConverter(options = {}) {
     categoryId.value = nextCategoryId
     fromUnitId.value = defaults.fromUnitId
     toUnitId.value = defaults.toUnitId
-    clearValues()
+    clearFeedback()
+    // The next measurement opens on its own worked example, the same as arriving there directly.
+    // Carrying the number over instead would read as a conversion the visitor never asked for:
+    // 100 degrees does not mean 100 kilometres per hour.
+    seedDefaultValue()
+  }
+
+  // The seeded example is not something the visitor did, so it must not reach the live region.
+  // A page that announces a conversion on load talks over a screen reader for no reason.
+  function seedDefaultValue() {
+    lastEditedSide.value = 'from'
+    updateFromInput(DEFAULT_UNIT_PAIRS[categoryId.value].fromInput)
+    conversionAnnouncement.value = ''
   }
 
   function setFromUnit(nextUnitId) {
@@ -96,13 +126,15 @@ export function useUnitConverter(options = {}) {
     clearFeedback()
   }
 
-  // Reset returns this converter to its own defaults. It does not move to another measurement,
-  // because that would leave the page showing one thing and the URL naming another.
+  // Reset returns this converter to its own defaults, which now includes the worked example it
+  // opened on. It does not move to another measurement, because that would leave the page showing
+  // one thing and the URL naming another.
   function reset() {
     const defaults = DEFAULT_UNIT_PAIRS[categoryId.value]
     fromUnitId.value = defaults.fromUnitId
     toUnitId.value = defaults.toUnitId
-    clearValues()
+    clearFeedback()
+    seedDefaultValue()
   }
 
   // Snapshot the current settled conversion into shared history. The source is the side the

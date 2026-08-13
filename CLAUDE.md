@@ -38,7 +38,9 @@ Tool history uses `sessionStorage` too, and keeps the last 10 entries for each t
 
 Nothing a visitor does is sent to the server. Do not add a preference, history, or draft that outlives the browser session.
 
-Three keys live in `localStorage` today, and only three. `toolbox:theme:v1`, for the reason above. The Currency Converter rate snapshot and the Weather forecast snapshot, which are what let those two tools work with no connection. The forecast snapshot is keyed by place, so it does record where a visitor looked, and whether it belongs there is the open question in issue #206.
+Two keys live in `localStorage` today, and only two. `toolbox:theme:v1`, for the reason above, and the Currency Converter rate snapshot, which is the only thing that lets that tool convert on the first offline visit of a session. It holds public reference rates and names nobody.
+
+The Weather forecast snapshot was the third until issue #206 settled it. A forecast is keyed by the place it is for, so keeping it recorded where a visitor looked, which is usually where they live. It uses `sessionStorage` now and clears the old key when it loads, and the weather page says so. The rule the two follow: cached public data may outlive the session, a record of the visitor may not.
 
 `frontend/src/test/setup.js` replaces both storages with one test double and clears both after each test. A suite that defines only one tests the other against jsdom's own copy, which nothing clears between tests.
 

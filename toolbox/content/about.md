@@ -34,8 +34,12 @@ rates call anything at all.
 
 No. There is no analytics script, no advertising tag and no cookie banner, because there is nothing
 to consent to. Your settings, your history and your saved places stay in the browser tab you are
-using and go when it closes. The one exception is the light or dark theme, which is kept so a
-returning visitor is not shown a white flash.
+using and go when it closes.
+
+Two things are kept for longer, and neither says anything about you. The light or dark theme, so a
+returning visitor is not shown a white flash. And the last table of currency reference rates,
+which is a public list of numbers and the only thing that lets the converter work with no
+connection.
 
 ### Can I see the code?
 

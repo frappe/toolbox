@@ -43,7 +43,7 @@
                 <h3 class="truncate text-sm font-medium text-ink-gray-9">{{ tool.name }}</h3>
                 <Badge v-if="!isToolAvailable(tool)" theme="gray" label="Validating" />
               </div>
-              <p class="truncate text-xs leading-5 text-ink-gray-6">{{ tool.description }}</p>
+              <p class="truncate text-xs leading-5 text-ink-gray-6">{{ tool.summary }}</p>
             </div>
           </RouterLink>
         </div>

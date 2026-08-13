@@ -20,6 +20,24 @@ const externalDependencyStatuses = new Set([
 ])
 
 describe('tool registry', () => {
+  it('keeps every summary short enough to read without being cut', () => {
+    // All Tools and the search dialog truncate this line, and the narrowest place it lands is the
+    // three-column desktop grid: 245px of text at 12px, which is about 33 characters. Every
+    // description was longer, so 33 of the 34 rows ended in an ellipsis. The budget is 32, and it
+    // is a test rather than a note because the only symptom of breaking it is a cut word.
+    const BUDGET = 32
+
+    for (const tool of tools) {
+      expect(tool.summary, tool.id).toBeTruthy()
+      expect(tool.summary.length, `${tool.id}: "${tool.summary}"`).toBeLessThanOrEqual(BUDGET)
+      // A summary is a phrase, not a sentence, so it carries no closing full stop.
+      expect(tool.summary.endsWith('.'), tool.id).toBe(false)
+    }
+
+    // The two say different things in different places, so neither may stand in for the other.
+    expect(new Set(tools.map((tool) => tool.summary)).size).toBe(tools.length)
+  })
+
   it('defines every V1 tool with a complete and valid schema', () => {
     const categoryIds = new Set(toolCategories.map((category) => category.id))
 

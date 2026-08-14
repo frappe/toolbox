@@ -81,7 +81,7 @@ jobs:
       # The E2E job is where the real releases are imported.
       - name: Run server tests
         working-directory: /home/runner/frappe-bench
-        run: bench --site test_site run-tests --app toolbox
+        run: bench --site test_site.localhost run-tests --app toolbox
 
   e2e:
     name: E2E (Playwright)
@@ -124,12 +124,19 @@ jobs:
       - name: Install bench and create the test site
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
 
-      - name: Point test_site at localhost
+      - name: Point the site at the loopback
         # Frappe resolves the site from the Host header and answers 404 when no site matches, so
         # the site is addressed by name rather than through `localhost`.
+        #
+        # The name ends in `.localhost` on purpose. A browser grants the service worker and
+        # `navigator.mediaDevices` only in a secure context, and `localhost` and anything under it
+        # are the one insecure origin that qualifies. Served as plain `test_site`, both APIs were
+        # undefined: 68 tests failed on `navigator.serviceWorker is undefined`, every offline test
+        # among them, and the Audio Recorder correctly rendered "needs a browser with microphone
+        # support" because there were no media devices to find.
         run: |
-          echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
-          cd /home/runner/frappe-bench && bench use test_site
+          echo "127.0.0.1 test_site.localhost" | sudo tee -a /etc/hosts
+          cd /home/runner/frappe-bench && bench use test_site.localhost
 
       # `migrate` enqueues this on the long queue, which needs a worker and finishes when it
       # finishes. The API contract tests read real rows — PIN 110001, IFSC SBIN0000001, HSN 0101,
@@ -142,7 +149,7 @@ jobs:
         # the job green until a browser test asks for a row twenty minutes later.
         run: |
           set -o pipefail
-          bench --site test_site execute toolbox.dataset_sync.sync_datasets | tee /tmp/sync.json
+          bench --site test_site.localhost execute toolbox.dataset_sync.sync_datasets | tee /tmp/sync.json
           python3 - <<'PY'
           import json, sys
 
@@ -180,7 +187,7 @@ jobs:
           # Any HTTP answer means the server is listening. Do not require a status: this waits for
           # the socket, not for the page.
           for i in $(seq 1 120); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://test_site:8000/calculator || true)
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://test_site.localhost:8000/calculator || true)
             if [ -n "$code" ] && [ "$code" != "000" ]; then
               echo "bench up after ${i}s (HTTP $code)"; exit 0
             fi
@@ -196,7 +203,7 @@ jobs:
       - name: Run the browser suite
         working-directory: /home/runner/frappe-bench/apps/toolbox/frontend
         env:
-          TOOLBOX_E2E_BASE_URL: http://test_site:8000
+          TOOLBOX_E2E_BASE_URL: http://test_site.localhost:8000
         run: >-
           yarn playwright test
           --project=chromium

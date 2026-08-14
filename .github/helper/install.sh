@@ -23,5 +23,5 @@ cd "$HOME/frappe-bench" || exit 1
 # point never reaches the app that gets served.
 bench get-app toolbox "${GITHUB_WORKSPACE}"
 bench new-site --db-root-password root --admin-password admin \
-  --no-mariadb-socket --install-app toolbox test_site
-bench --site test_site set-config allow_tests true
+  --no-mariadb-socket --install-app toolbox test_site.localhost
+bench --site test_site.localhost set-config allow_tests true

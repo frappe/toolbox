@@ -31,6 +31,16 @@ describe('ToolState', () => {
     expect(wrapper.text()).toContain(baseProps.message)
   })
 
+  it('lets a panel name its own icon, and keeps the status icon otherwise', () => {
+    // History draws its own subject rather than the generic empty inbox.
+    const named = mount(ToolState, { props: { ...baseProps, icon: 'lucide-history' } })
+    expect(named.get('.lucide-history').exists()).toBe(true)
+    expect(named.find('.lucide-inbox').exists()).toBe(false)
+
+    const byStatus = mount(ToolState, { props: { ...baseProps, status: 'offline' } })
+    expect(byStatus.get('.lucide-wifi-off').exists()).toBe(true)
+  })
+
   it('announces loading progress politely without showing a state icon', () => {
     const wrapper = mount(ToolState, {
       props: { ...baseProps, status: 'loading' },

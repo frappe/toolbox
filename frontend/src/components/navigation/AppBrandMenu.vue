@@ -84,14 +84,17 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, nextTick, ref, watch } from 'vue'
-import { Icon } from 'frappe-ui'
-
-defineProps({
-  collapsed: { type: Boolean, default: false },
-})
+import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { Icon, sidebarCollapsedKey } from 'frappe-ui'
 
 const emit = defineEmits(['navigate'])
+
+// Read off the Sidebar, like every frappe-ui sidebar part. Only Sidebar knows the resolved state,
+// because it falls back to the breakpoint when nothing sets the model.
+const collapsed = inject(
+  sidebarCollapsedKey,
+  computed(() => false),
+)
 
 const logoUrl = '/assets/toolbox/toolbox-logo.svg'
 

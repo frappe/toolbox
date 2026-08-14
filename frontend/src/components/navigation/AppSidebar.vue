@@ -1,138 +1,104 @@
 <template>
-  <aside
-    class="flex h-full shrink-0 flex-col bg-surface-gray-1 px-3 py-3 transition-[width] duration-200"
-    :class="collapsed ? 'w-[76px]' : 'w-[272px]'"
-  >
-    <AppBrandMenu v-if="showBrand" :collapsed="collapsed" @navigate="$emit('navigate')" />
+  <Sidebar v-model:collapsed="collapsed" :disable-collapse="disableCollapse" :width="width">
+    <div class="flex h-full min-h-0 flex-col p-2">
+      <AppBrandMenu v-if="showBrand" @navigate="$emit('navigate')" />
 
-    <button
-      type="button"
-      class="mt-3 flex h-9 items-center rounded-lg border border-outline-gray-2 bg-surface-base text-sm text-ink-gray-5 shadow-sm transition-colors hover:border-outline-gray-3 hover:text-ink-gray-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-      :class="collapsed ? 'justify-center px-0' : 'px-2'"
-      :aria-label="collapsed ? 'Search tools' : undefined"
-      :title="collapsed ? 'Search tools' : undefined"
-      @click="$emit('search')"
-    >
-      <span class="flex size-7 shrink-0 items-center justify-center">
-        <Icon name="lucide-search" class="size-4" />
-      </span>
-      <template v-if="!collapsed">
-        <span class="flex-1 text-left">Search tools</span>
-        <kbd class="rounded border border-outline-gray-2 bg-surface-gray-1 px-1.5 py-0.5 text-xs">⌘K</kbd>
-      </template>
-    </button>
+      <SidebarItem label="Search tools" icon="lucide-search" @click="$emit('search')">
+        <template #suffix>
+          <kbd class="mr-2 rounded border border-outline-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-5">
+            ⌘K
+          </kbd>
+        </template>
+      </SidebarItem>
 
-    <nav class="mt-4 min-h-0 flex-1 overflow-y-auto" aria-label="Toolbox navigation">
-      <div class="space-y-0.5">
-        <NavigationItem
+      <!-- -mx/px: rows sit flush with the clip edge, so without this the active row's shadow ring
+           is cut off at both sides. frappe-ui's own layout does the same. -->
+      <nav class="-mx-1 mt-2 min-h-0 flex-1 overflow-y-auto px-1" aria-label="Toolbox navigation">
+        <SidebarItem
           to="/all-tools"
           icon="lucide-layout-grid"
           label="All tools"
-          :suffix="tools.length"
-          :collapsed="collapsed"
-          @navigate="$emit('navigate')"
-        />
-      </div>
+          @click="$emit('navigate')"
+        >
+          <!-- The count goes through the slot rather than the `suffix` prop, because that prop
+               draws in `ink-gray-4`, which is 2.68:1 on this background and fails WCAG AA. -->
+          <template #suffix>
+            <span class="mr-2 text-sm tabular-nums text-ink-gray-5">{{ tools.length }}</span>
+          </template>
+        </SidebarItem>
 
-      <SidebarSection
-        v-for="category in categoryGroups"
-        :key="category.id"
-        :label="category.name"
-        :count="category.tools.length"
-        :open="isOpen(category.id)"
-        :collapsed="collapsed"
-        @toggle="toggleCategory(category.id)"
-      >
-        <NavigationItem
-          v-for="tool in category.tools"
-          :key="tool.id"
-          :to="tool.route"
-          :icon="tool.icon"
-          :label="tool.name"
-          :collapsed="collapsed"
-          @navigate="$emit('navigate')"
-        />
-      </SidebarSection>
-
-    </nav>
-
-    <div class="mt-2 border-t border-outline-gray-2 pt-2">
-      <!-- A new build is waiting: offer the refresh here rather than as a floating card. -->
-      <button
-        v-if="pwa.updateReady.value"
-        type="button"
-        class="mb-1 flex h-9 w-full items-center rounded-lg bg-surface-gray-2 text-sm font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-        :class="collapsed ? 'justify-center px-0' : 'px-2'"
-        :aria-label="collapsed ? 'Update ready — refresh Toolbox' : undefined"
-        :title="collapsed ? 'Update ready' : undefined"
-        @click="pwa.applyUpdate"
-      >
-        <span class="flex size-7 shrink-0 items-center justify-center">
-          <Icon name="lucide-refresh-cw" class="size-4" :class="pwa.updateApplying.value ? 'animate-spin motion-reduce:animate-none' : ''" />
-        </span>
-        <template v-if="!collapsed">
-          <span class="min-w-0 flex-1 truncate text-left">Update ready</span>
-          <Icon name="lucide-arrow-right" class="size-4 shrink-0 text-ink-gray-5" />
-        </template>
-      </button>
-
-      <!-- Mobile keeps Settings in the footer; on desktop it moves into the brand menu. -->
-      <NavigationItem
-        v-if="!showBrand"
-        to="/settings"
-        icon="lucide-settings-2"
-        label="Settings"
-        @navigate="$emit('navigate')"
-      />
-      <button
-        v-if="collapsible"
-        type="button"
-        class="flex h-9 w-full items-center rounded-lg text-sm font-medium text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-        :class="collapsed ? 'justify-center px-0' : 'px-2'"
-        :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        :aria-pressed="collapsed"
-        :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        @click="$emit('toggle-collapse')"
-      >
-        <!--
-          The panel icon and the rotate are what frappe-ui's own SidebarCollapseToggle draws, and
-          what Frappe Drive shows. That component cannot be used here: it reads the collapsed state
-          through `inject(sidebarCollapsedKey)`, which only a frappe-ui Sidebar provides, and
-          adopting that whole component is a larger change than matching one control. It falls back
-          to a no-op outside a Sidebar, so it would render a toggle that does nothing.
-        -->
-        <span class="flex size-7 shrink-0 items-center justify-center">
-          <Icon
-            name="lucide-panel-right-open"
-            class="size-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none"
-            :class="{ 'rotate-180': collapsed }"
+        <ToolCategorySection
+          v-for="category in categoryGroups"
+          :key="category.id"
+          :label="category.name"
+          :count="category.tools.length"
+          :open="isOpen(category.id)"
+          @toggle="toggleCategory(category.id)"
+        >
+          <SidebarItem
+            v-for="tool in category.tools"
+            :key="tool.id"
+            :to="tool.route"
+            :icon="tool.icon"
+            :label="tool.name"
+            @click="$emit('navigate')"
           />
-        </span>
-        <span v-if="!collapsed" class="min-w-0 flex-1 truncate text-left">Collapse</span>
-      </button>
+        </ToolCategorySection>
+      </nav>
+
+      <div class="mt-2 border-t border-outline-gray-2 pt-2">
+        <!-- A new build is waiting: offer the refresh here rather than as a floating card. -->
+        <SidebarItem v-if="pwa.updateReady.value" label="Update ready" @click="pwa.applyUpdate">
+          <template #prefix>
+            <Icon
+              name="lucide-refresh-cw"
+              class="size-4 text-ink-gray-6"
+              :class="pwa.updateApplying.value ? 'animate-spin motion-reduce:animate-none' : ''"
+            />
+          </template>
+          <template #suffix>
+            <Icon name="lucide-arrow-right" class="mr-2 size-4 text-ink-gray-5" />
+          </template>
+        </SidebarItem>
+
+        <!-- Mobile keeps Settings in the footer; on desktop it moves into the brand menu. -->
+        <SidebarItem
+          v-if="!showBrand"
+          to="/settings"
+          icon="lucide-settings-2"
+          label="Settings"
+          @click="$emit('navigate')"
+        />
+
+        <SidebarCollapseToggle v-if="!disableCollapse" />
+      </div>
     </div>
-  </aside>
+  </Sidebar>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Icon } from 'frappe-ui'
+import { Icon, Sidebar, SidebarCollapseToggle, SidebarItem } from 'frappe-ui'
 
 import { usePwaStatus } from '@/composables/usePwaStatus'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { getToolsByCategory, toolCategories, tools, toolsById } from '@/data/toolRegistry'
 import AppBrandMenu from './AppBrandMenu.vue'
-import NavigationItem from './NavigationItem.vue'
-import SidebarSection from './SidebarSection.vue'
+import ToolCategorySection from './ToolCategorySection.vue'
 
 defineProps({
   showBrand: { type: Boolean, default: true },
-  collapsible: { type: Boolean, default: false },
-  collapsed: { type: Boolean, default: false },
+  // Pins the sidebar open and drops the toggle, for the copy inside the mobile sheet.
+  disableCollapse: { type: Boolean, default: false },
+  width: { type: String, default: undefined },
 })
 
-defineEmits(['navigate', 'search', 'toggle-collapse'])
+defineEmits(['navigate', 'search'])
+
+// Left untyped on purpose. Sidebar reads an unset model as "decide for yourself", and a Boolean
+// type here would turn that into `false` before Sidebar ever saw it.
+const collapsed = defineModel('collapsed', { default: null })
 
 const preferences = useToolboxPreferences()
 const pwa = usePwaStatus()

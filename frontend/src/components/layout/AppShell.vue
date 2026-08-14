@@ -12,16 +12,21 @@
     </a>
 
     <AppSidebar
+      v-model:collapsed="sidebarCollapsed"
       class="hidden lg:flex"
-      collapsible
-      :collapsed="sidebarCollapsed"
       @search="searchOpen = true"
-      @toggle-collapse="toggleSidebar"
     />
 
     <BottomSheet v-model:open="mobileNavigationOpen" title="Navigate">
+      <!--
+        `disable-collapse` is load-bearing. Sidebar resolves its own state as
+        `(model ?? isMobile)`, and this copy sets no model, so on the phone it was opened on it
+        would collapse itself to an icon rail inside the sheet.
+      -->
       <AppSidebar
-        class="!h-[70vh] !w-full !bg-surface-base"
+        class="!h-[70vh] !bg-surface-base"
+        width="100%"
+        disable-collapse
         :show-brand="false"
         @navigate="mobileNavigationOpen = false"
         @search="openSearchFromMobile"
@@ -78,7 +83,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { BottomSheet, Button, Icon } from 'frappe-ui'
 
 import { useLayoutPreferences } from '@/composables/useLayoutPreferences'
@@ -102,14 +107,14 @@ function readSidebarCollapsed() {
   }
 }
 
-function toggleSidebar() {
-  sidebarCollapsed.value = !sidebarCollapsed.value
+// Sidebar owns the toggle now, so the shell only records where it was left.
+watch(sidebarCollapsed, (isCollapsed) => {
   try {
-    globalThis.localStorage?.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed.value))
+    globalThis.localStorage?.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed))
   } catch {
     // The collapse still works for this session when storage is unavailable.
   }
-}
+})
 
 provide('openToolSearch', () => (searchOpen.value = true))
 

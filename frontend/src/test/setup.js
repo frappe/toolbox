@@ -50,7 +50,8 @@ afterEach(() => {
 })
 
 vi.mock('frappe-ui', async () => {
-  const { computed, defineComponent, h, inject, provide, ref } = await import('vue')
+  const { computed, defineComponent, getCurrentInstance, h, inject, provide, ref, resolveComponent } =
+    await import('vue')
 
   const Dialog = defineComponent({
     name: 'Dialog',
@@ -748,6 +749,165 @@ vi.mock('frappe-ui', async () => {
     },
   })
 
+  // The sidebar family. `Sidebar` provides the collapsed state and the toggle, and every other
+  // part reads them through inject — which is the reason none of them takes `collapsed` as a prop.
+  const sidebarCollapsedKey = Symbol('sidebarCollapsed')
+  const sidebarToggleKey = Symbol('sidebarToggle')
+
+  const Sidebar = defineComponent({
+    name: 'Sidebar',
+    inheritAttrs: false,
+    props: {
+      // Untyped, because `null` and `false` mean different things: unset falls back to the
+      // breakpoint, and a Boolean prop would collapse that distinction before it is read.
+      collapsed: { type: null, default: null },
+      disableCollapse: { type: Boolean, default: false },
+      width: { type: String, default: '15rem' },
+      collapsedWidth: { type: String, default: '3rem' },
+    },
+    emits: ['update:collapsed'],
+    setup(props, { attrs, emit, slots }) {
+      // The real component resolves `(model ?? isMobile) && !disableCollapse`, reading the sm
+      // breakpoint. A test that wants the mobile path sets `innerWidth` before it mounts: this is
+      // read once, because nothing here makes the width reactive.
+      const shouldCollapse = computed(
+        () => (props.collapsed ?? globalThis.innerWidth < 640) && !props.disableCollapse,
+      )
+
+      provide(sidebarCollapsedKey, shouldCollapse)
+      provide(sidebarToggleKey, () => emit('update:collapsed', !shouldCollapse.value))
+
+      return () =>
+        h(
+          'div',
+          {
+            ...attrs,
+            'data-slot': 'sidebar',
+            'data-state': shouldCollapse.value ? 'collapsed' : 'expanded',
+            style: { width: shouldCollapse.value ? props.collapsedWidth : props.width },
+          },
+          slots.default?.(),
+        )
+    },
+  })
+
+  // Mirrors the four things a call site gets wrong about SidebarItem:
+  //  - `to` is what makes it a link. Without it the row is a button, and there is no href.
+  //  - `aria-label` is the label always, not only while collapsed.
+  //  - `suffix` is a string. The real prop rejects a number, so `:suffix="list.length"` is a bug.
+  //  - collapsing hides the label and the suffix but keeps both in the DOM.
+  const SidebarItem = defineComponent({
+    name: 'SidebarItem',
+    inheritAttrs: false,
+    props: {
+      label: { type: String, default: '' },
+      icon: { type: [String, Object, Function], default: undefined },
+      suffix: { type: String, default: '' },
+      to: { type: [String, Object], default: undefined },
+      active: { type: Boolean, default: undefined },
+      accessKey: { type: String, default: undefined },
+      onClick: { type: Function, default: undefined },
+    },
+    setup(props, { attrs, slots }) {
+      const globals = getCurrentInstance()?.appContext.config.globalProperties
+      const isCollapsed = inject(
+        sidebarCollapsedKey,
+        computed(() => false),
+      )
+      const isActive = computed(() => {
+        if (props.active !== undefined) return props.active
+        const current = globals?.$route
+        return Boolean(current && typeof props.to === 'string' && current.path === props.to)
+      })
+
+      const hiddenWhenCollapsed = () =>
+        isCollapsed.value ? 'w-0 overflow-hidden opacity-0' : 'opacity-100'
+
+      const contents = () => [
+        h(
+          'span',
+          {},
+          slots.prefix?.() ??
+            (typeof props.icon === 'string' ? [h('span', { class: props.icon })] : []),
+        ),
+        h('span', { class: hiddenWhenCollapsed() }, slots.default?.() ?? props.label),
+      ]
+
+      // The real component renders a RouterLink when a router is installed and a plain <a>
+      // otherwise. RouterLink is resolved here rather than imported, because a spec is free to
+      // mock `vue-router` and an import in this factory would pick up that mock instead.
+      const renderLink = () => {
+        const shared = {
+          accesskey: props.accessKey,
+          'aria-label': props.label || undefined,
+          'aria-current': isActive.value ? 'page' : undefined,
+          onClick: (event) => props.onClick?.(event),
+        }
+
+        if (!globals?.$router) {
+          const href = typeof props.to === 'string' ? props.to : undefined
+          return h('a', { ...shared, href }, contents())
+        }
+
+        return h(resolveComponent('RouterLink'), { ...shared, to: props.to }, { default: contents })
+      }
+
+      return () =>
+        h(
+          'div',
+          {
+            ...attrs,
+            'data-slot': 'sidebar-item',
+            'data-state': isActive.value ? 'active' : 'inactive',
+          },
+          [
+            props.to
+              ? renderLink()
+              : h(
+                  'button',
+                  {
+                    type: 'button',
+                    accesskey: props.accessKey,
+                    'aria-label': props.label || undefined,
+                    onClick: (event) => props.onClick?.(event),
+                  },
+                  contents(),
+                ),
+            h(
+              'div',
+              { 'data-slot': 'sidebar-item-suffix', class: hiddenWhenCollapsed() },
+              slots.suffix?.() ?? (props.suffix ? [h('span', {}, props.suffix)] : []),
+            ),
+          ],
+        )
+    },
+  })
+
+  // A SidebarItem whose label says what the click will do, so it reads "Expand" once collapsed.
+  const SidebarCollapseToggle = defineComponent({
+    name: 'SidebarCollapseToggle',
+    inheritAttrs: false,
+    setup(_, { attrs }) {
+      const isCollapsed = inject(
+        sidebarCollapsedKey,
+        computed(() => false),
+      )
+      // No-op fallback, so a toggle outside a Sidebar renders and does nothing rather than throws.
+      const toggle = inject(sidebarToggleKey, () => {})
+
+      return () =>
+        h(SidebarItem, { ...attrs, label: isCollapsed.value ? 'Expand' : 'Collapse', onClick: toggle }, {
+          prefix: () =>
+            h('span', {
+              class: [
+                'lucide-panel-right-open size-4 text-ink-gray-6',
+                isCollapsed.value ? 'rotate-180' : '',
+              ],
+            }),
+        })
+    },
+  })
+
   return {
     Alert,
     Badge,
@@ -771,10 +931,15 @@ vi.mock('frappe-ui', async () => {
     SettingsPanel,
     SettingsRow,
     SettingsSidebar,
+    Sidebar,
+    SidebarCollapseToggle,
+    SidebarItem,
     Slider,
     TabButtons,
     TextInput,
     Tooltip,
     frappeRequest: vi.fn(),
+    sidebarCollapsedKey,
+    sidebarToggleKey,
   }
 })

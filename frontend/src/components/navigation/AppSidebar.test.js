@@ -55,25 +55,48 @@ describe('AppSidebar', () => {
   })
 
   it('exposes a collapse toggle and hides labels when collapsed', async () => {
-    const expanded = await mountSidebar({ collapsible: true, collapsed: false })
-    const toggle = expanded.get('button[aria-label="Collapse sidebar"]')
-    await toggle.trigger('click')
-    expect(expanded.emitted('toggle-collapse')).toHaveLength(1)
+    const expanded = await mountSidebar({ collapsed: false })
+    // frappe-ui's SidebarCollapseToggle names itself for what the click will do, and Sidebar owns
+    // the state, so the toggle reports through the model rather than an event of our own.
+    const toggle = expanded.get('button[aria-label="Collapse"]')
 
-    // The panel icon, turned around when collapsed, is what frappe-ui's own
-    // SidebarCollapseToggle draws. Two chevrons were a different control from the rest of Frappe.
+    // The panel icon, turned around when collapsed. Two chevrons were a different control from
+    // the rest of Frappe. Read before the click, because the toggle collapses this sidebar.
     expect(toggle.find('.lucide-panel-right-open').exists()).toBe(true)
     expect(toggle.find('.rotate-180').exists()).toBe(false)
 
-    const collapsed = await mountSidebar({ collapsible: true, collapsed: true })
+    await toggle.trigger('click')
+    expect(expanded.emitted('update:collapsed')).toEqual([[true]])
+
+    const collapsed = await mountSidebar({ collapsed: true })
     // Section headings collapse to dividers, and tool links fall back to icon + aria-label.
     expect(collapsed.findAll('h2')).toHaveLength(0)
-    const collapsedToggle = collapsed.get('button[aria-label="Expand sidebar"]')
+    const collapsedToggle = collapsed.get('button[aria-label="Expand"]')
     expect(collapsedToggle.find('.lucide-panel-right-open.rotate-180').exists()).toBe(true)
     const calculator = toolsById.get('calculator')
     expect(collapsed.get(`a[href="${calculator.route}"]`).attributes('aria-label')).toBe(
       calculator.name,
     )
+  })
+
+  // Sidebar resolves its own state as `(model ?? isMobile)`. The copy inside the mobile sheet sets
+  // no model, so without `disable-collapse` it would collapse itself to an icon rail on the phone
+  // it was opened on, and the sheet would show a strip of unlabelled icons.
+  it('stays open below the mobile breakpoint when collapsing is disabled', async () => {
+    const width = globalThis.innerWidth
+    globalThis.innerWidth = 375
+
+    try {
+      const pinned = await mountSidebar({ disableCollapse: true, showBrand: false })
+      expect(pinned.get('[data-slot="sidebar"]').attributes('data-state')).toBe('expanded')
+      expect(pinned.findAll('h2').length).toBeGreaterThan(0)
+      expect(pinned.find('button[aria-label="Collapse"]').exists()).toBe(false)
+
+      const unpinned = await mountSidebar()
+      expect(unpinned.get('[data-slot="sidebar"]').attributes('data-state')).toBe('collapsed')
+    } finally {
+      globalThis.innerWidth = width
+    }
   })
 
   it('omits tools the user has hidden', async () => {

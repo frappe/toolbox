@@ -26,17 +26,20 @@ test('carries the body measurements from one calculator to the next', async ({ p
   // claim it while the test asserted only the URL, and the measurements did not carry at all.
   await page.goto('/bmi-calculator')
   const sidebar = page.getByRole('navigation', { name: 'Toolbox navigation' })
-  await page.getByLabel('Height').fill('180')
-  await page.getByLabel('Weight').fill('82')
+  // Scoped to the tool. Every sidebar row carries its own `aria-label`, so an unscoped
+  // `getByLabel('Weight')` matches the link to the Weight Converter as well as this input.
+  const tool = page.locator('#main-content')
+  await tool.getByLabel('Height').fill('180')
+  await tool.getByLabel('Weight').fill('82')
 
   await sidebar.getByRole('link', { name: 'BMR Calculator' }).click()
-  await expect(page.getByLabel('Height')).toHaveValue('180')
-  await expect(page.getByLabel('Weight')).toHaveValue('82')
+  await expect(tool.getByLabel('Height')).toHaveValue('180')
+  await expect(tool.getByLabel('Weight')).toHaveValue('82')
 
-  await page.getByLabel('Age').fill('41')
+  await tool.getByLabel('Age').fill('41')
   await sidebar.getByRole('link', { name: 'TDEE Calculator' }).click()
-  await expect(page.getByLabel('Age')).toHaveValue('41')
-  await expect(page.getByLabel('Height')).toHaveValue('180')
+  await expect(tool.getByLabel('Age')).toHaveValue('41')
+  await expect(tool.getByLabel('Height')).toHaveValue('180')
 })
 
 test('@smoke gives each health calculator its own page', async ({ page }) => {

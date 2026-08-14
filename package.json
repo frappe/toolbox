@@ -8,6 +8,8 @@
     "test": "cd frontend && yarn test",
     "test:e2e": "cd frontend && yarn test:e2e",
     "test:e2e:smoke": "cd frontend && yarn test:e2e:smoke",
+    "qa": "bash qa/run-qa.sh",
+    "qa:fast": "bash qa/run-qa.sh --fast",
     "verify": "bash scripts/verify.sh"
   }
 }

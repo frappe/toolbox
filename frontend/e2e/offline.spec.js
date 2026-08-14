@@ -1,40 +1,36 @@
 import { expect, test } from './fixtures'
 import { currencyApiPattern, currencyHistoryApiPattern, mockCurrencyRates } from './currency-fixture'
-import { headingFor } from './toolPages'
+import { headingFor, OFFLINE_ROUTES } from './toolPages'
 
 test.use({ allowOfflineNetworkErrors: true })
 
-for (const path of [
-  '/calculator',
-  '/length-converter',
-  '/gst-calculator',
-  '/emi-calculator',
-  '/bmi-calculator',
-  '/timer',
-  // A newly minted route reaches the service worker's claim list through the registry. This is
-  // the check that it actually did: the route set is injected at build time, and a route the
-  // worker does not claim serves nothing at all on an offline reload.
-  '/stopwatch',
-  '/time-zone-converter',
-]) {
+// Every tool that declares `offlineCapability: 'full'`, not a hand-picked eight. A newly minted
+// route reaches the service worker's claim list through the registry, and this is the check that
+// it actually did: the route set is injected at build time, and a route the worker does not claim
+// serves nothing at all on an offline reload.
+for (const path of OFFLINE_ROUTES) {
   const heading = headingFor(path)
 
-  test(`launches ${heading} offline after installation`, async ({ context, page }) => {
-    await page.goto(path)
-    await page.evaluate(() => navigator.serviceWorker.ready)
-    await page.reload()
-    await expect
-      .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
-      .toBe(true)
+  test(
+    `launches ${heading} offline after installation`,
+    { annotation: [{ type: 'tool', description: path.slice(1) }, { type: 'check', description: 'offline' }] },
+    async ({ context, page }) => {
+      await page.goto(path)
+      await page.evaluate(() => navigator.serviceWorker.ready)
+      await page.reload()
+      await expect
+        .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+        .toBe(true)
 
-    await context.setOffline(true)
-    try {
-      await page.reload({ waitUntil: 'domcontentloaded' })
-      await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
-    } finally {
-      await context.setOffline(false)
-    }
-  })
+      await context.setOffline(true)
+      try {
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
+      } finally {
+        await context.setOffline(false)
+      }
+    },
+  )
 }
 
 test('@smoke keeps Calculator functional while offline', async ({ context, page }) => {

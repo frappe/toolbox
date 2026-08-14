@@ -119,7 +119,11 @@ yarn test:e2e:smoke
 yarn --cwd frontend test:e2e:headed
 yarn --cwd frontend playwright install chromium
 yarn verify
+yarn qa
+yarn qa:fast
 ```
+
+`yarn verify` runs the QA suite now. See "The QA suite" below.
 
 #### The frappe-ui test double
 
@@ -279,17 +283,47 @@ Routes moved to the site root, and each one renders its own metadata for search 
 
 2. Run `yarn verify` and the full browser matrix before a release.
 
+## The QA suite
+
+One command runs every check and writes one report. It starts its own bench and stops it again.
+
+```bash
+bash qa/run-qa.sh          # everything, about 12 minutes
+bash qa/run-qa.sh --fast   # build, units and the smoke browser tests
+```
+
+`qa/README.md` explains the layers, the flags and what each one does not cover. The report opens
+with a pass or fail for each of the 34 tools.
+
+Run it on its own. Two matrices at once, or one alongside a build, starve the single web server, and
+every spec then fails on a 30-second navigation timeout that reads like a real regression. Check the
+durations before believing such a failure: a real one finishes fast. The runner refuses to start
+when it finds another run, and the report says so when every failure sits at the timeout.
+
+The route lists for the accessibility, mobile, visual, offline and navigation sweeps come from
+`toolRegistry.js`, so a new tool joins them by itself. What it does not get by itself is a
+correctness case: write one in `frontend/src/test/toolCases/`, with the expected value taken from
+outside the application, or the report prints the tool as a gap.
+
+`qa/baseline.json` holds the numbers from the last full run that passed, and a drop fails the run
+even when every test passes. A deleted test lowers the count and nothing else notices.
+
 ## Last verified baseline
 
-The isolated Frappe test site passed 204 tests.
+The isolated Frappe test site passed 136 tests.
 
-The frontend passed 712 tests across 90 files. The production Vite build passed.
+The frontend passed 689 tests across 88 files, covering 86.89% of lines. The production Vite build
+passed.
 
-The full Playwright matrix passed 332 tests, with 6 skipped by design, across chromium, firefox, webkit, and mobile-chromium, in 4 minutes. It runs fully parallel: with no shared account there is nothing for specs to race on.
+The full Playwright matrix passed 878 tests, with 95 skipped by design, across chromium, firefox,
+webkit, mobile-chromium and the visual project, in 8 minutes.
 
-Run the full Playwright suite before a release. Do not treat focused browser results as a full browser release check.
+It runs two workers, not the default four. The matrix grew from 355 tests to 878 when the QA suite
+landed, and four browsers beside the bench exhaust memory on an 8 GB machine: the failures come back
+as navigation timeouts that read exactly like regressions.
 
-Run it on its own. Two matrices at once, or one alongside a build, starve the single web server, and every spec then fails on a 30-second navigation timeout that reads like a real regression. Check the durations before believing such a failure: a real one finishes fast.
+The bundle is 569 kB gzipped, the largest chunk 61 kB. Production scores 99 for performance in
+Lighthouse, and 100 for accessibility and SEO.
 
 ## Skill usage (always)
 

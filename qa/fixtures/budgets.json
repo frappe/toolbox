@@ -1,0 +1,31 @@
+{
+  "_comment": "Starting values. Tighten each one to just above what the first full green run measures, so the budget guards the number the site actually achieves rather than a round figure.",
+
+  "_lighthouse_comment": "Production measured 99/100/100/100 on 2026-08-14. Performance is enforced only against a deployed origin: the local development server scores 56 for the same build, because it sends no compression and speaks HTTP/1.1.",
+
+  "lighthouse": {
+    "performance": 90,
+    "accessibility": 100,
+    "best-practices": 95,
+    "seo": 100
+  },
+
+  "vitals": {
+    "lcpMs": 2500,
+    "cls": 0.1,
+    "ttfbMs": 800,
+    "longTasksMs": 400
+  },
+
+  "bundle": {
+    "totalGzipKb": 900,
+    "largestChunkGzipKb": 260,
+    "entryGzipKb": 180
+  },
+
+  "api": {
+    "p95Ms": 900,
+    "concurrency": 10,
+    "requestsPerEndpoint": 30
+  }
+}

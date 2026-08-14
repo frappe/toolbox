@@ -1,0 +1,219 @@
+name: CI
+
+# Every pull request into develop, and every push to develop, so a change cannot land without the
+# frontend building, the server tests passing and the browser suite agreeing. Pair this with
+# branch protection on develop and mark the first two as required status checks.
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch: {}
+
+jobs:
+  frontend:
+    name: Frontend build & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Unit tests
+        run: yarn test
+
+      # The build is a gate of its own: it renders every file in `toolbox/content` and a test fails
+      # when the committed JSON no longer matches its Markdown.
+      - name: Build
+        run: yarn build
+
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host localhost --user root --password=root"
+          --health-interval=5s --health-timeout=2s --health-retries=15
+      redis-cache:
+        image: redis:6.2-alpine
+        ports:
+          - 13000:6379
+      redis-queue:
+        image: redis:6.2-alpine
+        ports:
+          - 11000:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install bench and create the test site
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+
+      # The integration tests clear the tables they use between cases, so they need no dataset.
+      # The E2E job is where the real releases are imported.
+      - name: Run server tests
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test_site run-tests --app toolbox
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Not a required check yet: it boots a bench, imports four datasets and drives three browsers,
+    # so it is the most fragile job here. Promote it in branch protection once it has proven itself.
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host localhost --user root --password=root"
+          --health-interval=5s --health-timeout=2s --health-retries=15
+      redis-cache:
+        image: redis:6.2-alpine
+        ports:
+          - 13000:6379
+      redis-queue:
+        image: redis:6.2-alpine
+        ports:
+          - 11000:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install bench and create the test site
+        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+
+      - name: Point test_site at localhost
+        # Frappe resolves the site from the Host header and answers 404 when no site matches, so
+        # the site is addressed by name rather than through `localhost`.
+        run: |
+          echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+          cd /home/runner/frappe-bench && bench use test_site
+
+      # `migrate` enqueues this on the long queue, which needs a worker and finishes when it
+      # finishes. The API contract tests read real rows — PIN 110001, IFSC SBIN0000001, HSN 0101,
+      # the WordNet entry for serendipity — so the import runs here, in the foreground, and the
+      # job fails if it does not complete.
+      - name: Import the datasets
+        working-directory: /home/runner/frappe-bench
+        # `bench execute` exits 0 whatever the function returns, and this one reports its failures
+        # in the value rather than by raising. Read it, or a release that failed to import leaves
+        # the job green until a browser test asks for a row twenty minutes later.
+        run: |
+          set -o pipefail
+          bench --site test_site execute toolbox.dataset_sync.sync_datasets | tee /tmp/sync.json
+          python3 - <<'PY'
+          import json, sys
+
+          with open("/tmp/sync.json") as handle:
+              lines = [line for line in handle.read().splitlines() if line.strip().startswith("{")]
+
+          if not lines:
+              sys.exit("the sync printed no result")
+
+          result = json.loads(lines[-1])
+          print("synced:", result.get("synced"), "skipped:", result.get("skipped"))
+          if result.get("failed"):
+              sys.exit(f"these datasets did not import: {result['failed']}")
+          if not (result.get("synced") or result.get("skipped")):
+              sys.exit("no dataset was imported or already active")
+          PY
+
+      - name: Build the frontend inside the bench
+        working-directory: /home/runner/frappe-bench/apps/toolbox
+        # `bench get-app` copied the checkout, so a build in the workspace would never reach the
+        # app being served. `bench build` then wires the app's assets into the site.
+        run: |
+          yarn --cwd frontend install --frozen-lockfile
+          yarn --cwd frontend build
+          cd /home/runner/frappe-bench && bench build --app toolbox
+
+      - name: Install the browsers
+        working-directory: /home/runner/frappe-bench/apps/toolbox/frontend
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Start the bench
+        working-directory: /home/runner/frappe-bench
+        run: |
+          nohup bench serve --port 8000 > /home/runner/bench-serve.log 2>&1 &
+          # Any HTTP answer means the server is listening. Do not require a status: this waits for
+          # the socket, not for the page.
+          for i in $(seq 1 120); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://test_site:8000/calculator || true)
+            if [ -n "$code" ] && [ "$code" != "000" ]; then
+              echo "bench up after ${i}s (HTTP $code)"; exit 0
+            fi
+            sleep 1
+          done
+          echo "bench did not come up in 120s"; tail -80 /home/runner/bench-serve.log; exit 1
+
+      # Every project except `visual`. A reference image records one renderer on one operating
+      # system, and the committed set was recorded on macOS, so a Linux runner would compare
+      # against images that do not exist and fail on all 148. Visual regression runs locally,
+      # through `qa/run-qa.sh`. To add it here, run this job once with `--update-snapshots`,
+      # download the artifact, and commit the Linux images beside the macOS ones.
+      - name: Run the browser suite
+        working-directory: /home/runner/frappe-bench/apps/toolbox/frontend
+        env:
+          TOOLBOX_E2E_BASE_URL: http://test_site:8000
+        run: >-
+          yarn playwright test
+          --project=chromium
+          --project=firefox
+          --project=webkit
+          --project=mobile-chromium
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            /home/runner/frappe-bench/apps/toolbox/frontend/playwright-report/
+            /home/runner/frappe-bench/apps/toolbox/frontend/test-results/
+          retention-days: 7
+
+      - name: Bench log on failure
+        if: failure()
+        run: tail -100 /home/runner/bench-serve.log || true

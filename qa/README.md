@@ -29,6 +29,31 @@ and every spec then fails on a 30-second navigation timeout that reads exactly l
 regression. The script refuses to start when it finds another run, and the report says so when a
 run's failures all sit at the timeout.
 
+## On a pull request
+
+`.github/workflows/ci.yml` runs three checks on every pull request into `develop`.
+
+| Check | What it runs |
+| --- | --- |
+| Frontend build & tests | `yarn test`, then `yarn build` |
+| Server tests | `bench --site test_site run-tests --app toolbox` |
+| E2E (Playwright) | The browser matrix, on a bench it builds from scratch |
+
+CI does not call `run-qa.sh`. The runner starts and stops its own bench, and CI already has one, so
+the workflow runs the same layers directly.
+
+Two differences from a local run, both deliberate:
+
+- **The visual project does not run.** A reference image records one renderer on one operating
+  system, and the committed set was recorded on macOS. A Linux runner would look for images that do
+  not exist and fail on all 148. To add it, run the E2E job once with `--update-snapshots`, download
+  the artifact, and commit the Linux images beside the macOS ones.
+- **Paint timing is measured but not enforced.** A shared runner measures the runner. Layout
+  stability is enforced everywhere, because it is a property of the page.
+
+The E2E job imports the four datasets in the foreground rather than waiting for the queued sync, and
+fails the job when any one of them does not import. The API contract tests read real rows.
+
 ## What each layer checks
 
 **Static.** The production build, then Ruff's linter and formatter. ESLint is not run: the

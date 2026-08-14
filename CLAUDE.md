@@ -308,6 +308,12 @@ outside the application, or the report prints the tool as a gap.
 `qa/baseline.json` holds the numbers from the last full run that passed, and a drop fails the run
 even when every test passes. A deleted test lowers the count and nothing else notices.
 
+Every pull request into `develop` runs three checks from `.github/workflows/ci.yml`: the frontend
+build and unit tests, the server tests, and the browser matrix on a bench built from scratch. CI
+does not call `run-qa.sh`, because the runner starts its own bench and CI already has one. The
+visual project does not run there: its reference images were recorded on macOS and a Linux runner
+would compare against images that do not exist. `qa/README.md` says what to do about that.
+
 ## Last verified baseline
 
 The isolated Frappe test site passed 136 tests.

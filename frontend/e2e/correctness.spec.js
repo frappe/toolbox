@@ -136,6 +136,17 @@ async function assert(page, main, tool, expected) {
     await expect(result).toContainText(fragment)
   }
 
+  // For a tool whose right answer depends on what the browser grants it. Every listed answer is
+  // acceptable, and one of them has to appear.
+  if (expected.oneOf !== undefined) {
+    await expect(result).toBeVisible()
+    const shown = await result.innerText()
+    const matched = expected.oneOf.some((fragment) =>
+      fragment instanceof RegExp ? fragment.test(shown) : shown.includes(fragment),
+    )
+    expect(matched, `none of these appeared: ${expected.oneOf.join(', ')}`).toBe(true)
+  }
+
   if (expected.control !== undefined) {
     await expect(main.getByRole('button', { name: expected.control }).first()).toBeVisible()
   }

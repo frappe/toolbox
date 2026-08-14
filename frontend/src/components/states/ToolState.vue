@@ -10,7 +10,7 @@
       v-else
       class="flex size-10 items-center justify-center rounded-xl bg-surface-gray-2 text-ink-gray-6"
     >
-      <Icon :name="state.icon" class="size-5" />
+      <Icon :name="resolvedIcon" class="size-5" />
     </span>
 
     <h2 :id="titleId" class="pt-4 text-base font-medium text-ink-gray-9">
@@ -65,6 +65,9 @@ const props = defineProps({
   },
   title: { type: String, required: true },
   message: { type: String, required: true },
+  // Each status carries the icon that suits it. Name one here only when the panel has a subject of
+  // its own to draw, the way history does; the status icon is the right answer otherwise.
+  icon: { type: String, default: '' },
   actionLabel: { type: String, default: '' },
   secondaryActionLabel: { type: String, default: '' },
   source: { type: String, default: '' },
@@ -77,7 +80,7 @@ const props = defineProps({
 defineEmits(['action', 'secondary-action'])
 
 const titleId = `tool-state-${useId()}`
-const state = computed(() => stateByStatus[props.status])
+const resolvedIcon = computed(() => props.icon || stateByStatus[props.status].icon)
 const details = computed(() =>
   [
     { label: 'Source', value: props.source },

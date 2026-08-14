@@ -16,18 +16,13 @@
       </Button>
     </header>
 
-    <div
+    <ToolState
       v-if="!entries.length"
-      class="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-12 text-center"
-    >
-      <span class="flex size-10 items-center justify-center rounded-xl bg-surface-gray-2">
-        <Icon name="lucide-history" class="size-5 text-ink-gray-6" />
-      </span>
-      <div>
-        <p class="text-sm font-medium text-ink-gray-8">{{ emptyTitle }}</p>
-        <p class="pt-1 text-sm leading-6 text-ink-gray-5">{{ emptyDescription }}</p>
-      </div>
-    </div>
+      class="flex-1"
+      icon="lucide-history"
+      :title="emptyTitle"
+      :message="emptyDescription"
+    />
 
     <ol v-else class="divide-y divide-outline-gray-2" :aria-label="listLabel">
       <li v-for="entry in entries" :key="entry.id" class="flex items-center gap-2 py-2.5">
@@ -94,8 +89,9 @@
 
 <script setup>
 import { useId } from 'vue'
-import { Button, Icon } from 'frappe-ui'
+import { Button } from 'frappe-ui'
 
+import ToolState from '@/components/states/ToolState.vue'
 import {
   formatHistoryTimestamp,
   formatHistoryTimestampTitle,

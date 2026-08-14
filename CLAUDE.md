@@ -36,11 +36,11 @@ Preferences use `sessionStorage` under `toolbox:preferences:v1`, so they last as
 
 Tool history uses `sessionStorage` too, and keeps the last 10 entries for each tool. So do the calculator's own history, the dictionary's recent searches, and the timer workspace, which holds the timer, the stopwatch and the countdown. Each of the three used `localStorage` until it was moved, so each clears the key that left behind when it loads.
 
-Nothing a visitor does is sent to the server. Do not add a preference, history, or draft that outlives the browser session.
+Nothing a visitor does is sent to the server. Do not add a history or a draft that outlives the browser session. A preference may outlive it only when it records the shape of the application rather than anything the visitor did, looked at, or typed, and the list below has to name it.
 
-Two keys live in `localStorage` today, and only two. `toolbox:theme:v1`, for the reason above, and the Currency Converter rate snapshot, which is the only thing that lets that tool convert on the first offline visit of a session. It holds public reference rates and names nobody.
+Three keys live in `localStorage` today, and only three. `toolbox:theme:v1`, for the reason above. The Currency Converter rate snapshot, which is the only thing that lets that tool convert on the first offline visit of a session; it holds public reference rates and names nobody. And `toolbox:sidebar-collapsed:v1`, which records whether the sidebar is a rail, so a returning visitor keeps the shape they left it in.
 
-The Weather forecast snapshot was the third until issue #206 settled it, and Weather itself is gone now. The rule that case established still holds: cached public data may outlive the session, a record of the visitor may not. A forecast was keyed by the place it was for, so keeping it recorded where a visitor looked.
+The Weather forecast snapshot was the third until issue #206 settled it, and Weather itself is gone now. The rule that case established still holds: cached public data may outlive the session, a record of the visitor may not. A forecast was keyed by the place it was for, so keeping it recorded where a visitor looked. The sidebar collapse sits on the safe side of that line, because it says what the application looks like and not what anybody did with it.
 
 `frontend/src/test/setup.js` replaces both storages with one test double and clears both after each test. A suite that defines only one tests the other against jsdom's own copy, which nothing clears between tests.
 

@@ -10,11 +10,21 @@ const OFFLINE_FAILURE_SIGNATURES = [
   'A ServiceWorker intercepted the request',
 ]
 
-const isOfflineFailure = (text) => OFFLINE_FAILURE_SIGNATURES.some((signature) => text.includes(signature))
+// Leaving a page cancels whatever it had in flight: a lazy route chunk, a dataset call. Firefox
+// reports that as NS_BINDING_ABORTED and WebKit as "cancelled", while Chromium says nothing.
+// It is the browser doing as it was told, not the application failing, and only a spec that walks
+// every route in turn produces enough of it to matter.
+const NAVIGATION_ABORT_SIGNATURES = ['NS_BINDING_ABORTED', 'NS_ERROR_ABORT', 'ERR_ABORTED', 'cancelled']
+
+const matches = (signatures, text) => signatures.some((signature) => text.includes(signature))
+const isOfflineFailure = (text) => matches(OFFLINE_FAILURE_SIGNATURES, text)
 
 export const test = base.extend({
   allowOfflineNetworkErrors: [false, { option: true }],
-  page: async ({ page, allowOfflineNetworkErrors }, use) => {
+  // Opt in from a spec that navigates repeatedly. Do not set it on an ordinary spec: it would
+  // hide a request that failed for a reason of its own.
+  allowNavigationAbortErrors: [false, { option: true }],
+  page: async ({ page, allowOfflineNetworkErrors, allowNavigationAbortErrors }, use) => {
     const browserErrors = []
 
     page.on('pageerror', (error) => {
@@ -23,7 +33,11 @@ export const test = base.extend({
       // browsers and in isolation; treat this specific noise as non-fatal.
       const swRegistrationNoise =
         error.message.includes('toolbox-sw.js') && error.message.includes('access control')
-      if (!swRegistrationNoise) browserErrors.push(`pageerror: ${error.message}`)
+      // The cross-origin Frappe realtime attempt on :9000. The other three listeners below
+      // already discount it; WebKit is the one engine that also raises it as a page error, and a
+      // spec that opens every route in turn collects enough of them to fail on environment noise.
+      const realtimeNoise = error.message.includes('/socket.io/')
+      if (!swRegistrationNoise && !realtimeNoise) browserErrors.push(`pageerror: ${error.message}`)
     })
     page.on('response', (response) => {
       const expectedRealtimeNoise =
@@ -35,8 +49,10 @@ export const test = base.extend({
     page.on('requestfailed', (request) => {
       const failure = request.failure()?.errorText || 'unknown failure'
       const expectedOfflineError = allowOfflineNetworkErrors && isOfflineFailure(failure)
+      const expectedAbort =
+        allowNavigationAbortErrors && matches(NAVIGATION_ABORT_SIGNATURES, failure)
       const expectedRealtimeNoise = request.url().includes(':9000/socket.io/')
-      if (!expectedOfflineError && !expectedRealtimeNoise) {
+      if (!expectedOfflineError && !expectedAbort && !expectedRealtimeNoise) {
         browserErrors.push(`request failed: ${request.url()} (${failure})`)
       }
     })

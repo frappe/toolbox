@@ -40,6 +40,9 @@ test-results/
 toolbox/public/frontend/
 toolbox/www/toolbox.html
 
+# QA run output. The baseline and the screenshot references are committed; a run is not.
+qa/reports/
+
 # IDEs and editors
 .vscode/
 .vs/

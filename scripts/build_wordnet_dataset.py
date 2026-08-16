@@ -18,6 +18,7 @@ Output: one JSON object per line, sorted by word:
     {"word": "dog", "senses": [{"pos", "definition", "examples": [...], "synonyms": [...],
      "antonyms": [...]}]}
 """
+
 import json
 import sys
 from collections import namedtuple
@@ -62,13 +63,15 @@ def parse(dict_dir: Path) -> dict[str, list[dict]]:
 	for synset in synsets:
 		antonyms = resolve_antonyms(synset, words_by_key)
 		for index, word in enumerate(synset.words):
-			entries.setdefault(word, []).append({
-				"pos": synset.pos,
-				"definition": synset.definition,
-				"examples": synset.examples,
-				"synonyms": [other for other in synset.words if other != word],
-				"antonyms": antonyms.get(index, []),
-			})
+			entries.setdefault(word, []).append(
+				{
+					"pos": synset.pos,
+					"definition": synset.definition,
+					"examples": synset.examples,
+					"synonyms": [other for other in synset.words if other != word],
+					"antonyms": antonyms.get(index, []),
+				}
+			)
 	return entries
 
 
@@ -94,14 +97,16 @@ def read_synsets(path: Path, file_pos: str) -> list[Synset]:
 			definition, examples = split_gloss(gloss.strip())
 			if not definition or not words:
 				continue
-			synsets.append(Synset(
-				key=(file_pos, fields[0]),
-				words=words,
-				pos=POS.get(fields[2], fields[2]),
-				definition=definition,
-				examples=examples,
-				antonym_pointers=read_antonym_pointers(fields, word_count),
-			))
+			synsets.append(
+				Synset(
+					key=(file_pos, fields[0]),
+					words=words,
+					pos=POS.get(fields[2], fields[2]),
+					definition=definition,
+					examples=examples,
+					antonym_pointers=read_antonym_pointers(fields, word_count),
+				)
+			)
 	return synsets
 
 
@@ -162,8 +167,7 @@ def main() -> None:
 	senses = [sense for word_senses in entries.values() for sense in word_senses]
 	with_antonyms = sum(1 for sense in senses if sense["antonyms"])
 	print(
-		f"words: {len(entries)}  senses: {len(senses)}  "
-		f"senses with an antonym: {with_antonyms}  -> {output}"
+		f"words: {len(entries)}  senses: {len(senses)}  senses with an antonym: {with_antonyms}  -> {output}"
 	)
 
 

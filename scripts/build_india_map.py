@@ -29,11 +29,13 @@ def build(source: Path, destination: Path) -> tuple[int, int]:
 	for feature in data["features"]:
 		rings = _simplify_geometry(feature["geometry"])
 		if rings:
-			features.append({
-				"type": "Feature",
-				"properties": {"name": feature["properties"].get("shapeName", "")},
-				"geometry": {"type": "MultiPolygon", "coordinates": rings},
-			})
+			features.append(
+				{
+					"type": "Feature",
+					"properties": {"name": feature["properties"].get("shapeName", "")},
+					"geometry": {"type": "MultiPolygon", "coordinates": rings},
+				}
+			)
 	out = {"type": "FeatureCollection", "features": features}
 	destination.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
 	points = sum(len(r) for f in features for poly in f["geometry"]["coordinates"] for r in poly)

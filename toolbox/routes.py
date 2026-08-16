@@ -93,6 +93,7 @@ def website_redirects() -> list[dict[str, object]]:
 	The deployed site served `/toolbox/<route>` until this change, so these are permanent
 	redirects rather than a courtesy.
 	"""
+
 	def permanent(source: str, target: str) -> dict[str, object]:
 		return {
 			"source": source,

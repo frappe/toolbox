@@ -18,10 +18,12 @@ from toolbox.dictionary_data import normalize_dictionary_row, stage_rows
 
 class TestDictionaryData(UnitTestCase):
 	def test_normalizes_a_complete_entry(self) -> None:
-		row = normalize_dictionary_row({
-			"word": "  Dog  ",
-			"senses": [{"pos": "noun", "definition": "a member of the genus Canis"}],
-		})
+		row = normalize_dictionary_row(
+			{
+				"word": "  Dog  ",
+				"senses": [{"pos": "noun", "definition": "a member of the genus Canis"}],
+			}
+		)
 
 		self.assertEqual(row["word"], "Dog")
 		self.assertEqual(row["normalized_word"], "dog")

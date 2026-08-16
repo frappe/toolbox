@@ -64,9 +64,7 @@ def load_fonts() -> tuple[ImageFont.FreeTypeFont, ...]:
 			ImageFont.truetype(path, 30, index=regular_index),
 		)
 
-	raise SystemExit(
-		"No usable font was found. Add one to FONT_CANDIDATES and run this script again."
-	)
+	raise SystemExit("No usable font was found. Add one to FONT_CANDIDATES and run this script again.")
 
 
 def build_card() -> Image.Image:

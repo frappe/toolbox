@@ -24,7 +24,11 @@ RATES = {
 	"baseCurrency": "EUR",
 	"rateDate": "2026-07-31",
 	"rates": {"EUR": 1.0, "GBP": 0.85, "INR": 100.0, "SGD": 1.5, "USD": 1.1},
-	"source": {"name": "European Central Bank", "url": "https://example.com", "attribution": "Source: ECB statistics."},
+	"source": {
+		"name": "European Central Bank",
+		"url": "https://example.com",
+		"attribution": "Source: ECB statistics.",
+	},
 }
 
 
@@ -80,8 +84,41 @@ class TestCurrencyProvider(UnitTestCase):
 
 	@staticmethod
 	def _xml() -> bytes:
-		currencies = ["USD", "JPY", "CZK", "DKK", "GBP", "HUF", "PLN", "RON", "SEK", "CHF", "ISK", "NOK", "TRY", "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", "ILS", "INR", "KRW", "MXN", "MYR", "NZD", "PHP", "SGD", "THB", "ZAR"]
-		rows = "".join(f'<Cube currency="{code}" rate="{100 if code == "INR" else index + 1}"/>' for index, code in enumerate(currencies))
+		currencies = [
+			"USD",
+			"JPY",
+			"CZK",
+			"DKK",
+			"GBP",
+			"HUF",
+			"PLN",
+			"RON",
+			"SEK",
+			"CHF",
+			"ISK",
+			"NOK",
+			"TRY",
+			"AUD",
+			"BRL",
+			"CAD",
+			"CNY",
+			"HKD",
+			"IDR",
+			"ILS",
+			"INR",
+			"KRW",
+			"MXN",
+			"MYR",
+			"NZD",
+			"PHP",
+			"SGD",
+			"THB",
+			"ZAR",
+		]
+		rows = "".join(
+			f'<Cube currency="{code}" rate="{100 if code == "INR" else index + 1}"/>'
+			for index, code in enumerate(currencies)
+		)
 		return f'<Envelope><Cube><Cube time="2026-07-31">{rows}</Cube></Cube></Envelope>'.encode()
 
 
@@ -131,9 +168,11 @@ class TestCurrencyRateService(UnitTestCase):
 		provider = Mock()
 		provider.fetch.side_effect = CurrencyProviderError("the ECB feed is unavailable")
 
-		with patch("toolbox.provider_errors.frappe.log_error") as log_error, patch(
-			"toolbox.provider_errors.frappe.cache", FakeCache()
-		), self.assertRaises(ServiceUnavailableError):
+		with (
+			patch("toolbox.provider_errors.frappe.log_error") as log_error,
+			patch("toolbox.provider_errors.frappe.cache", FakeCache()),
+			self.assertRaises(ServiceUnavailableError),
+		):
 			CurrencyRateService(provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
 
 		self.assertIn("European Central Bank", log_error.call_args.kwargs["title"])
@@ -144,9 +183,11 @@ class TestCurrencyRateService(UnitTestCase):
 		provider = Mock()
 		provider.fetch.return_value = {"notModified": True, "validators": {"etag": '"rates"'}}
 
-		with patch("toolbox.provider_errors.frappe.log_error") as log_error, patch(
-			"toolbox.provider_errors.frappe.cache", FakeCache()
-		), self.assertRaises(ServiceUnavailableError):
+		with (
+			patch("toolbox.provider_errors.frappe.log_error") as log_error,
+			patch("toolbox.provider_errors.frappe.cache", FakeCache()),
+			self.assertRaises(ServiceUnavailableError),
+		):
 			CurrencyRateService(provider=provider, cache=FakeCache(), clock=lambda: NOW).get()
 
 		self.assertIn("304", log_error.call_args.kwargs["message"])

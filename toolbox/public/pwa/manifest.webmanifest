@@ -12,6 +12,22 @@
     "productivity",
     "utilities"
   ],
+  "screenshots": [
+    {
+      "src": "/assets/toolbox/pwa/screenshot-wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "The Calculator, with its history beside it"
+    },
+    {
+      "src": "/assets/toolbox/pwa/screenshot-narrow.png",
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "The Calculator on a phone"
+    }
+  ],
   "icons": [
     {
       "src": "/assets/toolbox/pwa/toolbox-192.png",

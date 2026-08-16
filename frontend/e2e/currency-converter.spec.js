@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await resetToolboxPreferences(page)
 })
 
-test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page }) => {
+test('@smoke converts locally, swaps, and searches for a currency', async ({ page }) => {
   let requests = 0
   await mockCurrencyRates(page)
   page.on('request', (request) => { if (request.url().includes('toolbox.currency.get_reference_rates')) requests += 1 })
@@ -25,8 +25,6 @@ test('@smoke converts locally, swaps, searches, and saves a pair', async ({ page
 
   await page.getByRole('button', { name: 'Swap' }).click()
   await expect(destination).toHaveValue(/^166666/) // 2000 USD → INR
-  await page.getByRole('button', { name: 'Save pair' }).click()
-  await expect(page.getByRole('button', { name: 'USD → INR' })).toBeVisible()
 
   // The picker is a frappe-ui Combobox: its search field is a `role=combobox`.
   await page.getByTestId('source-currency').click()

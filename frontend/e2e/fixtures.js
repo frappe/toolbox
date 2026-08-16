@@ -53,8 +53,14 @@ export const test = base.extend({
       if (!swRegistrationNoise && !realtimeNoise) browserErrors.push(`pageerror: ${error.message}`)
     })
     page.on('response', (response) => {
-      const expectedRealtimeNoise =
-        response.status() === 400 && response.url().includes(':9000/socket.io/')
+      // The realtime endpoint answers 400 to a client Toolbox does not use. Locally it sits on
+      // :9000; in production it is the same origin with no port, which is why this matched the
+      // port and had to stop. `--target=prod` found that: two specs failed on a 400 the local run
+      // had been discounting all along.
+      //
+      // Worth reading twice, because it is also the evidence in #266 that the unused socket.io
+      // client is not a local artifact. The live site makes this failing request on every page.
+      const expectedRealtimeNoise = response.status() === 400 && response.url().includes('/socket.io/')
       if (response.status() >= 400 && !expectedRealtimeNoise) {
         browserErrors.push(`http ${response.status()}: ${response.url()}`)
       }

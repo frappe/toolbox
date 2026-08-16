@@ -17,14 +17,24 @@ export async function execute({ appRoot, qaRoot, reportDir, baseUrl }) {
   const budgets = (await readJson(join(qaRoot, 'fixtures/budgets.json')))?.lighthouse
   if (!budgets) return { status: 'failed', failures: [{ name: 'no budgets', detail: 'fixtures/budgets.json' }] }
 
-  // The local bench is a Werkzeug development server: no compression, no HTTP/2, no caching. It
-  // scores 56 for performance where the same build behind the Frappe Cloud proxy scores 99, so a
-  // performance budget applied locally measures the server rather than the application. The other
-  // three categories do not depend on the transport, so they are held to their budget everywhere.
-  const local = /localhost|127\.0\.0\.1/.test(baseUrl)
-  const enforced = local
-    ? Object.fromEntries(Object.entries(budgets).filter(([category]) => category !== 'performance'))
-    : budgets
+  // Performance is measured everywhere and enforced nowhere, because neither place this runs can
+  // measure it honestly.
+  //
+  // The local bench is a Werkzeug development server with no compression, no HTTP/2 and no caching,
+  // and it scores 56. Against production the run happens from whatever laptop and whatever network
+  // the operator has: the same production build scored 99 and then 82 an hour later, with nothing
+  // deployed in between. A budget against either number gates on the measurement rather than on
+  // the site.
+  //
+  // What does answer the question is field data — Search Console's Core Web Vitals report, from
+  // real visitors on real connections. Layout stability is enforced in `vitals.spec.js`, because
+  // that is a property of the page and not of the wire.
+  //
+  // Accessibility, best practices and SEO do not depend on the transport, so they are held to their
+  // budget everywhere.
+  const enforced = Object.fromEntries(
+    Object.entries(budgets).filter(([category]) => category !== 'performance'),
+  )
 
   const chromePath = resolveChromium(appRoot)
   const pages = []
@@ -84,13 +94,11 @@ export async function execute({ appRoot, qaRoot, reportDir, baseUrl }) {
     status: failures.length ? 'failed' : 'passed',
     metrics: metricsFor(pages),
     failures,
-    notes: local
-      ? [
-          'Performance is measured but not enforced against the local bench: an uncompressed ' +
-            'development server scores far below the same build in production. ' +
-            'Run `bash qa/run-qa.sh --target=prod` to hold it to the budget.',
-        ]
-      : [],
+    notes: [
+      `Performance scored ${describeScores(pages)}, measured not enforced. A development server ` +
+        'and a laptop over the internet each measure themselves. Read Search Console for the ' +
+        'field data that answers this.',
+    ],
     pages,
   }
 }
@@ -104,6 +112,12 @@ function resolveChromium(appRoot) {
   } catch {
     return null
   }
+}
+
+function describeScores(pages) {
+  const scores = pages.map((page) => page.scores.performance).filter((score) => score !== undefined)
+  if (!scores.length) return 'nothing'
+  return `${Math.min(...scores)} to ${Math.max(...scores)}`
 }
 
 function metricsFor(pages) {

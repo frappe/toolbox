@@ -29,8 +29,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import build_hsn_dataset  # noqa: E402
-import publish_dataset  # noqa: E402
+import build_hsn_dataset
+import publish_dataset
 
 MANIFEST_PATH = Path(__file__).resolve().parent.parent / "toolbox" / "data" / "manifest.json"
 USER_AGENT = "Frappe-Toolbox-dataset-refresh"

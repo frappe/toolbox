@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 import frappe
 from frappe import _
@@ -37,7 +37,7 @@ class CurrencyRateService:
 	) -> None:
 		self.provider = provider or EcbReferenceRateProvider()
 		self.cache = cache or frappe.cache
-		self.clock = clock or (lambda: datetime.now(timezone.utc))
+		self.clock = clock or (lambda: datetime.now(UTC))
 
 	def get(self) -> dict[str, object]:
 		cached = self._get_cached()

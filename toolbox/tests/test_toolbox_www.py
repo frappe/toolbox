@@ -11,7 +11,6 @@ from toolbox import seo
 from toolbox.routes import TOOL_ROUTES
 from toolbox.www.toolbox import get_context
 
-
 TEST_HOST = "toolbox.localhost"
 
 

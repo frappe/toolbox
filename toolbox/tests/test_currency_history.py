@@ -2,7 +2,7 @@
 # License: GNU Affero General Public License v3
 
 from contextlib import nullcontext
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import Mock
 
 import requests
@@ -18,7 +18,7 @@ from toolbox.currency_history import (
 	parse_ecb_history_csv,
 )
 
-NOW = datetime(2026, 8, 4, 0, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 8, 4, 0, 0, tzinfo=UTC)
 
 CSV_HEADER = "KEY,FREQ,CURRENCY,CURRENCY_DENOM,EXR_TYPE,EXR_SUFFIX,TIME_PERIOD,OBS_VALUE,OBS_STATUS"
 

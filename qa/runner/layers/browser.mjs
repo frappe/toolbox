@@ -159,15 +159,39 @@ function toToolResult(spec) {
   }
 }
 
-// A real failure finishes fast. A starved one sits at the test timeout.
-function starvationNote(specs) {
+// A timeout-shaped failure has two very different causes, and the duration alone cannot tell them
+// apart. What tells them apart is the blast radius.
+//
+// A starved machine slows everything, so the tests that still passed are slow too. A single slow
+// locator, or a lookup against local data that is missing a row, leaves everything around it fast.
+// Reading only the failures says "timeout" in both cases and sends the reader to the wrong place —
+// this checks what the passing tests did as well.
+// Exported so it can be exercised directly. It is the one piece of the report that offers a
+// diagnosis rather than a number, and a wrong diagnosis sends the reader to the wrong place.
+export function starvationNote(specs) {
   const failed = specs.filter((spec) => spec.status === 'failed')
   const timedOut = failed.filter((spec) => spec.durationMs >= 29_000)
-  if (failed.length < 5 || timedOut.length < failed.length * 0.8) return []
+  if (!timedOut.length || timedOut.length < failed.length * 0.8) return []
+
+  const passedDurations = specs
+    .filter((spec) => spec.status === 'passed')
+    .map((spec) => spec.durationMs)
+    .sort((left, right) => left - right)
+  const typical = passedDurations[Math.floor(passedDurations.length / 2)] ?? 0
+
+  if (typical >= 10_000) {
+    return [
+      `${timedOut.length} of ${failed.length} failures sat at the 30s test timeout, and the tests ` +
+        `that passed took ${Math.round(typical / 1000)}s each. Everything was slow, which is a ` +
+        'starved web server rather than a regression. Repeat the run with nothing else on the machine.',
+    ]
+  }
+
   return [
-    `${timedOut.length} of ${failed.length} failures sat at the 30s test timeout. That is the ` +
-      'signature of a starved web server, not a regression. Check that nothing else was running ' +
-      'and repeat the run on its own.',
+    `${timedOut.length} of ${failed.length} failures sat at the 30s test timeout, but the tests ` +
+      `that passed took ${(typical / 1000).toFixed(1)}s each. The machine was not the problem: ` +
+      'a timeout with everything around it fast points at the thing being waited for — one ' +
+      'locator, or a lookup whose local data is missing the row. Check that before blaming the run.',
   ]
 }
 

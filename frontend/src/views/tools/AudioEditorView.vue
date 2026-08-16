@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
     <header class="flex items-start gap-4">
       <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
         <Icon name="lucide-audio-lines" class="size-6 text-ink-gray-7" />

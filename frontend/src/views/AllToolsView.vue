@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-12">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
     <header>
       <p class="text-sm font-medium text-ink-gray-5">Browse</p>
       <h1 class="pt-2 text-3xl font-semibold tracking-tight text-ink-gray-9">All tools</h1>

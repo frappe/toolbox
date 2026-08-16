@@ -155,15 +155,12 @@
       </figure>
     </div>
 
-    <p v-if="series?.source" class="pt-4 text-sm leading-6 text-ink-gray-5">
-      ECB reference rates are for information only and are not transaction rates.
-      <a
-        class="font-medium text-ink-gray-8 underline underline-offset-4"
-        :href="series.source.url"
-        target="_blank"
-        rel="noreferrer"
-      >Source: ECB statistics</a>
-    </p>
+    <!--
+      The rate notice and the source link used to be repeated here. They sat a page apart while
+      the chart was below the tool; side by side (#277) they are two copies of one sentence on one
+      screen. The converter's own copy is kept instead, because it is the one that survives: it
+      shows whenever rates loaded, and this one needed the chart series as well.
+    -->
   </section>
 </template>
 

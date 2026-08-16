@@ -18,7 +18,11 @@ def get_context():
 	# The heading and the content of the page, rendered into the element the application mounts
 	# on. Vue empties that element when it mounts, so this is what a crawler and a visitor with no
 	# JavaScript read, and nobody reads it twice.
-	context.page_content = tool_content.page_content(seo.normalise_path(path))
+	route = seo.normalise_path(path)
+	context.page_content = tool_content.page_content(route)
+	# The server block has to be the width the application draws, or the heading moves sideways
+	# when Vue replaces it.
+	context.page_width = tool_content.page_width(route)
 	context.boot = frappe._dict(
 		{
 			"csrf_token": frappe.sessions.get_csrf_token(),

@@ -7,13 +7,13 @@
          Jinja does not read them as markup a second time.
 
          Every value is escaped: Frappe's Jinja environment does not autoescape. -->
-      <div class="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-8 sm:px-8 sm:py-12">
+      <div class="mx-auto flex w-full {{ page_width | e }} flex-col gap-2 px-4 py-8 sm:px-8 sm:py-12">
         <h1 class="text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ seo.name | e }}</h1>
         <p class="text-base leading-7 text-ink-gray-6">{{ seo.description | e }}</p>
         <noscript><p class="text-base leading-7 text-ink-gray-7">Toolbox runs in your browser, so it needs JavaScript. The text on this page needs none.</p></noscript>
       </div>
       {%- if seo.tool_links %}
-      <nav class="mx-auto flex w-full max-w-3xl flex-col gap-1 px-4 pb-10 sm:px-8" aria-label="All tools">
+      <nav class="mx-auto flex w-full {{ page_width | e }} flex-col gap-1 px-4 pb-10 sm:px-8" aria-label="All tools">
         {%- for link in seo.tool_links %}
         <a class="text-base leading-7 text-ink-gray-9 underline underline-offset-2" href="{{ link.path | e }}">{{ link.name | e }}</a>
         {%- endfor %}

@@ -9,6 +9,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { appRoutes } from '../appRoutes.js'
+import { pageWidthFor } from '../../src/data/pageLayout.js'
 import { ContentError, parseToolContent } from './parse.js'
 import { renderContent } from './render.js'
 
@@ -53,7 +54,7 @@ export function buildPage(tool, knownRoutes = []) {
     source: path.relative(APP_ROOT, source),
     knownRoutes,
   })
-  return { ...page, content: renderContent(sections), faqs, steps }
+  return { ...page, content: renderContent(sections, pageWidthFor(tool.route)), faqs, steps }
 }
 
 // A content file whose name matches no route is content nobody can read. It is almost always a

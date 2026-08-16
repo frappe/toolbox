@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-12">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
     <header class="flex items-start gap-4">
       <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
         <Icon :name="tool.icon" class="size-6 text-ink-gray-7" />
@@ -18,7 +18,7 @@
     <div class="pt-8">
       <section class="min-w-0" aria-labelledby="converter-heading">
         <h2 id="converter-heading" class="sr-only">Convert units</h2>
-        <div class="max-w-md rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
+        <div class="rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
           <p
             class="sr-only"
             role="status"
@@ -28,7 +28,14 @@
           >
             {{ converter.conversionAnnouncement.value }}
           </p>
-          <div class="grid min-w-0 grid-cols-1 gap-2">
+          <!--
+            From and To read across, not down: a tool that goes from one unit to another is a
+            sentence, and stacking it wasted the width the card now has (#282). The track
+            definition is `ScriptConversionView`'s, so the two conversion tools line up rather
+            than each inventing their own. `items-center` keeps the swap control on the axis of
+            the two fields whatever height their labels take.
+          -->
+          <div class="grid min-w-0 grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
             <ConversionField
               label="From"
               :model-value="converter.fromInput.value"
@@ -42,7 +49,7 @@
             <Button
               class="mx-auto"
               variant="subtle"
-              icon="lucide-arrow-up-down"
+              icon="lucide-arrow-left-right"
               aria-label="Swap units"
               data-testid="swap-units"
               @click="converter.swap"

@@ -103,7 +103,7 @@ class CurrencyRateService:
 	def _is_fresh(self, value: dict[str, object]) -> bool:
 		try:
 			checked_at = datetime.fromisoformat(str(value["providerCheckedAt"]))
-		except (KeyError, TypeError, ValueError):
+		except KeyError, TypeError, ValueError:
 			return False
 		if checked_at.tzinfo is None:
 			return False

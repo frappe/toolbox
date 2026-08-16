@@ -91,7 +91,9 @@ def _candidate_pool(release_name: str, term: str) -> list[str]:
 		rows = (
 			frappe.qb.from_(record)
 			.select(record.normalized_word)
-			.where((record.dataset_release == release_name) & record.normalized_word.like(_like_prefix(prefix)))
+			.where(
+				(record.dataset_release == release_name) & record.normalized_word.like(_like_prefix(prefix))
+			)
 			.orderby(record.normalized_word)
 			.limit(CANDIDATE_POOL)
 		).run(pluck=True)
@@ -158,7 +160,19 @@ def _active_release():
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		{"dataset_type": DATASET_TYPE, "status": "Active"},
-		["name", "version", "source_updated_at", "imported_at", "record_count", "exclusion_count", "source_name", "source_url", "license_name", "license_url", "attribution"],
+		[
+			"name",
+			"version",
+			"source_updated_at",
+			"imported_at",
+			"record_count",
+			"exclusion_count",
+			"source_name",
+			"source_url",
+			"license_name",
+			"license_url",
+			"attribution",
+		],
 		as_dict=True,
 	)
 

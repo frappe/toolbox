@@ -13,7 +13,11 @@ _spec.loader.exec_module(refresh_datasets)
 
 
 def _source(version):
-	return lambda: {"version": version, "sourceUpdatedAt": version, "fetch": lambda directory: directory / "asset"}
+	return lambda: {
+		"version": version,
+		"sourceUpdatedAt": version,
+		"fetch": lambda directory: directory / "asset",
+	}
 
 
 class TestRefreshDatasets(UnitTestCase):

@@ -112,7 +112,9 @@ class TestDatasetSyncUnit(UnitTestCase):
 			copy.assert_called_once()
 			download.assert_not_called()
 
-			dataset_sync._fetch_asset({"url": "https://example.com/a.gz", "sha256": "abc"}, Path("/tmp/asset"))
+			dataset_sync._fetch_asset(
+				{"url": "https://example.com/a.gz", "sha256": "abc"}, Path("/tmp/asset")
+			)
 			download.assert_called_once()
 
 	def test_decompress_gzip_roundtrip(self) -> None:
@@ -150,7 +152,10 @@ class TestDatasetSyncIntegration(IntegrationTestCase):
 
 		self.assertEqual(results["synced"], ["PIN"])
 		active = frappe.db.get_value(
-			RELEASE_DOCTYPE, {"dataset_type": "PIN", "status": "Active"}, ["version", "record_count"], as_dict=True
+			RELEASE_DOCTYPE,
+			{"dataset_type": "PIN", "status": "Active"},
+			["version", "record_count"],
+			as_dict=True,
 		)
 		self.assertEqual(active.version, "test-1")
 		self.assertEqual(active.record_count, 2)

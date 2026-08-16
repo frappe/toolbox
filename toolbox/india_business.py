@@ -49,13 +49,28 @@ def search_pin(query: str, limit: int = 10) -> dict[str, object]:
 		return _unavailable("PIN")
 
 	record = frappe.qb.DocType(PIN_DOCTYPE)
-	fields = (record.pin_code, record.office_name, record.office_type, record.delivery_status, record.district, record.state, record.latitude, record.longitude)
+	fields = (
+		record.pin_code,
+		record.office_name,
+		record.office_type,
+		record.delivery_status,
+		record.district,
+		record.state,
+		record.latitude,
+		record.longitude,
+	)
 	count = _limit(limit)
 	if term.isdigit() and len(term) == 6:
-		rows = _indexed_query(record, fields, release.name, record.pin_code == term, record.office_name, count)
+		rows = _indexed_query(
+			record, fields, release.name, record.pin_code == term, record.office_name, count
+		)
 	else:
 		rows = _aliased_prefix_search(
-			record, fields, release.name, term, count,
+			record,
+			fields,
+			release.name,
+			term,
+			count,
 			columns=(record.pin_code, record.office_name, record.district, record.state),
 			identity=lambda row: (row["pin_code"], row["office_name"], row["district"], row["state"]),
 		)
@@ -72,13 +87,25 @@ def search_ifsc(query: str, limit: int = 10) -> dict[str, object]:
 		return _unavailable("IFSC")
 
 	record = frappe.qb.DocType(IFSC_DOCTYPE)
-	fields = (record.ifsc_code, record.bank_name, record.branch, record.address, record.city, record.district, record.state)
+	fields = (
+		record.ifsc_code,
+		record.bank_name,
+		record.branch,
+		record.address,
+		record.city,
+		record.district,
+		record.state,
+	)
 	count = _limit(limit)
 	if len(term) == 11:
 		rows = _indexed_query(record, fields, release.name, record.ifsc_code == term, record.ifsc_code, count)
 	else:
 		rows = _prefix_search(
-			record, fields, release.name, _like_prefix(term), count,
+			record,
+			fields,
+			release.name,
+			_like_prefix(term),
+			count,
 			columns=(record.ifsc_code, record.bank_name, record.branch, record.city, record.state),
 			identity=lambda row: row["ifsc_code"],
 		)
@@ -139,7 +166,13 @@ def _active_metadata(dataset_type: str) -> dict[str, object] | None:
 		"importedAt": release.imported_at,
 		"recordCount": release.record_count,
 		"exclusionCount": release.exclusion_count,
-		"source": {"name": release.source_name, "url": release.source_url, "license": release.license_name, "licenseUrl": release.license_url, "attribution": release.attribution},
+		"source": {
+			"name": release.source_name,
+			"url": release.source_url,
+			"license": release.license_name,
+			"licenseUrl": release.license_url,
+			"attribution": release.attribution,
+		},
 	}
 
 
@@ -147,7 +180,19 @@ def _active_release(dataset_type: str):
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		{"dataset_type": dataset_type, "status": "Active"},
-		["name", "version", "source_updated_at", "imported_at", "record_count", "exclusion_count", "source_name", "source_url", "license_name", "license_url", "attribution"],
+		[
+			"name",
+			"version",
+			"source_updated_at",
+			"imported_at",
+			"record_count",
+			"exclusion_count",
+			"source_name",
+			"source_url",
+			"license_name",
+			"license_url",
+			"attribution",
+		],
 		as_dict=True,
 	)
 

@@ -39,9 +39,37 @@ CACHE_TTL_SECONDS = 6 * 60 * 60
 # The ECB publishes reference rates for this fixed set of currencies (plus EUR itself).
 SUPPORTED_CURRENCIES = frozenset(
 	{
-		"EUR", "USD", "JPY", "BGN", "CZK", "DKK", "GBP", "HUF", "PLN", "RON",
-		"SEK", "CHF", "ISK", "NOK", "TRY", "AUD", "BRL", "CAD", "CNY", "HKD",
-		"IDR", "ILS", "INR", "KRW", "MXN", "MYR", "NZD", "PHP", "SGD", "THB", "ZAR",
+		"EUR",
+		"USD",
+		"JPY",
+		"BGN",
+		"CZK",
+		"DKK",
+		"GBP",
+		"HUF",
+		"PLN",
+		"RON",
+		"SEK",
+		"CHF",
+		"ISK",
+		"NOK",
+		"TRY",
+		"AUD",
+		"BRL",
+		"CAD",
+		"CNY",
+		"HKD",
+		"IDR",
+		"ILS",
+		"INR",
+		"KRW",
+		"MXN",
+		"MYR",
+		"NZD",
+		"PHP",
+		"SGD",
+		"THB",
+		"ZAR",
 	}
 )
 
@@ -177,9 +205,7 @@ class CurrencyHistoryService:
 
 		points = _cross_rate_series(base, quote, observations)
 		if len(points) < 2:
-			raise CurrencyHistoryError(
-				f"The ECB does not publish enough history for {base} to {quote}."
-			)
+			raise CurrencyHistoryError(f"The ECB does not publish enough history for {base} to {quote}.")
 		points = _downsample(points, MAX_SERIES_POINTS)
 
 		return {
@@ -262,14 +288,14 @@ def _validate_range(range_key: object) -> str:
 def _parse_iso_date(value: str) -> str | None:
 	try:
 		return date.fromisoformat(value.strip()).isoformat()
-	except (ValueError, AttributeError):
+	except ValueError, AttributeError:
 		return None
 
 
 def _parse_rate(value: str) -> float | None:
 	try:
 		rate = Decimal(value)
-	except (InvalidOperation, TypeError):
+	except InvalidOperation, TypeError:
 		return None
 	if not rate.is_finite() or rate <= 0 or rate > Decimal("100000000"):
 		return None

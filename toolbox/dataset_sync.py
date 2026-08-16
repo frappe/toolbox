@@ -131,6 +131,4 @@ def _decompress(asset: Path, entry: dict) -> Path:
 
 
 def _active_version(dataset_type: str) -> str | None:
-	return frappe.db.get_value(
-		RELEASE_DOCTYPE, {"dataset_type": dataset_type, "status": "Active"}, "version"
-	)
+	return frappe.db.get_value(RELEASE_DOCTYPE, {"dataset_type": dataset_type, "status": "Active"}, "version")

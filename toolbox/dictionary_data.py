@@ -57,11 +57,15 @@ def _import_jsonl_locked(
 		_activate_release(release.name, result)
 	except Exception as error:
 		_delete_release_rows(release.name)
-		frappe.db.set_value(RELEASE_DOCTYPE, release.name, {
-			"status": "Failed",
-			"failure_reason": str(error)[:500],
-			"imported_at": now_datetime(),
-		})
+		frappe.db.set_value(
+			RELEASE_DOCTYPE,
+			release.name,
+			{
+				"status": "Failed",
+				"failure_reason": str(error)[:500],
+				"imported_at": now_datetime(),
+			},
+		)
 		# Commit the failure marker (and the staged-row cleanup) so it survives the
 		# rollback the caller performs when the re-raised exception propagates. The
 		# active release from any prior import lives in its own committed transaction.
@@ -98,11 +102,13 @@ def stage_rows(lines: Iterable[str], release_name: str) -> dict[str, int]:
 		# The release-scoped key derives a stable unique name; it is not stored as a
 		# column (redundant with name).
 		record_key = f"{release_name}:{business_key}"
-		batch.append({
-			"name": hashlib.sha256(record_key.encode()).hexdigest()[:40],
-			"dataset_release": release_name,
-			**{key: value for key, value in normalized.items() if key != "business_key"},
-		})
+		batch.append(
+			{
+				"name": hashlib.sha256(record_key.encode()).hexdigest()[:40],
+				"dataset_release": release_name,
+				**{key: value for key, value in normalized.items() if key != "business_key"},
+			}
+		)
 		if len(batch) == BATCH_SIZE:
 			_bulk_insert(batch)
 			record_count += len(batch)
@@ -144,20 +150,22 @@ def _parse_line(line: str) -> Mapping[str, object] | None:
 
 
 def _create_release(release_key: str, checksum: str, version: str, source_updated_at: str):
-	return frappe.get_doc({
-		"doctype": RELEASE_DOCTYPE,
-		"release_key": release_key,
-		"dataset_type": DATASET_TYPE,
-		"status": "Staged",
-		"source_name": WORDNET_SOURCE["source_name"],
-		"source_url": WORDNET_SOURCE["source_url"],
-		"license_name": WORDNET_SOURCE["license_name"],
-		"license_url": WORDNET_SOURCE["license_url"],
-		"attribution": WORDNET_SOURCE["attribution"],
-		"version": version,
-		"source_updated_at": source_updated_at,
-		"checksum": checksum,
-	}).insert(ignore_permissions=True)
+	return frappe.get_doc(
+		{
+			"doctype": RELEASE_DOCTYPE,
+			"release_key": release_key,
+			"dataset_type": DATASET_TYPE,
+			"status": "Staged",
+			"source_name": WORDNET_SOURCE["source_name"],
+			"source_url": WORDNET_SOURCE["source_url"],
+			"license_name": WORDNET_SOURCE["license_name"],
+			"license_url": WORDNET_SOURCE["license_url"],
+			"attribution": WORDNET_SOURCE["attribution"],
+			"version": version,
+			"source_updated_at": source_updated_at,
+			"checksum": checksum,
+		}
+	).insert(ignore_permissions=True)
 
 
 def _activate_release(release_name: str, result: dict[str, int]) -> None:
@@ -169,14 +177,18 @@ def _activate_release(release_name: str, result: dict[str, int]) -> None:
 	)
 	for active_name in previous_active:
 		frappe.db.set_value(RELEASE_DOCTYPE, active_name, "status", "Superseded")
-	frappe.db.set_value(RELEASE_DOCTYPE, release_name, {
-		"status": "Active",
-		"record_count": result["record_count"],
-		"exclusion_count": result["exclusion_count"],
-		"duplicate_count": result["duplicate_count"],
-		"imported_at": now_datetime(),
-		"failure_reason": "",
-	})
+	frappe.db.set_value(
+		RELEASE_DOCTYPE,
+		release_name,
+		{
+			"status": "Active",
+			"record_count": result["record_count"],
+			"exclusion_count": result["exclusion_count"],
+			"duplicate_count": result["duplicate_count"],
+			"imported_at": now_datetime(),
+			"failure_reason": "",
+		},
+	)
 	# Retain rows for the new active release and the generation it just superseded
 	# (the immediately-previous release, kept for fast rollback); drop older ones.
 	_prune_superseded_rows(keep=set(previous_active))
@@ -207,7 +219,18 @@ def _release_payload(name: str) -> dict[str, object]:
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		name,
-		["name", "dataset_type", "status", "version", "source_updated_at", "imported_at", "checksum", "record_count", "exclusion_count", "duplicate_count"],
+		[
+			"name",
+			"dataset_type",
+			"status",
+			"version",
+			"source_updated_at",
+			"imported_at",
+			"checksum",
+			"record_count",
+			"exclusion_count",
+			"duplicate_count",
+		],
 		as_dict=True,
 	)
 

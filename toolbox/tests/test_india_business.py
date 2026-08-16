@@ -10,14 +10,16 @@ from toolbox.india_business_data import normalize_ifsc_row, normalize_pin_row, s
 
 class TestIndiaBusinessData(UnitTestCase):
 	def test_normalizes_complete_pin_rows_from_official_headers(self) -> None:
-		row = normalize_pin_row({
-			"pincode": "560001",
-			"officename": "Bangalore G.P.O.",
-			"officetype": "HO",
-			"delivery": "Delivery",
-			"district": "Bengaluru",
-			"statename": "Karnataka",
-		})
+		row = normalize_pin_row(
+			{
+				"pincode": "560001",
+				"officename": "Bangalore G.P.O.",
+				"officetype": "HO",
+				"delivery": "Delivery",
+				"district": "Bengaluru",
+				"statename": "Karnataka",
+			}
+		)
 
 		self.assertEqual(row["pin_code"], "560001")
 		self.assertEqual(row["office_name"], "Bangalore G.P.O.")
@@ -32,33 +34,55 @@ class TestIndiaBusinessData(UnitTestCase):
 		good = normalize_pin_row({**base, "latitude": "12.9716", "longitude": "77.5946"})
 		self.assertEqual((good["latitude"], good["longitude"]), ("12.9716", "77.5946"))
 		# Out of range, zero, non-numeric, and half-missing pairs are all dropped to empty.
-		for bad in ({"latitude": "0", "longitude": "77.5"}, {"latitude": "88", "longitude": "77.5"},
-			{"latitude": "x", "longitude": "77.5"}, {"latitude": "12.9", "longitude": ""}):
+		for bad in (
+			{"latitude": "0", "longitude": "77.5"},
+			{"latitude": "88", "longitude": "77.5"},
+			{"latitude": "x", "longitude": "77.5"},
+			{"latitude": "12.9", "longitude": ""},
+		):
 			row = normalize_pin_row({**base, **bad})
 			self.assertEqual((row["latitude"], row["longitude"]), ("", ""))
 
 	def test_normalizes_complete_ifsc_rows(self) -> None:
-		row = normalize_ifsc_row({
-			"IFSC": "hdfc0000001",
-			"BANK": "HDFC Bank",
-			"BRANCH": "Fort",
-			"CITY": "Mumbai",
-			"STATE": "Maharashtra",
-		})
+		row = normalize_ifsc_row(
+			{
+				"IFSC": "hdfc0000001",
+				"BANK": "HDFC Bank",
+				"BRANCH": "Fort",
+				"CITY": "Mumbai",
+				"STATE": "Maharashtra",
+			}
+		)
 
 		self.assertEqual(row["ifsc_code"], "HDFC0000001")
 		self.assertEqual(row["business_key"], "HDFC0000001")
 
 	def test_excludes_ifsc_rows_with_missing_required_source_values(self) -> None:
-		base = {"IFSC": "HDFC0000001", "BANK": "HDFC Bank", "BRANCH": "Fort", "CITY": "Mumbai", "STATE": "Maharashtra"}
+		base = {
+			"IFSC": "HDFC0000001",
+			"BANK": "HDFC Bank",
+			"BRANCH": "Fort",
+			"CITY": "Mumbai",
+			"STATE": "Maharashtra",
+		}
 		for field in ("BANK", "BRANCH", "CITY", "STATE"):
 			with self.subTest(field=field):
 				self.assertIsNone(normalize_ifsc_row({**base, field: ""}))
 
 	def test_staging_is_deterministic_and_reports_duplicates_and_invalid_rows(self) -> None:
 		rows = [
-			{"pincode": "560001", "officename": "Bangalore G.P.O.", "district": "Bengaluru", "statename": "Karnataka"},
-			{"pincode": "560001", "officename": "Bangalore G.P.O.", "district": "Bengaluru", "statename": "Karnataka"},
+			{
+				"pincode": "560001",
+				"officename": "Bangalore G.P.O.",
+				"district": "Bengaluru",
+				"statename": "Karnataka",
+			},
+			{
+				"pincode": "560001",
+				"officename": "Bangalore G.P.O.",
+				"district": "Bengaluru",
+				"statename": "Karnataka",
+			},
 			{"pincode": "bad", "officename": "Bad", "district": "Bad", "statename": "Bad"},
 		]
 

@@ -97,7 +97,9 @@ def refresh(targets: list[str]) -> list[str]:
 
 
 def _get_json(url: str) -> object:
-	request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"})
+	request = urllib.request.Request(
+		url, headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
+	)
 	with urllib.request.urlopen(request, timeout=30) as response:
 		return json.loads(response.read())
 

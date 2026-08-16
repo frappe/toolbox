@@ -73,7 +73,18 @@ def _active_release():
 	return frappe.db.get_value(
 		RELEASE_DOCTYPE,
 		{"dataset_type": "HSN", "status": "Active"},
-		["name", "version", "source_updated_at", "imported_at", "record_count", "source_name", "source_url", "license_name", "license_url", "attribution"],
+		[
+			"name",
+			"version",
+			"source_updated_at",
+			"imported_at",
+			"record_count",
+			"source_name",
+			"source_url",
+			"license_name",
+			"license_url",
+			"attribution",
+		],
 		as_dict=True,
 	)
 

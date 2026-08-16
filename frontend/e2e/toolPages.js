@@ -27,11 +27,8 @@ export const OFFLINE_ROUTES = tools
   .map((tool) => tool.route)
 
 // The heading a visitor reads. For a tool it is the registry name, and the server renders the same
-// word into the body, so the two agree by construction.
-//
-// `/data-sources` is the one page where they do not. `seo.py` names it "Data Sources" and the view
-// heads it "Where the data comes from", so a crawler and a visitor are told two different things.
-// That is recorded in `navigation.spec.js` rather than hidden here.
+// word into the body, so the two agree by construction. For these three the wording lives in
+// `seo.py`, and `navigation.spec.js` holds it to what the view renders.
 const PAGE_HEADINGS = {
   '/': 'All tools',
   '/about': 'About Toolbox',

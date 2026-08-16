@@ -52,7 +52,11 @@ class Page:
 # Ordered as the page is read: the root first, then the tools, then the pages that support them.
 PAGES: dict[str, Page] = {
 	ROOT_PATH: Page(
-		name="All Tools",
+		# `name` is the heading the server writes into the body, so it has to be the heading the
+		# view renders once Vue mounts. A crawler that reads one wording and a visitor who reads
+		# another is a page that says two things. The `title` below is the search result, and it
+		# carries the keywords.
+		name="All tools",
 		title="Toolbox — Free Online Calculators and Converters",
 		description=(
 			"A free set of everyday tools: calculators, converters, lookups and reference data. "
@@ -376,7 +380,7 @@ PAGES: dict[str, Page] = {
 		),
 	),
 	"/data-sources": Page(
-		name="Data Sources",
+		name="Where the data comes from",
 		title="Where Toolbox Data Comes From",
 		description=(
 			"Every dataset and every API behind these tools, named: what it is, who publishes "

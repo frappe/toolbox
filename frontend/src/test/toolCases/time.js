@@ -1,17 +1,12 @@
-// Fixed cities, so the converter reads the same on any machine. Kolkata is UTC+5:30 all year,
-// London is UTC+0 in January, and New York is UTC−5 in January. None of the three observes a
-// transition on 1 January, which is why the case uses that date.
-export const WORLD_CLOCK_LOCATIONS = [
-  { id: 'seed-kolkata', zone: 'Asia/Kolkata', label: 'Kolkata', favourite: false },
-  { id: 'seed-london', zone: 'Europe/London', label: 'London', favourite: false },
-  { id: 'seed-new-york', zone: 'America/New_York', label: 'New York', favourite: false },
-]
+// The converter opens on Kolkata, London and New York, plus the browser's own zone — which
+// playwright.config.js pins to Asia/Kolkata, so the set is the same on any machine. Kolkata is
+// UTC+5:30 all year, London is UTC+0 in January and New York is UTC−5 in January. None of the
+// three observes a transition on 1 January, which is why the cases use that date.
 
 export const timeCases = [
   {
     toolId: 'time-zone-converter',
     route: '/time-zone-converter',
-    seed: { savedWorldClockLocations: WORLD_CLOCK_LOCATIONS },
     cases: [
       {
         name: 'nine in the morning in Kolkata is half past three in London',
@@ -32,25 +27,6 @@ export const timeCases = [
         ],
         // WebKit writes the meridiem uppercase where Chromium and Firefox write it lowercase.
         expect: { contains: [/10:30\s*pm/i, '31/12/2025', 'Previous day'] },
-      },
-    ],
-  },
-  {
-    toolId: 'world-clock',
-    route: '/world-clock',
-    seed: { savedWorldClockLocations: WORLD_CLOCK_LOCATIONS },
-    cases: [
-      {
-        name: 'shows a running clock for each saved city',
-        fill: [],
-        expect: { contains: [/\d{2}:\d{2}/, 'Asia/Kolkata', 'Europe/London'] },
-      },
-      {
-        name: 'adds a city from the search',
-        fill: [
-          { combobox: 'Add a city or time zone', value: 'Tokyo', option: /Tokyo/ },
-        ],
-        expect: { contains: ['Asia/Tokyo'] },
       },
     ],
   },

@@ -156,7 +156,7 @@ test('@smoke offers every tool in the sitemap', async ({ request }) => {
   )
 
   expect(locations).toContain('/')
-  for (const path of ['/world-clock', '/calculator', '/dictionary', '/audio-editor']) {
+  for (const path of ['/time-zone-converter', '/calculator', '/dictionary', '/audio-editor']) {
     expect(locations, `${path} is missing from the sitemap`).toContain(path)
   }
   // Advertising a page that carries noindex is a contradiction.

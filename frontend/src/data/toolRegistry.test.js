@@ -23,7 +23,7 @@ describe('tool registry', () => {
   it('keeps every summary short enough to read without being cut', () => {
     // All Tools and the search dialog truncate this line, and the narrowest place it lands is the
     // three-column desktop grid: 245px of text at 12px, which is about 33 characters. Every
-    // description was longer, so 33 of the 34 rows ended in an ellipsis. The budget is 32, and it
+    // description was longer, so almost every row ended in an ellipsis. The budget is 32, and it
     // is a test rather than a note because the only symptom of breaking it is a cut word.
     const BUDGET = 32
 
@@ -41,7 +41,7 @@ describe('tool registry', () => {
   it('defines every V1 tool with a complete and valid schema', () => {
     const categoryIds = new Set(toolCategories.map((category) => category.id))
 
-    expect(tools).toHaveLength(34)
+    expect(tools).toHaveLength(33)
     expect(new Set(tools.map((tool) => tool.id)).size).toBe(tools.length)
     expect(new Set(tools.map((tool) => tool.route)).size).toBe(tools.length)
 
@@ -74,7 +74,6 @@ describe('tool registry', () => {
 
     expect(new Set(families.keys())).toEqual(new Set([
         'timer',
-        'world-clock',
         'india-business-lookup',
         'health-calculators',
         'financial-calculators',

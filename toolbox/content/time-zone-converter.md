@@ -9,8 +9,8 @@ then shows the same moment, written in its own city's clock.
 4. Press Copy times to put every card on the clipboard, one line each.
 
 Add a city with the search box. It covers the identifier, a city name, its region and the names it
-is also known by, so Bombay finds Mumbai and Vizag finds Visakhapatnam. Up to 12 cards are kept, and
-the same list serves the [World Clock](/world-clock).
+is also known by, so Bombay finds Mumbai and Vizag finds Visakhapatnam. Up to 12 cards are kept,
+for as long as the page is open.
 
 The offset is worked out for the moment you chose, not looked up in a table. The tool writes that
 moment out in the zone, reads it back, and compares the two. The difference is the offset, taken
@@ -39,10 +39,10 @@ between, New York has moved and London has not.
 
 ## Frequently asked questions
 
-### What is the difference between this and the World Clock?
+### Can I see what time it is in those cities right now?
 
-The [World Clock](/world-clock) answers "what time is it there now". This answers "what time is
-that there". Both read the same list of cities, so a city added on one page is on the other.
+Yes. The date and time field opens on the current moment, so the cards read the time in each city
+as you arrive. Change the field to read any other moment instead.
 
 ### Which city's clock is my time on?
 

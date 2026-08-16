@@ -343,23 +343,6 @@ export const tools = [
     searchKeywords: ['ifsc', 'bank', 'branch', 'neft', 'rtgs', 'micr'],
   }),
   defineTool({
-    id: 'world-clock',
-    name: 'World Clock',
-    description: 'See the current time in the cities you care about, side by side.',
-    summary: 'Current time in your cities',
-    icon: 'lucide-globe-2',
-    category: 'time',
-    route: '/world-clock',
-    family: 'world-clock',
-    variant: 'clocks',
-    offlineCapability: 'full',
-    searchKeywords: ['timezone', 'meeting', 'city', 'iana', 'planner'],
-  }),
-  // The second half of that view. A converter belongs with the other converters, and it earns a
-  // URL of its own: "time zone converter" is what somebody types, and a tab inside World Clock
-  // could not be searched for or linked to. Both keep one list of cities, which is why they
-  // still share a view.
-  defineTool({
     id: 'time-zone-converter',
     name: 'Time Zone Converter',
     description: 'Take one date and time and read it in every city at once.',
@@ -367,8 +350,6 @@ export const tools = [
     icon: 'lucide-clock-arrow-up',
     category: 'convert',
     route: '/time-zone-converter',
-    family: 'world-clock',
-    variant: 'convert',
     offlineCapability: 'full',
     searchKeywords: ['time zone', 'convert time', 'meeting', 'ist to est', 'utc'],
   }),

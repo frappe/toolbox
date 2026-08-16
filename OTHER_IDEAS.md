@@ -171,6 +171,24 @@ population floor are needed, because the language rule is self-limiting at a med
 per city. Colloquial names are dropped: Jakarta is "the Big Durian" and Murmansk is "the fish
 capital", and neither is a search term.
 
+### World Clock
+
+Removed in #283. It showed the current time in a list of cities, side by side, with each offset and
+whether daylight saving applied.
+
+The reason is that the Time Zone Converter does the same job and more. The two shared one view and
+one list of cities, and the converter opens on the current moment, so its cards read exactly what
+the clock read. Keeping both meant two pages competing for overlapping searches, which is the
+duplicate content the tab split was meant to end.
+
+Nothing was lost in the code. `/world-clock` redirects to `/time-zone-converter`, the city search
+and the IANA zone maths moved with it to `tools/time-zone-converter/`, and the only behaviour that
+went is the ticking clock, which a converter should not have: figures that move while they are
+being read are wrong here.
+
+Bringing it back needs a reason why "what time is it there now" deserves its own URL when the
+converter answers it on arrival.
+
 ### Tool history, recent searches and saved currency pairs
 
 Removed in #281. Every calculator and converter kept its last ten results, the dictionary kept the

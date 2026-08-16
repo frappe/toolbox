@@ -52,6 +52,20 @@ describe('generated routes', () => {
     expect(routes.find((route) => route.path === '/:pathMatch(.*)*')?.redirect).toBe('/')
   })
 
+  // The server 308s these and the client mirrors the map, so a removed route answers the same way
+  // whether it is typed into the address bar or reached by a stale in-app link. Adding a redirect
+  // to `toolbox/routes.py` and forgetting this map leaves the second case on the 404 page, and
+  // nothing else notices — which is exactly what happened while #283 was being written.
+  it.each([
+    ['/world-clock', '/time-zone-converter'],
+    ['/financial-calculators', '/emi-calculator'],
+    ['/health-calculators', '/bmi-calculator'],
+    ['/unit-converter', '/length-converter'],
+    ['/india-business-lookup', '/pin-code-search'],
+  ])('redirects the retired %s in the browser too', (path, target) => {
+    expect(router.getRoutes().find((route) => route.path === path)?.redirect).toBe(target)
+  })
+
   it('uses unique names and paths across all resolved routes', () => {
     const routes = router.getRoutes()
     const names = routes.map((route) => route.name).filter(Boolean)
@@ -65,7 +79,7 @@ describe('generated routes', () => {
     ['calculator', 'CalculatorView'],
     ['gst-calculator', 'GstCalculatorView'],
     ['hsn-sac-lookup', 'HsnSacLookupView'],
-    ['world-clock', 'WorldClockView'],
+    ['time-zone-converter', 'TimeZoneConverterView'],
   ])('loads the implemented %s view', async (toolId, componentName) => {
     const route = router.getRoutes().find((candidate) => candidate.name === `Tool:${toolId}`)
     const componentModule = await route.components.default()

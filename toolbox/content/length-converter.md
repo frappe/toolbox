@@ -70,8 +70,8 @@ scientific notation instead.
 ### Is anything I type stored?
 
 No. There is no account, and nothing you type reaches a server. The application is stored in the
-browser after your first visit, so the converter works with no internet connection. The last 10
-results stay in the tab and go when it closes.
+browser after your first visit, so the converter works with no internet connection. No result is
+written down.
 
 ## Good to know
 

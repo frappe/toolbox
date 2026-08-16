@@ -10,6 +10,7 @@ const implementedToolViews = {
   'gst-calculator': () => import('@/views/tools/GstCalculatorView.vue'),
   dictionary: () => import('@/views/tools/DictionaryView.vue'),
   'script-conversion': () => import('@/views/tools/ScriptConversionView.vue'),
+  'time-zone-converter': () => import('@/views/tools/TimeZoneConverterView.vue'),
   'audio-recorder': () => import('@/views/tools/AudioRecorderView.vue'),
   'audio-editor': () => import('@/views/tools/AudioEditorView.vue'),
 }
@@ -18,21 +19,20 @@ const implementedToolViews = {
 // and its own page, and the view reads `meta.variant` to know which of them it is rendering.
 const familyViews = {
   timer: () => import('@/views/tools/TimerView.vue'),
-  'world-clock': () => import('@/views/tools/WorldClockView.vue'),
   'india-business-lookup': () => import('@/views/tools/IndiaBusinessLookupView.vue'),
   'health-calculators': () => import('@/views/tools/HealthCalculatorsView.vue'),
   'financial-calculators': () => import('@/views/tools/FinancialCalculatorsView.vue'),
   'unit-converter': () => import('@/views/tools/UnitConverterView.vue'),
 }
 
-// A route that used to serve several tools behind a tab strip. The server sends a 308 for these,
-// so they are only reachable through an in-app link that has not been updated. Mirrors
-// RETIRED_ROUTES in toolbox/routes.py.
+// A route that no longer exists. The server sends a 308 for these, so they are only reachable
+// through an in-app link that has not been updated. Mirrors RETIRED_ROUTES in toolbox/routes.py.
 const retiredRoutes = {
   '/india-business-lookup': '/pin-code-search',
   '/health-calculators': '/bmi-calculator',
   '/financial-calculators': '/emi-calculator',
   '/unit-converter': '/length-converter',
+  '/world-clock': '/time-zone-converter',
 }
 const queuedToolView = () => import('@/views/ToolView.vue')
 

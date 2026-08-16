@@ -81,9 +81,9 @@ Yes. Choose Custom and type it. A 2,500 amount at 7.5 percent carries 187.50 of 
 
 ### Is anything I type stored?
 
-No. The calculation runs in your browser, there is no account, and nothing reaches a server. The
-last 10 results stay while the tab is open and go when it closes. The application is stored in the
-browser after a first visit, so this calculator works offline as well.
+No. The calculation runs in your browser, there is no account, nothing reaches a server, and no
+result is written down. The application is stored in the browser after a first visit, so this
+calculator works offline as well.
 
 ## Good to know
 

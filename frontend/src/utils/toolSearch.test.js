@@ -19,7 +19,6 @@ describe('tool search', () => {
     ['math', 'calculator'],
     ['currency', 'currency-converter'],
     ['time zone', 'time-zone-converter'],
-    ['world clock', 'world-clock'],
     ['pin code', 'pin-code-search'],
     ['bmi', 'bmi-calculator'],
     ['tdee', 'tdee-calculator'],

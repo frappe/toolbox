@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { describeZonedTime, parseDateTimeLocal, zonedWallTimeToInstant } from './worldClock'
+import { describeZonedTime, parseDateTimeLocal, zonedWallTimeToInstant } from './timeZone'
 
 // The rule for a written page is that every number in a worked example is computed by the tool.
 // This holds the page to it: `toolbox/content/time-zone-converter.md` states these times, and

@@ -28,10 +28,12 @@
         stroke-width="2"
         vector-effect="non-scaling-stroke"
       />
+      <!-- Step 8, as on the cost line above it. A line that carries meaning is a non-text
+           element and owes 3:1; step 3 measures 1.21:1 and is the region tint below. -->
       <polyline
         :points="revenueLine"
         fill="none"
-        class="text-ink-green-3"
+        class="text-ink-green-8"
         stroke="currentColor"
         stroke-width="2"
         vector-effect="non-scaling-stroke"

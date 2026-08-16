@@ -11,9 +11,22 @@ import { ALL_ROUTES, headingFor, prepare } from './toolPages'
 // of 28 until this change, and six tools had never been scanned at all.
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
-async function scan(page) {
+// Contrast is not read from WebKit, and issue #265 is why.
+//
+// Playwright's Linux WebKit reported the frappe-ui greys below the 4.5:1 threshold — the Settings
+// category labels at 3.77:1, a Currency Converter control at 2.56:1. No other engine reported
+// either, WebKit on macOS did not either, and Vibhav read the computed colour in real Safari on
+// 2026-08-16: it renders correctly. That build resolves the colour tokens differently from every
+// browser a visitor will use, so its contrast numbers describe the build rather than the site.
+//
+// The rule is dropped for that engine alone. Contrast is still checked on every route, in light and
+// in dark, on Chromium and Firefox, so nothing is given up: a real contrast fault fails there. Every
+// other axe rule still runs on WebKit, which is where its layout and markup differences matter.
+async function scan(page, browserName) {
   const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze()
-  return results.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))
+  return results.violations
+    .filter(({ impact }) => ['serious', 'critical'].includes(impact))
+    .filter(({ id }) => !(browserName === 'webkit' && id === 'color-contrast'))
 }
 
 for (const path of ALL_ROUTES) {
@@ -22,12 +35,12 @@ for (const path of ALL_ROUTES) {
   test(
     `${heading} has no serious automated accessibility violations`,
     { annotation: [{ type: 'tool', description: path.slice(1) }, { type: 'check', description: 'accessibility' }] },
-    async ({ page }) => {
+    async ({ browserName, page }) => {
       await prepare(page, path)
       await page.goto(path)
       await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
 
-      expect(await scan(page)).toEqual([])
+      expect(await scan(page, browserName)).toEqual([])
     },
   )
 
@@ -45,36 +58,16 @@ for (const path of ALL_ROUTES) {
       await page.goto(path)
       await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
 
-      expect(await scan(page)).toEqual([])
+      expect(await scan(page, browserName)).toEqual([])
     },
   )
 }
 
 // Settings opens as a dialog over All Tools, so it has no heading of its own. It is scanned with
 // the dialog open, which is the only state a visitor sees it in.
-test('Settings has no serious automated accessibility violations', async ({
-  browserName,
-  page,
-}) => {
+test('Settings has no serious automated accessibility violations', async ({ browserName, page }) => {
   await page.goto('/settings')
   await expect(page.getByRole('dialog')).toBeVisible()
 
-  let violations = await scan(page)
-
-  // WebKit on Linux reports the category labels in this dialog at 3.77:1, below the 4.5:1
-  // threshold, resolving `text-ink-gray-5` to #7f7f7f on #f8f8f8. No other engine reports it, and
-  // WebKit on macOS does not either — the same scan passes there. That points at how this
-  // particular WebKit build resolves the frappe-ui color token rather than at the markup, so the
-  // rule is set aside on this one page and this one engine, and issue #265 asks somebody to
-  // confirm it against real Safari. Everything else still fails here, on every engine.
-  if (browserName === 'webkit') {
-    const contrast = violations.filter(({ id }) => id === 'color-contrast')
-    if (contrast.length) {
-      // eslint-disable-next-line no-console
-      console.log(`known WebKit contrast report on /settings, see #265: ${contrast.length} rules`)
-    }
-    violations = violations.filter(({ id }) => id !== 'color-contrast')
-  }
-
-  expect(violations).toEqual([])
+  expect(await scan(page, browserName)).toEqual([])
 })

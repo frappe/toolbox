@@ -1,6 +1,5 @@
 import { computed, ref } from 'vue'
 
-import { useToolHistory } from '@/composables/useToolHistory'
 import {
   calculateGst,
   getStandardGstRate,
@@ -15,7 +14,6 @@ export const CUSTOM_RATE_ID = 'custom'
 export const DEFAULT_GST_RATE_ID = 'eighteen'
 
 export function useGstCalculator(options = {}) {
-  const history = options.history ?? useToolHistory('gst-calculator')
   const mode = ref(GST_MODES.ADD)
   const supplyType = ref(GST_SUPPLY_TYPES.INTRA_STATE)
   // Opens on a worked example, the same as every calculator. It computes in the browser.
@@ -87,41 +85,6 @@ export function useGstCalculator(options = {}) {
     result.value = null
     handoffApplied.value = false
     clearFeedback()
-  }
-
-  // Record the current GST result. It de-dupes against the last row, which mattered when a copy
-  // recorded one as well as the amount-commit, and still guards a repeated commit.
-  function recordHistory() {
-    const current = result.value
-    if (!current) return
-
-    const verb = current.mode === GST_MODES.ADD ? 'added' : 'removed'
-    history.add({
-      label: `${formatInr(current.inputAmount)} · ${current.rate}% ${verb}`,
-      value: formatInr(current.finalAmount),
-      payload: {
-        mode: mode.value,
-        supplyType: supplyType.value,
-        selectedRateId: selectedRateId.value,
-        customRateInput: customRateInput.value,
-        amountInput: amountInput.value,
-      },
-    })
-  }
-
-  function reuseHistory(entry) {
-    const payload = entry?.payload
-    if (!payload) return
-
-    if (Object.values(GST_MODES).includes(payload.mode)) mode.value = payload.mode
-    if (Object.values(GST_SUPPLY_TYPES).includes(payload.supplyType)) {
-      supplyType.value = payload.supplyType
-    }
-    selectedRateId.value = payload.selectedRateId ?? DEFAULT_GST_RATE_ID
-    customRateInput.value = String(payload.customRateInput ?? '')
-    amountInput.value = String(payload.amountInput ?? '')
-    handoffApplied.value = false
-    recalculate()
   }
 
   function recalculate() {
@@ -207,11 +170,6 @@ export function useGstCalculator(options = {}) {
     resultAnnouncement,
     handoffApplied,
     finalAmountLabel,
-    historyEntries: history.entries,
-    recordHistory,
-    reuseHistory,
-    removeHistory: history.remove,
-    clearHistory: history.clear,
     setMode,
     setSupplyType,
     updateAmount,

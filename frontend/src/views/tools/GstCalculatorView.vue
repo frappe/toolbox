@@ -49,7 +49,6 @@
             aria-describedby="gst-feedback"
             :aria-invalid="Boolean(calculator.errorMessage.value) || undefined"
             @update:model-value="calculator.updateAmount"
-            @change="calculator.recordHistory()"
           >
             <template #prefix>
               <span class="text-base text-ink-gray-5">₹</span>
@@ -98,23 +97,10 @@
         </div>
       </section>
 
-      <div class="flex flex-col gap-8 lg:sticky lg:top-6">
+      <div class="lg:sticky lg:top-6">
         <GstResults
           :result="calculator.result.value"
           :final-amount-label="calculator.finalAmountLabel.value"
-        />
-        <ToolHistory
-          :entries="calculator.historyEntries.value"
-          :copied-entry-id="copiedHistoryId"
-          list-label="GST calculation history"
-          clear-label="Clear GST history"
-          empty-title="No calculations yet"
-          empty-description="A GST result appears here once you finish typing an amount."
-          reuse-title="Reuse these inputs"
-          @reuse="calculator.reuseHistory"
-          @copy="copyHistoryEntry"
-          @remove="calculator.removeHistory"
-          @clear="calculator.clearHistory"
         />
       </div>
     </div>
@@ -126,11 +112,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import ToolHistory from '@/components/history/ToolHistory.vue'
 import GstRatePicker from '@/tools/gst-calculator/GstRatePicker.vue'
 import GstResults from '@/tools/gst-calculator/GstResults.vue'
 import { GST_MODES, GST_SUPPLY_TYPES } from '@/tools/gst-calculator'
@@ -141,7 +126,6 @@ const categoryName = getToolCategoryName('gst-calculator')
 const preferences = useToolboxPreferences()
 const initialRate = new URLSearchParams(globalThis.location?.search ?? '').get('rate')
 const calculator = useGstCalculator({ initialRate })
-const copiedHistoryId = ref('')
 const modeTabs = [
   { label: 'Add GST', value: GST_MODES.ADD },
   { label: 'Remove GST', value: GST_MODES.REMOVE },
@@ -152,13 +136,4 @@ const supplyTabs = [
 ]
 
 onMounted(() => preferences.recordRecent('gst-calculator'))
-
-async function copyHistoryEntry(entry) {
-  try {
-    await globalThis.navigator?.clipboard?.writeText(entry.value)
-    copiedHistoryId.value = entry.id
-  } catch {
-    copiedHistoryId.value = ''
-  }
-}
 </script>

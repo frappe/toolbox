@@ -171,6 +171,21 @@ population floor are needed, because the language rule is self-limiting at a med
 per city. Colloquial names are dropped: Jakarta is "the Big Durian" and Murmansk is "the fish
 capital", and neither is a search term.
 
+### Tool history, recent searches and saved currency pairs
+
+Removed in #281. Every calculator and converter kept its last ten results, the dictionary kept the
+last ten words looked up, and the currency converter kept a list of saved pairs. All of it lived in
+`sessionStorage` and went with the tab.
+
+The reason is that none of it earned its place. Toolbox has no accounts, so a list that dies with
+the tab is a list almost nobody returns to. It cost a panel down the right of five tools, which is
+the space the result and the chart now use, and it kept a page from fitting in one screen. A log of
+what a visitor worked out is also the most revealing thing the site could hold, and the site's own
+claim is that it holds nothing.
+
+Bringing it back needs a reason beyond "somebody might want it": evidence that visitors re-use an
+earlier result inside one session, and a place for it that does not push the tool below the fold.
+
 ### Administrator controls for datasets
 
 Toolbox ships PIN, IFSC, HSN, and Dictionary data as checksummed releases. An administrator cannot

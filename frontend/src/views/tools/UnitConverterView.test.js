@@ -132,17 +132,14 @@ describe('UnitConverterView', () => {
   })
 
 
-  it('records settled conversions in a history panel that persists locally', async () => {
-    const firstWrapper = mountView()
-    await valueInputs(firstWrapper)[0].setValue('1000')
-    await valueInputs(firstWrapper)[0].trigger('change')
+  it('converts as the value is typed, without waiting for a commit', async () => {
+    const wrapper = mountView()
+    await valueInputs(wrapper)[0].setValue('1000')
     await flushPromises()
-    expect(firstWrapper.text()).toContain('1000 m → km')
-    expect(firstWrapper.text()).toContain('1 km')
-    firstWrapper.unmount()
 
-    const secondWrapper = mountView()
-    expect(secondWrapper.get('button[aria-label="Reuse 1000 m → km"]')).toBeTruthy()
+    // 1000 m is 1 km. The opposite field used to be filled on `change` as well, because that is
+    // what recorded a history row; conversion itself never needed the commit.
+    expect(valueInputs(wrapper)[1].element.value).toBe('1')
   })
 
   it('clears the values while keeping the chosen category', async () => {

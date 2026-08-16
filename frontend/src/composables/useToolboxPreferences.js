@@ -50,8 +50,6 @@ export class ToolboxPreferencesStore {
     const initial = this.read()
     this.hiddenIds = ref(initial.hiddenToolIds)
     this.recentToolIds = ref(initial.recentToolIds)
-    this.savedCurrencyPairs = ref(initial.savedCurrencyPairs)
-    this.savedWorldClockLocations = ref(initial.savedWorldClockLocations)
     this.settings = reactive(initial.settings)
   }
 
@@ -94,22 +92,11 @@ export class ToolboxPreferencesStore {
   // It used to reset the preferences alone, so a visitor who had hidden a tool pressed Reset and
   // watched nothing happen: the hidden tools are the larger half of that page.
   //
-  // Saved currency pairs, saved cities and recent tools are left alone. They are not settings,
-  // they are not shown here, and losing them to a button pressed about a number format would be
-  // a surprise. Each has its own control where it is used.
+  // Recent tools are left alone. They are not settings, they are not shown here, and losing them
+  // to a button pressed about a number format would be a surprise.
   resetSettings() {
     Object.assign(this.settings, defaultSettings)
     this.hiddenIds.value = []
-    this.persist()
-  }
-
-  setSavedCurrencyPairs(pairs) {
-    this.savedCurrencyPairs.value = normalizeCurrencyPairs(pairs)
-    this.persist()
-  }
-
-  setSavedWorldClockLocations(locations) {
-    this.savedWorldClockLocations.value = normalizeObjectList(locations).slice(0, 12)
     this.persist()
   }
 
@@ -118,8 +105,6 @@ export class ToolboxPreferencesStore {
       version: 1,
       hiddenToolIds: [...this.hiddenIds.value],
       recentToolIds: [...this.recentToolIds.value],
-      savedCurrencyPairs: [...this.savedCurrencyPairs.value],
-      savedWorldClockLocations: [...this.savedWorldClockLocations.value],
       settings: { ...this.settings },
     }
   }
@@ -148,8 +133,6 @@ export function createDefaultPreferences() {
     version: 1,
     hiddenToolIds: [],
     recentToolIds: [],
-    savedCurrencyPairs: [],
-    savedWorldClockLocations: [],
     settings: { ...defaultSettings },
   }
 }
@@ -163,8 +146,6 @@ export function normalizePreferences(value) {
     version: 1,
     hiddenToolIds: normalizeToolIds(value.hiddenToolIds),
     recentToolIds: normalizeToolIds(value.recentToolIds).slice(0, MAX_RECENT_TOOLS),
-    savedCurrencyPairs: normalizeCurrencyPairs(value.savedCurrencyPairs),
-    savedWorldClockLocations: normalizeObjectList(value.savedWorldClockLocations),
     settings: normalizeSettings(value.settings),
   }
 }
@@ -210,28 +191,6 @@ function normalizeToolIds(value) {
   return [...new Set(value.filter((id) => typeof id === 'string' && toolsById.has(id)))]
 }
 
-function normalizeObjectList(value) {
-  if (!Array.isArray(value)) return []
-  return value.filter((item) => item && typeof item === 'object' && !Array.isArray(item))
-}
-
-function normalizeCurrencyPairs(value) {
-  if (!Array.isArray(value)) return []
-  const seen = new Set()
-  const result = []
-  for (const pair of value) {
-    if (!pair || typeof pair !== 'object' || Array.isArray(pair)) continue
-    const { baseCurrency, quoteCurrency } = pair
-    if (!/^[A-Z]{3}$/.test(baseCurrency) || !/^[A-Z]{3}$/.test(quoteCurrency)) continue
-    if (baseCurrency === quoteCurrency) continue
-    const key = `${baseCurrency}:${quoteCurrency}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    result.push({ baseCurrency, quoteCurrency })
-    if (result.length === 20) break
-  }
-  return result
-}
 
 function normalizeSettings(value) {
   const settings = { ...defaultSettings }

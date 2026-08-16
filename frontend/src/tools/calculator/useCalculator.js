@@ -6,7 +6,7 @@ import { formatCalculatorResult } from './formatCalculatorResult'
 const NUMBER_AT_END_PATTERN = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u
 const CURRENT_TOKEN_PATTERN = /(?:\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[A-Za-z]+\(?|π)$/u
 
-export function useCalculator({ onCalculated = () => {} } = {}) {
+export function useCalculator() {
   const expression = ref('')
   const result = ref('')
   const errorMessage = ref('')
@@ -19,7 +19,6 @@ export function useCalculator({ onCalculated = () => {} } = {}) {
       result.value = formatCalculatorResult(value)
       errorMessage.value = ''
       justEvaluated.value = true
-      onCalculated(expression.value.trim(), result.value)
       return true
     } catch (error) {
       result.value = ''
@@ -106,13 +105,6 @@ export function useCalculator({ onCalculated = () => {} } = {}) {
     justEvaluated.value = false
   }
 
-  function reuseExpression(value) {
-    expression.value = String(value)
-    result.value = ''
-    errorMessage.value = ''
-    justEvaluated.value = false
-  }
-
   function removeRange(start, end) {
     expression.value = `${expression.value.slice(0, start)}${expression.value.slice(end)}`
     markEdited()
@@ -138,7 +130,6 @@ export function useCalculator({ onCalculated = () => {} } = {}) {
     toggleSign,
     clearExpression,
     setAngleMode,
-    reuseExpression,
   }
 }
 

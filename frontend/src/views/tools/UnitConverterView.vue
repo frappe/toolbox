@@ -15,7 +15,7 @@
       </div>
     </header>
 
-    <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="pt-8">
       <section class="min-w-0" aria-labelledby="converter-heading">
         <h2 id="converter-heading" class="sr-only">Convert units</h2>
         <div class="max-w-md rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
@@ -37,7 +37,6 @@
               :invalid="converter.lastEditedSide.value === 'from' && Boolean(converter.errorMessage.value)"
               @update:model-value="converter.updateFromInput"
               @update:unit-id="converter.setFromUnit"
-              @commit="converter.recordHistory()"
             />
 
             <Button
@@ -57,7 +56,6 @@
               :invalid="converter.lastEditedSide.value === 'to' && Boolean(converter.errorMessage.value)"
               @update:model-value="converter.updateToInput"
               @update:unit-id="converter.setToUnit"
-              @commit="converter.recordHistory()"
             />
           </div>
 
@@ -81,56 +79,29 @@
           </div>
         </div>
       </section>
-
-      <aside class="min-w-0 lg:sticky lg:top-6">
-        <ToolHistory
-          :entries="converter.historyEntries.value"
-          :copied-entry-id="copiedHistoryId"
-          list-label="Unit conversion history"
-          clear-label="Clear unit history"
-          empty-title="No conversions yet"
-          empty-description="A conversion appears here once you finish typing a value."
-          reuse-title="Reuse this conversion"
-          @reuse="converter.reuseHistory"
-          @copy="copyHistoryEntry"
-          @remove="converter.removeHistory"
-          @clear="converter.clearHistory"
-        />
-      </aside>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Alert, Button, Icon } from 'frappe-ui'
 
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import ToolHistory from '@/components/history/ToolHistory.vue'
 import ConversionField from '@/tools/unit-converter/ConversionField.vue'
 import { useUnitConverter } from '@/tools/unit-converter/useUnitConverter'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
 // Nine converters with nine routes, rendered here together because they share the conversion
-// field and the recent-pairs list: a value already typed survives a move between measurements.
+// field: a value already typed survives a move between measurements.
 const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const converter = useUnitConverter({ initialCategoryId: variant.value })
 const preferences = useToolboxPreferences()
-const copiedHistoryId = ref('')
 
 // A move between them does not remount this view, so both the measurement on show and the recent
 // tool follow the route rather than the mount.
 watch(variant, (categoryId) => converter.setCategory(categoryId))
 watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
-
-async function copyHistoryEntry(entry) {
-  try {
-    await globalThis.navigator?.clipboard?.writeText(entry.value)
-    copiedHistoryId.value = entry.id
-  } catch {
-    copiedHistoryId.value = ''
-  }
-}
 </script>

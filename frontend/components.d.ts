@@ -22,7 +22,6 @@ declare module 'vue' {
     TagInput: typeof import('./src/components/inputs/TagInput.vue')['default']
     ToolCategorySection: typeof import('./src/components/navigation/ToolCategorySection.vue')['default']
     ToolContentSection: typeof import('./src/components/content/ToolContentSection.vue')['default']
-    ToolHistory: typeof import('./src/components/history/ToolHistory.vue')['default']
     ToolSearchDialog: typeof import('./src/components/search/ToolSearchDialog.vue')['default']
     ToolState: typeof import('./src/components/states/ToolState.vue')['default']
     TweakOption: typeof import('./src/components/dev/TweakOption.vue')['default']

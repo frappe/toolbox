@@ -1,12 +1,11 @@
 import { computed, ref } from 'vue'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { useToolHistory } from '@/composables/useToolHistory'
 import { createCurrencyList } from './currencies'
 import { convertCurrency, CurrencyConversionError } from './converter'
 import { loadRateSnapshot, saveRateSnapshot, validRateData } from './rateSnapshot'
 
-export function useCurrencyConverter({ preferences = useToolboxPreferences(), storage, fetcher = fetchReferenceRates, now, history = useToolHistory('currency-converter') } = {}) {
+export function useCurrencyConverter({ preferences = useToolboxPreferences(), storage, fetcher = fetchReferenceRates, now } = {}) {
   const snapshot = loadRateSnapshot(storage)
   const rateData = ref(snapshot?.data ?? null)
   const snapshotRefreshedAt = ref(snapshot?.snapshotRefreshedAt ?? '')
@@ -54,8 +53,6 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
       return ''
     } catch (error) { return error instanceof CurrencyConversionError ? error.message : 'The amount could not be converted.' }
   })
-  const pairKey = computed(() => `${sourceCurrency.value}:${destinationCurrency.value}`)
-  const isPairSaved = computed(() => preferences.savedCurrencyPairs.value.some((pair) => `${pair.baseCurrency}:${pair.quoteCurrency}` === pairKey.value))
 
   async function loadRates() {
     loadState.value = rateData.value ? 'refreshing' : 'loading'
@@ -110,34 +107,6 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     destinationCurrency.value = pair.quoteCurrency
   }
 
-  function toggleSavedPair() {
-    const pairs = preferences.savedCurrencyPairs.value.filter(({ baseCurrency, quoteCurrency }) => `${baseCurrency}:${quoteCurrency}` !== pairKey.value)
-    if (!isPairSaved.value) pairs.unshift({ baseCurrency: sourceCurrency.value, quoteCurrency: destinationCurrency.value })
-    preferences.setSavedCurrencyPairs(pairs)
-  }
-
-  // A settled, valid conversion is worth keeping; recording de-dupes against the last row,
-  // so calling this on both input-commit and copy never doubles an entry.
-  function recordHistory() {
-    if (!rateData.value || amountError.value) return
-    const from = sourceValue.value
-    const to = convertedAmount.value
-    if (from === null || to === null) return
-
-    history.add({
-      label: `${formatAmount(from)} ${sourceCurrency.value} → ${destinationCurrency.value}`,
-      value: `${formatAmount(to)} ${destinationCurrency.value}`,
-      payload: { amount: from, source: sourceCurrency.value, destination: destinationCurrency.value },
-    })
-  }
-
-  function reuseHistory(entry) {
-    const payload = entry?.payload
-    if (!payload) return
-    usePair({ baseCurrency: payload.source, quoteCurrency: payload.destination })
-    updateSourceAmount(String(payload.amount))
-  }
-
   function formatAmount(value) {
     const locale = preferences.settings.numberFormat === 'indian' ? 'en-IN' : 'en-US'
     return new Intl.NumberFormat(locale, { minimumFractionDigits: preferences.settings.decimalPrecision, maximumFractionDigits: preferences.settings.decimalPrecision }).format(value)
@@ -148,7 +117,7 @@ export function useCurrencyConverter({ preferences = useToolboxPreferences(), st
     if (!currencies.value.some(({ code }) => code === destinationCurrency.value) || destinationCurrency.value === sourceCurrency.value) destinationCurrency.value = sourceCurrency.value === 'USD' ? 'INR' : 'USD'
   }
 
-  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, currencies, convertedAmount, amountError, isPairSaved, savedPairs: preferences.savedCurrencyPairs, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, toggleSavedPair, formatAmount, historyEntries: history.entries, recordHistory, reuseHistory, removeHistory: history.remove, clearHistory: history.clear }
+  return { amount, destinationAmount, lastEdited, sourceInput, destinationInput, sourceValue, sourceCurrency, destinationCurrency, rateData, snapshotRefreshedAt, loadState, errorMessage, currencies, convertedAmount, amountError, loadRates, swapCurrencies, updateSourceAmount, updateDestinationAmount, usePair, formatAmount }
 }
 
 export async function fetchReferenceRates(fetchImpl = globalThis.fetch) {

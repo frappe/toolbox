@@ -1,6 +1,5 @@
 import { computed, reactive, ref } from 'vue'
 
-import { useToolHistory } from '@/composables/useToolHistory'
 import {
   calculateFinancialCalculator,
   createDefaultFinancialInputs,
@@ -11,18 +10,9 @@ import { FinancialCalculationError } from './errors'
 
 // `options.initialId` is the calculator the route asks for: each is its own tool at its own URL.
 export function useFinancialCalculators(options = {}) {
-  // One history per calculator, because each one is its own tool. A single shared log would put
-  // an EMI result on the SIP page, under a panel that says these are its recent results.
-  const histories = Object.fromEntries(
-    financialCalculators.map((calculator) => [
-      calculator.id,
-      options.history ?? useToolHistory(`financial-${calculator.id}`),
-    ]),
-  )
   const activeId = ref(
     financialCalculatorsById.has(options.initialId) ? options.initialId : financialCalculators[0].id,
   )
-  const history = computed(() => histories[activeId.value])
   const inputValues = reactive(
     Object.fromEntries(
       financialCalculators.map((calculator) => [
@@ -81,30 +71,6 @@ export function useFinancialCalculators(options = {}) {
     }
   }
 
-  // Record the current result. The view owns the number formatter (locale + precision), so it
-  // is passed in. De-dupes against the last row.
-  function recordHistory(formatValue) {
-    const presentation = presentedResult.value
-    if (!presentation || typeof formatValue !== 'function') return
-
-    history.value.add({
-      label: activeCalculator.value.name,
-      value: formatValue(presentation.primary.value, presentation.primary.format),
-      payload: { calculatorId: activeId.value, inputs: { ...activeInputs.value } },
-    })
-  }
-
-  function reuseHistory(entry) {
-    const payload = entry?.payload
-    if (!payload || payload.calculatorId !== activeId.value) return
-
-    const target = activeInputs.value
-    for (const input of activeCalculator.value.inputs) {
-      target[input.id] = String(payload.inputs?.[input.id] ?? '')
-    }
-    recalculate()
-  }
-
   function clearFeedback() {
     errorMessage.value = ''
   }
@@ -120,11 +86,6 @@ export function useFinancialCalculators(options = {}) {
     presentedResult,
     errorMessage,
     resultAnnouncement,
-    historyEntries: computed(() => history.value.entries.value),
-    recordHistory,
-    reuseHistory,
-    removeHistory: (entryId) => history.value.remove(entryId),
-    clearHistory: () => history.value.clear(),
     selectCalculator,
     updateInput,
     clear,

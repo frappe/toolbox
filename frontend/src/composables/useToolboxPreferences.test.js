@@ -38,8 +38,6 @@ describe('ToolboxPreferencesStore', () => {
         version: 1,
         hiddenToolIds: [],
         recentToolIds: [],
-        savedCurrencyPairs: [],
-        savedWorldClockLocations: [],
         settings: defaultSettings,
       })
     }
@@ -49,15 +47,6 @@ describe('ToolboxPreferencesStore', () => {
     const stored = {
       version: 1,
       recentToolIds: [...tools.map((tool) => tool.id), 'calculator'],
-      // Stored data is only as trustworthy as the browser it came from, so a pair is validated
-      // on the way in exactly as it is on the way out.
-      savedCurrencyPairs: [
-        { baseCurrency: 'USD', quoteCurrency: 'INR' },
-        { from: 'INR', to: 'USD' },
-        null,
-        'bad',
-      ],
-      savedWorldClockLocations: [{ zone: 'Asia/Kolkata' }],
       settings: { decimalPrecision: 4, timeFormat: 'invalid', unknown: true },
     }
     const store = storeWith(stored)
@@ -65,8 +54,6 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.recentToolIds.value).toEqual(
       tools.slice(0, MAX_RECENT_TOOLS).map((tool) => tool.id),
     )
-    expect(store.savedCurrencyPairs.value).toEqual([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
-    expect(store.savedWorldClockLocations.value).toEqual([{ zone: 'Asia/Kolkata' }])
     expect(store.settings.decimalPrecision).toBe(4)
     expect(store.settings.timeFormat).toBe(defaultSettings.timeFormat)
   })
@@ -122,14 +109,12 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.settings.decimalPrecision).toBe(defaultSettings.decimalPrecision)
   })
 
-  it('keeps a visitor\'s saved lists through a reset, because they are not settings', () => {
+  it('keeps the recent tools through a reset, because they are not settings', () => {
     const store = new ToolboxPreferencesStore()
-    store.setSavedCurrencyPairs([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
     store.recordRecent('calculator')
 
     store.resetSettings()
 
-    expect(store.savedCurrencyPairs.value).toHaveLength(1)
     expect(store.recentToolIds.value).toEqual(['calculator'])
   })
 
@@ -144,14 +129,25 @@ describe('ToolboxPreferencesStore', () => {
     expect(store.settings.theme).toBe('dark')
   })
 
-  it('bounds the world-clock location list', () => {
-    const store = new ToolboxPreferencesStore()
-    const locations = Array.from({ length: 14 }, (_, index) => ({ zone: `Etc/GMT+${index}` }))
+  // The whole payload is serialised under one key, so a tab open across the deploy that removed
+  // saved pairs and saved cities (#281, #283) still carries both. Reading has to drop them
+  // rather than fail, and the next write has to leave them behind for good.
+  it('ignores fields that were removed from the payload', () => {
+    const store = storeWith({
+      version: 1,
+      hiddenToolIds: [],
+      recentToolIds: ['calculator'],
+      savedCurrencyPairs: [{ baseCurrency: 'USD', quoteCurrency: 'INR' }],
+      savedWorldClockLocations: [{ zone: 'Asia/Kolkata' }],
+      settings: { decimalPrecision: 4 },
+    })
 
-    store.setSavedWorldClockLocations(locations)
+    expect(store.recentToolIds.value).toEqual(['calculator'])
+    expect(store.settings.decimalPrecision).toBe(4)
 
-    expect(store.savedWorldClockLocations.value).toHaveLength(12)
-    expect(store.snapshot().savedWorldClockLocations).toEqual(locations.slice(0, 12))
+    const snapshot = store.snapshot()
+    expect(snapshot).not.toHaveProperty('savedCurrencyPairs')
+    expect(snapshot).not.toHaveProperty('savedWorldClockLocations')
   })
 
   it('tolerates a null options argument', () => {

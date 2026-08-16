@@ -76,27 +76,18 @@ describe('FinancialCalculatorsView', () => {
     expect(preferences.recordRecent).toHaveBeenCalledWith('sip-calculator')
   })
 
-  it('records a committed result and reuses its inputs from history', async () => {
+  // The six share one view precisely so that each keeps what was typed into it: a visitor can
+  // compare an EMI against a SIP without entering the numbers twice.
+  it('keeps what was typed into each calculator across a move between them', async () => {
     const wrapper = mountView()
-    // EMI is active by default with computed results; committing an input records it.
     await wrapper.get('#emi-principal').setValue('500000')
-    await wrapper.get('#emi-principal').trigger('change')
     await flushPromises()
 
-    const historyList = wrapper.get('[aria-label="Financial calculation history"]')
-    expect(historyList.text()).toContain('EMI')
-
-    // Each calculator keeps its own history now, so the SIP page does not show an EMI result.
     await selectCalculator(wrapper, 'sip')
     expect(activeCalculatorName(wrapper)).toBe('SIP Calculator')
-    expect(wrapper.find('[aria-label="Financial calculation history"]').exists()).toBe(false)
 
-    // Back on EMI, the row is still there and still reusable.
     await selectCalculator(wrapper, 'emi')
     expect(activeCalculatorName(wrapper)).toBe('EMI Calculator')
-    await wrapper.get('button[aria-label="Reuse EMI"]').trigger('click')
-    await flushPromises()
-
     expect(wrapper.get('#emi-principal').element.value).toBe('500000')
   })
 

@@ -30,16 +30,6 @@
       </div>
     </form>
 
-    <div v-if="dict.recentWords.value.length" class="pt-5">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="text-sm font-medium text-ink-gray-8">Recent searches</h2>
-        <Button label="Clear" variant="ghost" size="sm" @click="dict.clearRecent" />
-      </div>
-      <div class="flex flex-wrap gap-2 pt-2">
-        <Button v-for="recent in dict.recentWords.value" :key="recent" variant="subtle" :label="recent" @click="dict.selectWord(recent)" />
-      </div>
-    </div>
-
     <div class="pt-8" aria-live="polite">
       <section v-if="dict.state.value === 'ready'" aria-labelledby="dictionary-word-heading">
         <h2 id="dictionary-word-heading" class="text-2xl font-semibold text-ink-gray-9">{{ dict.word.value }}</h2>

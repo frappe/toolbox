@@ -42,7 +42,6 @@
             :currency="preferences.settings.defaultCurrency"
             :described-by="`${calculator.activeId.value}-feedback`"
             @update:model-value="calculator.updateInput(input.id, $event)"
-            @commit="calculator.recordHistory(formatValue)"
           />
         </div>
 
@@ -61,23 +60,10 @@
         </div>
       </section>
 
-      <div class="flex flex-col gap-8 lg:sticky lg:top-6">
+      <div class="lg:sticky lg:top-6">
         <FinancialResults
           :presentation="calculator.presentedResult.value"
           :format-value="formatValue"
-        />
-        <ToolHistory
-          :entries="calculator.historyEntries.value"
-          :copied-entry-id="copiedHistoryId"
-          list-label="Financial calculation history"
-          clear-label="Clear financial history"
-          empty-title="No results yet"
-          empty-description="A result appears here once you finish typing a value."
-          reuse-title="Reuse these inputs"
-          @reuse="calculator.reuseHistory"
-          @copy="copyHistoryEntry"
-          @remove="calculator.removeHistory"
-          @clear="calculator.clearHistory"
         />
       </div>
     </div>
@@ -89,12 +75,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Button, ErrorMessage, Icon } from 'frappe-ui'
 
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import ToolHistory from '@/components/history/ToolHistory.vue'
 import FinancialInput from '@/tools/financial-calculators/FinancialInput.vue'
 import FinancialResults from '@/tools/financial-calculators/FinancialResults.vue'
 import { createFinancialFormatter } from '@/tools/financial-calculators/formatFinancialValue'
@@ -108,19 +93,9 @@ const { tool, variant } = useToolFamily()
 const categoryName = computed(() => getToolCategoryName(tool.value?.id))
 const calculator = useFinancialCalculators({ initialId: variant.value })
 const formatValue = computed(() => createFinancialFormatter(preferences.settings))
-const copiedHistoryId = ref('')
 
 // A move between them does not remount this view, so both the calculator on show and the recent
 // tool follow the route rather than the mount.
 watch(variant, (id) => calculator.selectCalculator(id))
 watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
-
-async function copyHistoryEntry(entry) {
-  try {
-    await globalThis.navigator?.clipboard?.writeText(entry.value)
-    copiedHistoryId.value = entry.id
-  } catch {
-    copiedHistoryId.value = ''
-  }
-}
 </script>

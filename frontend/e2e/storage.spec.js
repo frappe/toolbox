@@ -31,7 +31,10 @@ test('@smoke visiting every tool writes no persistent key beyond the three agree
   expect(unexpected, 'these keys outlive the browser session and were not agreed').toEqual([])
 })
 
-test('preferences and history are held for the session only', async ({ page }) => {
+// History was removed in #281. This used to assert the log went to sessionStorage rather than
+// localStorage; it now asserts there is no log at all, which is the stronger claim and the
+// tripwire that fails if a tool starts recording again.
+test('a completed calculation is written nowhere', async ({ page }) => {
   await page.goto('/calculator')
   await page.getByRole('textbox', { name: 'Expression' }).fill('2 + 2')
   await page.getByRole('textbox', { name: 'Expression' }).press('Enter')
@@ -42,8 +45,17 @@ test('preferences and history are held for the session only', async ({ page }) =
     local: Object.keys(globalThis.localStorage),
   }))
 
-  expect(storage.session).toContain('toolbox:calculator-history:v1')
-  expect(storage.local).not.toContain('toolbox:calculator-history:v1')
+  const everyKey = [...storage.session, ...storage.local]
+  expect(everyKey.filter((key) => key.includes('history'))).toEqual([])
+  expect(everyKey).not.toContain('toolbox:calculator-history:v1')
+
+  // Nothing that was typed may appear in any stored value either.
+  const values = await page.evaluate(() =>
+    [globalThis.sessionStorage, globalThis.localStorage].flatMap((store) =>
+      Object.keys(store).map((key) => store.getItem(key)),
+    ),
+  )
+  expect(values.filter((value) => value?.includes('2 + 2'))).toEqual([])
 })
 
 test('the page tells the server nothing about the visitor', async ({ page }) => {

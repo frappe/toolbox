@@ -30,7 +30,7 @@ export function createWorkerHarness({
   const workerSource = renderServiceWorker(
     template,
     { releaseId, createdAt },
-    ['/', '/settings', '/calculator', '/world-clock'],
+    ['/', '/settings', '/calculator', '/time-zone-converter'],
   )
   vm.runInNewContext(workerSource, {
     Headers,

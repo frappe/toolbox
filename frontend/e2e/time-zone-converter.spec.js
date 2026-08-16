@@ -1,29 +1,19 @@
 import { expect, test } from './fixtures'
-import { resetToolboxPreferences, seedToolboxPreferences } from './support/preferences'
 
 test.use({ allowOfflineNetworkErrors: true })
 
-// World Clock locations live in this context's own sessionStorage. Seed a fixed set so the
-// cards, the converter's zone select, and the copy output are deterministic across runs.
-const SEED_LOCATIONS = [
-  { id: 'seed-kolkata', zone: 'Asia/Kolkata', label: 'Kolkata', favourite: false },
-  { id: 'seed-london', zone: 'Europe/London', label: 'London', favourite: false },
-  { id: 'seed-new-york', zone: 'America/New_York', label: 'New York', favourite: false },
-]
+// The city list is held for the life of the page and is not stored, so there is nothing to seed
+// or reset. Every visit opens on the same set: the browser's own zone, which
+// playwright.config.js pins to Asia/Kolkata, plus London and New York.
+const locationList = (page) => page.getByRole('region', { name: 'Locations' })
 
-test.beforeEach(async ({ page }) => {
-  await page.goto('/')
-  await resetToolboxPreferences(page)
-  await seedToolboxPreferences(page, { savedWorldClockLocations: SEED_LOCATIONS })
-})
+test('@smoke adds, reorders, and removes a time zone', async ({ page }) => {
+  await page.goto('/time-zone-converter')
+  await expect(page.getByRole('heading', { name: 'Time Zone Converter', level: 1 })).toBeVisible()
 
-test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page }) => {
-  await page.goto('/world-clock')
-  await expect(page.getByRole('heading', { name: 'World Clock', level: 1 })).toBeVisible()
-
-  const locations = page.getByRole('region', { name: 'Locations' })
-  // The add-a-city field is a real ARIA combobox now (#142): the input is
-  // role=combobox and the results are role=option inside a role=listbox.
+  const locations = locationList(page)
+  // The add-a-city field is a real ARIA combobox (#142): the input is role=combobox and the
+  // results are role=option inside a role=listbox.
   await page.getByRole('combobox', { name: 'Add a city or time zone' }).fill('Tokyo')
   await page
     .getByRole('listbox', { name: 'Time zone search results' })
@@ -35,9 +25,6 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
   await expect(tokyo).toBeVisible()
   const locationCount = await locations.getByRole('listitem').count()
 
-  await tokyo.getByRole('button', { name: 'Favourite Tokyo' }).click()
-  await expect(tokyo.getByRole('button', { name: 'Unfavourite Tokyo' })).toBeVisible()
-
   await tokyo.getByRole('button', { name: 'Move Tokyo up' }).click()
   await expect(locations.getByRole('listitem').nth(locationCount - 2)).toContainText('Asia/Tokyo')
 
@@ -46,7 +33,7 @@ test('@smoke adds, reorders, favourites, and removes a time zone', async ({ page
 })
 
 test('adds a time zone with the keyboard alone', async ({ page }) => {
-  await page.goto('/world-clock')
+  await page.goto('/time-zone-converter')
 
   const search = page.getByRole('combobox', { name: 'Add a city or time zone' })
   await search.fill('Tokyo')
@@ -57,27 +44,39 @@ test('adds a time zone with the keyboard alone', async ({ page }) => {
 
   await search.press('Enter')
   await expect(
-    page.getByRole('region', { name: 'Locations' }).getByRole('listitem').filter({ hasText: 'Asia/Tokyo' }),
+    locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Tokyo' }),
   ).toBeVisible()
 })
 
-test('re-times every location with the converter and copies the meeting times', async ({
+// The list is not stored, so a reload is a fresh start rather than a restored one. This is the
+// behaviour #283 chose deliberately: the places somebody looked at are not written down.
+test('forgets an added city on reload', async ({ page }) => {
+  await page.goto('/time-zone-converter')
+  await page.getByRole('combobox', { name: 'Add a city or time zone' }).fill('Tokyo')
+  await page
+    .getByRole('listbox', { name: 'Time zone search results' })
+    .getByRole('option', { name: /Tokyo/ })
+    .first()
+    .click()
+  await expect(locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Tokyo' })).toBeVisible()
+
+  await page.reload()
+  await expect(locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Tokyo' })).toHaveCount(0)
+  await expect(locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Kolkata' })).toBeVisible()
+})
+
+test('re-times every location and copies the meeting times', async ({
   browserName,
   context,
   page,
 }) => {
-  await page.goto('/world-clock')
+  await page.goto('/time-zone-converter')
 
-  const kolkata = page
-    .getByRole('region', { name: 'Locations' })
-    .getByRole('listitem')
-    .filter({ hasText: 'Asia/Kolkata' })
+  const kolkata = locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Kolkata' })
   await expect(kolkata).toBeVisible()
 
-  // The converter is its own tool now, at its own URL. It reads the same list of cities, which is
-  // why the Kolkata card added above is still there. Anchoring the input to Kolkata's own zone
-  // makes its card read back exactly 09:00, independent of the runner's clock.
-  await page.goto('/time-zone-converter')
+  // Anchoring the input to Kolkata's own zone makes its card read back exactly 09:00,
+  // independent of the runner's clock.
   await page.getByLabel("In this city's time").click()
   await page.getByRole('option', { name: 'Kolkata' }).click()
   const dateTime = page.getByLabel('Date and time')
@@ -95,7 +94,7 @@ test('re-times every location with the converter and copies the meeting times', 
 
 test('launches directly and remains useful offline', async ({ browserName, context, page }) => {
   test.skip(browserName === 'webkit', 'WebKit headless cannot drive service-worker offline mode')
-  await page.goto('/world-clock')
+  await page.goto('/time-zone-converter')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
@@ -103,17 +102,19 @@ test('launches directly and remains useful offline', async ({ browserName, conte
   await context.setOffline(true)
   try {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: 'World Clock', level: 1 })).toBeVisible()
-    const kolkata = page
-      .getByRole('region', { name: 'Locations' })
-      .getByRole('listitem')
-      .filter({ hasText: 'Asia/Kolkata' })
+    await expect(page.getByRole('heading', { name: 'Time Zone Converter', level: 1 })).toBeVisible()
+    const kolkata = locationList(page).getByRole('listitem').filter({ hasText: 'Asia/Kolkata' })
     await expect(kolkata).toBeVisible()
 
-    // The clock keeps ticking with no network: the zone rules are already in the browser.
-    // The converter has its own route now, and offline.spec.js launches it offline.
+    // It converts with no network: the zone rules are already in the browser.
     await expect(kolkata.locator('p.font-mono')).toContainText(/\d{2}:\d{2}/)
   } finally {
     await context.setOffline(false)
   }
+})
+
+test('@smoke sends the retired World Clock route to the converter', async ({ request }) => {
+  const response = await request.get('/world-clock', { maxRedirects: 0 })
+  expect(response.status()).toBe(308)
+  expect(response.headers().location).toBe('/time-zone-converter')
 })

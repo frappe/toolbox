@@ -73,8 +73,8 @@ power, and a zero or negative ratio has no real result. The calculator says
 
 ### Is anything I type stored?
 
-No. There is no account and nothing you type is sent to a server. The last 10 results stay while
-the browser tab is open and go when it closes. The page works with no internet connection.
+No. There is no account, nothing you type is sent to a server, and no result is written down.
+The page works with no internet connection.
 
 ## Good to know
 

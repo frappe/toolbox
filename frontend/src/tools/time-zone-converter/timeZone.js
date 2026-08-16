@@ -1,4 +1,4 @@
-import { CITIES, canonicalizeZone, slug } from './worldClockCities'
+import { CITIES, canonicalizeZone, slug } from './timeZoneCities'
 
 const FALLBACK_ZONES = [
   'UTC',

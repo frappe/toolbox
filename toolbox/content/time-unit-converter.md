@@ -62,15 +62,13 @@ number of days. Every unit here has one fixed length, which is why the list stop
 ### Does this convert a clock time between time zones?
 
 No. It converts a length of time, not a point in time. One hour is 60 minutes wherever you are.
-To read one clock time in another city, use the [Time Zone Converter](/time-zone-converter). For
-the time in those cities right now, use the [World Clock](/world-clock).
+To read one clock time in another city, use the [Time Zone Converter](/time-zone-converter).
 
 ### Does the converter work offline, and is anything I type stored?
 
 Yes to the first, and no to the second. The application is kept in the browser after your first
 visit, so the page opens and converts with no connection. There is no account, nothing you type
-reaches a server, and the last 10 results stay in the recent list only while the browser tab is
-open.
+reaches a server, and no result is written down.
 
 ## Good to know
 
@@ -81,5 +79,5 @@ exactly 86,400 seconds in this converter even though the Earth itself keeps slig
 The awkward numbers all come from the same place. Sixty and 24 do not divide into powers of ten, so
 minutes and hours produce repeating decimals where meters and grams do not.
 
-This page is one of nine converters that share a recent-results list. For arithmetic on the results,
+This page is one of nine converters that share a conversion field. For arithmetic on the results,
 use the [Calculator](/calculator).

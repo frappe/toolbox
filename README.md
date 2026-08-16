@@ -20,12 +20,12 @@ Results are deterministic, and Toolbox uses no AI. Most calculations run in the 
 also states the limits of its data. A fetch time is never shown as a source update time, and
 reference data is never labeled "live".
 
-A browser can install Toolbox as a PWA. Then 27 of the 34 tools work with no connection. The four
+A browser can install Toolbox as a PWA. Then 26 of the 33 tools work with no connection. The four
 dataset lookups still need one, and the currency converter falls back to the rates it stored last.
 
 ## Tools
 
-Toolbox has 34 tools in seven categories. Each tool has its own URL.
+Toolbox has 33 tools in seven categories. Each tool has its own URL.
 
 | Category | Tools |
 |---|---|
@@ -33,7 +33,7 @@ Toolbox has 34 tools in seven categories. Each tool has its own URL.
 | **Convert** (11) | Length Converter · Area Converter · Volume Converter · Weight Converter · Temperature Converter · Speed Converter · Time Unit Converter · Data Storage Converter · Fuel Consumption Converter · Currency Converter · Time Zone Converter |
 | **Health** (4) | BMI Calculator · BMR Calculator · TDEE Calculator · Pace Calculator |
 | **India** (4) | GST Calculator · HSN & SAC Lookup · PIN Code Search · IFSC Code Search |
-| **Time** (4) | World Clock · Timer · Stopwatch · Countdown Timer |
+| **Time** (3) | Timer · Stopwatch · Countdown Timer |
 | **Information** (2) | Dictionary · Script Conversion |
 | **Media** (2) | Audio Recorder · Audio Editor |
 

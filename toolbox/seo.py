@@ -297,17 +297,6 @@ PAGES: dict[str, Page] = {
 		),
 		application_category="BusinessApplication",
 	),
-	# The title named the converter until it became a tool of its own. Two pages competing for the
-	# same words is the duplicate content the split exists to avoid.
-	"/world-clock": Page(
-		name="World Clock",
-		title="World Clock — Current Time in Cities Worldwide",
-		description=(
-			"See the current time in the cities you follow, side by side, with the offset and "
-			"whether daylight saving applies. Free, and it works offline."
-		),
-		application_category="UtilitiesApplication",
-	),
 	"/timer": Page(
 		name="Timer",
 		title="Online Timer — Count Down From Any Number of Minutes",

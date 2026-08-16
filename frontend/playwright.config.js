@@ -30,6 +30,12 @@ export default defineConfig({
     baseURL,
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
+    // The Time Zone Converter opens on the visitor's own zone plus three fixed cities, so an
+    // unpinned browser reads a different first card on every machine — and the correctness cases
+    // state exact times. Kolkata is UTC+5:30 with no daylight saving, which keeps the arithmetic
+    // the same all year. Pinned here rather than per spec: any tool that formats a date is
+    // otherwise machine-dependent.
+    timezoneId: 'Asia/Kolkata',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',

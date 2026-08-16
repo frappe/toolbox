@@ -1,7 +1,5 @@
 import { expect, test } from './fixtures'
 import { ALL_ROUTES, headingFor, prepare } from './toolPages'
-import { seedToolboxPreferences } from './support/preferences'
-import { WORLD_CLOCK_LOCATIONS } from '../src/test/toolCases/time'
 
 // A reference image for every route, in both themes, at two widths. This catches what a measured
 // assertion cannot: a control that lost its background, a heading that lost its weight, a panel
@@ -20,7 +18,6 @@ const VIEWPORTS = [
 // Anything that reads from the clock. These pages are worth an image for their layout, and their
 // contents change every second, so the moving part is covered rather than excluded.
 const CLOCK_ROUTES = new Set([
-  '/world-clock',
   '/time-zone-converter',
   '/timer',
   '/stopwatch',
@@ -42,11 +39,6 @@ for (const path of ALL_ROUTES) {
           await page.setViewportSize({ width: viewport.width, height: viewport.height })
           await page.emulateMedia({ colorScheme: theme })
           await prepare(page, path)
-
-          if (CLOCK_ROUTES.has(path)) {
-            await page.goto('/')
-            await seedToolboxPreferences(page, { savedWorldClockLocations: WORLD_CLOCK_LOCATIONS })
-          }
 
           await page.goto(path)
           await expect(page.getByRole('heading', { name: headingFor(path), level: 1 })).toBeVisible()

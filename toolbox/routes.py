@@ -58,13 +58,13 @@ TOOL_ROUTES = (
 	"timer",
 	"volume-converter",
 	"weight-converter",
-	"world-clock",
 )
 
 APP_ROUTES = (*APP_PAGES, *TOOL_ROUTES)
 
-# A route that used to serve several tools behind a tab strip, and the tool a visitor arriving
-# there should land on now. These are published URLs, so they keep working rather than 404.
+# A route that no longer exists, and the tool a visitor arriving there should land on instead.
+# Most were a tab strip that became separate tools. These are published URLs, so they keep
+# working rather than 404.
 #
 # Each retired route is redirected straight to its replacement. Sending `/toolbox/<old>` to
 # `/<old>` and letting that redirect again would cost every old link two round trips, and a
@@ -74,6 +74,9 @@ RETIRED_ROUTES = {
 	"unit-converter": "length-converter",
 	"health-calculators": "bmi-calculator",
 	"india-business-lookup": "pin-code-search",
+	# World Clock was removed in #283. The converter reads the same cities and opens on the
+	# current moment, so a visitor who saved the clock lands on what they were looking at.
+	"world-clock": "time-zone-converter",
 }
 
 # A tool that was removed rather than replaced. The site is published, so its URL keeps answering

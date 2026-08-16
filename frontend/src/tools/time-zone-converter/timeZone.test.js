@@ -9,8 +9,8 @@ import {
   searchTimeZones,
   selectedInstant,
   zonedWallTimeToInstant,
-} from './worldClock'
-import { canonicalizeZone } from './worldClockCities'
+} from './timeZone'
+import { canonicalizeZone } from './timeZoneCities'
 
 describe('world clock time-zone calculations', () => {
   it('uses IANA daylight-saving transitions', () => {

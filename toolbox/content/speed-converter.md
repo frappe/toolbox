@@ -73,8 +73,7 @@ result is rounded to 12 significant digits.
 
 Yes to the first, and no to the second. The application is kept in the browser after your first
 visit, so the page opens and converts with no connection. There is no account, nothing you type
-reaches a server, and the last 10 results stay in the recent list only while the browser tab is
-open.
+reaches a server, and no result is written down.
 
 ## Good to know
 
@@ -85,6 +84,6 @@ follows from that one definition.
 The knot came from a rope. A log was thrown from a moving ship and the knots in its line were
 counted as they ran out over a measured time.
 
-This page is one of nine converters that share a recent-results list. The others include the
+This page is one of nine converters that share a conversion field. The others include the
 [Time Unit Converter](/time-unit-converter) and the
 [Fuel Consumption Converter](/fuel-consumption-converter).

@@ -80,8 +80,7 @@ convert, but they describe nothing real.
 
 Yes to the first, and no to the second. The application is kept in the browser after your first
 visit, so the page opens and converts with no connection. There is no account, nothing you type
-reaches a server, and the last 10 results stay in the recent list only while the browser tab is
-open.
+reaches a server, and no result is written down.
 
 ## Good to know
 

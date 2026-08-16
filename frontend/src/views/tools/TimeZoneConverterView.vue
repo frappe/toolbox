@@ -2,18 +2,18 @@
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
     <header class="flex items-start gap-4">
       <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
-        <Icon name="lucide-globe-2" class="size-6 text-ink-gray-7" />
+        <Icon name="lucide-clock-arrow-up" class="size-6 text-ink-gray-7" />
       </span>
       <div class="min-w-0 flex-1">
         <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ tool.name }}</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }}</p>
+        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Time Zone Converter</h1>
+        <p class="pt-2 text-base leading-7 text-ink-gray-6">Take one date and time and read it in every city at once.</p>
       </div>
     </header>
 
-    <div v-if="clock.mode.value === 'convert'" class="mt-8 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
-      <FormControl type="datetime" size="md" label="Date and time" :model-value="clock.convertDateTime.value" @update:model-value="setConvertDateTime" />
-      <FormControl type="select" size="md" label="In this city's time" :options="zoneOptions" :model-value="clock.convertZone.value" @update:model-value="clock.convertZone.value = $event" />
+    <div class="mt-8 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
+      <FormControl type="datetime" size="md" label="Date and time" :model-value="converter.convertDateTime.value" @update:model-value="setConvertDateTime" />
+      <FormControl type="select" size="md" label="In this city's time" :options="zoneOptions" :model-value="converter.convertZone.value" @update:model-value="converter.convertZone.value = $event" />
       <p class="text-sm leading-6 text-ink-gray-5 sm:col-span-2">The cards below show that exact moment in every city.</p>
     </div>
 
@@ -25,10 +25,10 @@
           placeholder="Mumbai, London, New York"
           results-label="Time zone search results"
           option-key-field="id"
-          :results="clock.searchResults.value"
-          :model-value="clock.query.value"
-          @update:model-value="clock.query.value = $event"
-          @select="clock.addLocation($event)"
+          :results="converter.searchResults.value"
+          :model-value="converter.query.value"
+          @update:model-value="converter.query.value = $event"
+          @select="converter.addLocation($event)"
         >
           <template #option="{ result }">
             <span class="flex items-center justify-between gap-4">
@@ -47,17 +47,16 @@
       </div>
 
       <ol class="grid gap-4 pt-5 md:grid-cols-2">
-        <li v-for="(row, index) in clock.rows.value" :key="row.id" class="rounded-2xl border border-outline-gray-2 bg-surface-base p-5">
+        <li v-for="(row, index) in converter.rows.value" :key="row.id" class="rounded-2xl border border-outline-gray-2 bg-surface-base p-5">
           <div class="flex items-start gap-3">
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2"><h3 class="truncate font-semibold text-ink-gray-9">{{ row.label }}</h3><Icon v-if="row.favourite" name="lucide-star" class="size-4 fill-current text-ink-yellow-2" /></div>
+              <h3 class="truncate font-semibold text-ink-gray-9">{{ row.label }}</h3>
               <p class="truncate pt-1 text-sm text-ink-gray-5">{{ row.zone }}</p>
             </div>
             <div class="flex gap-1">
-              <Button variant="ghost" icon="lucide-arrow-up" :disabled="index === 0" :aria-label="`Move ${row.label} up`" @click="clock.moveLocation(index, -1)" />
-              <Button variant="ghost" icon="lucide-arrow-down" :disabled="index === clock.rows.value.length - 1" :aria-label="`Move ${row.label} down`" @click="clock.moveLocation(index, 1)" />
-              <Button variant="ghost" icon="lucide-star" :aria-label="`${row.favourite ? 'Unfavourite' : 'Favourite'} ${row.label}`" @click="clock.toggleFavourite(row.id)" />
-              <Button variant="ghost" icon="lucide-x" :disabled="clock.rows.value.length === 1" :aria-label="`Remove ${row.label}`" @click="clock.removeLocation(row.id)" />
+              <Button variant="ghost" icon="lucide-arrow-up" :disabled="index === 0" :aria-label="`Move ${row.label} up`" @click="converter.moveLocation(index, -1)" />
+              <Button variant="ghost" icon="lucide-arrow-down" :disabled="index === converter.rows.value.length - 1" :aria-label="`Move ${row.label} down`" @click="converter.moveLocation(index, 1)" />
+              <Button variant="ghost" icon="lucide-x" :disabled="converter.rows.value.length === 1" :aria-label="`Remove ${row.label}`" @click="converter.removeLocation(row.id)" />
             </div>
           </div>
           <p class="pt-5 font-mono text-3xl font-semibold tracking-tight text-ink-gray-9">{{ formatTime(row) }}</p>
@@ -76,41 +75,35 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Badge, Button, FormControl, Icon } from 'frappe-ui'
 
 import SearchSelect from '@/components/search/SearchSelect.vue'
-import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import { useWorldClock } from '@/tools/world-clock/useWorldClock'
+import { useTimeZoneConverter } from '@/tools/time-zone-converter/useTimeZoneConverter'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
-// Two tools, one view. World Clock reads the current time and Time Zone Converter reads a chosen
-// one, over the same list of cities: a city added on either page is there on the other. The mode
-// used to be a tab, which had no URL, so "time zone converter" could not be searched for.
-const { tool, variant } = useToolFamily()
+const TOOL_ID = 'time-zone-converter'
+
 const preferences = useToolboxPreferences()
-const clock = useWorldClock()
+const converter = useTimeZoneConverter()
 const copyStatus = ref('')
-const categoryName = computed(() => getToolCategoryName(tool.value?.id))
+const categoryName = getToolCategoryName(TOOL_ID)
 
 // Zone picker over the cities already added (label shown, IANA zone stored).
-const zoneOptions = computed(() => clock.locations.value.map((location) => ({ label: location.label, value: location.zone })))
+const zoneOptions = computed(() => converter.locations.value.map((location) => ({ label: location.label, value: location.zone })))
 
-// A move between the two does not remount this view, so the mode and the recent tool follow the
-// route rather than the mount.
-watch(variant, (mode) => {
-  if (mode === 'convert' && !clock.convertDateTime.value) {
-    clock.convertDateTime.value = currentLocalDateTime()
-  }
-  clock.mode.value = mode
-}, { immediate: true })
-watch(() => tool.value?.id, (toolId) => toolId && preferences.recordRecent(toolId), { immediate: true })
+onMounted(() => {
+  preferences.recordRecent(TOOL_ID)
+  // Arriving on an empty field would read every city at the moment the page opened, with nothing
+  // saying so. Seeding it to now makes the answer on screen match the question in the field.
+  if (!converter.convertDateTime.value) converter.convertDateTime.value = currentLocalDateTime()
+})
 
 // DateTimePicker emits "YYYY-MM-DD HH:mm:ss"; the converter parses a datetime-local
 // string ("YYYY-MM-DDTHH:mm"), so normalise before storing.
 function setConvertDateTime(value) {
-  clock.convertDateTime.value = value ? String(value).replace(' ', 'T').slice(0, 16) : ''
+  converter.convertDateTime.value = value ? String(value).replace(' ', 'T').slice(0, 16) : ''
 }
 
 function currentLocalDateTime() {
@@ -120,7 +113,7 @@ function currentLocalDateTime() {
 }
 
 function formatTime(row) {
-  return new Intl.DateTimeFormat('en-IN', { timeZone: row.zone, hour: '2-digit', minute: '2-digit', hour12: preferences.settings.timeFormat === '12-hour' }).format(clock.selectedTime.value)
+  return new Intl.DateTimeFormat('en-IN', { timeZone: row.zone, hour: '2-digit', minute: '2-digit', hour12: preferences.settings.timeFormat === '12-hour' }).format(converter.selectedTime.value)
 }
 
 function formatDate(row) {
@@ -135,7 +128,7 @@ function dayLabel(difference) {
 }
 
 async function copyMeetingTimes() {
-  const summary = clock.rows.value.map((row) => `${row.label}: ${formatDate(row)} ${formatTime(row)} (${row.offsetLabel})`).join('\n')
+  const summary = converter.rows.value.map((row) => `${row.label}: ${formatDate(row)} ${formatTime(row)} (${row.offsetLabel})`).join('\n')
   try {
     await navigator.clipboard.writeText(summary)
     copyStatus.value = 'Times copied.'

@@ -1,9 +1,6 @@
 import { expect, test } from './fixtures'
 import { ALL_ROUTES, headingFor, prepare } from './toolPages'
 
-// The link sweep below walks every route in turn, and leaving a page cancels what it had in flight.
-test.use({ allowNavigationAbortErrors: true })
-
 // The site is published, so a URL that stops answering is a broken promise to whoever saved it.
 // These checks read the site the way a crawler does, over HTTP, without a browser rendering it.
 
@@ -59,24 +56,17 @@ test('@smoke every published title, description and canonical is its own', async
 // into the body from `seo.py`, and Vue replaces it when it mounts. When those two disagree, a
 // search result carries one name and the page shows another.
 //
-// Two disagree today. Both were found by this test, both are recorded rather than hidden, and the
-// test still fails on a third. Neither is mine to settle: which wording is the right one is a
-// product decision.
-const KNOWN_HEADING_DIVERGENCES = {
-  // `seo.py` capitalises the second word and `AllToolsView` does not.
-  '/': 'All Tools',
-  // `seo.py` names the page for the search result and the view heads it with a sentence.
-  '/data-sources': 'Data Sources',
-}
-
+// Two disagreed when this check was written: `/` was served "All Tools" and rendered "All tools",
+// and `/data-sources` was served "Data Sources" and rendered "Where the data comes from". Both were
+// found here and both are fixed in `seo.py` — the visitor's wording won, and the `title` still
+// carries the keywords for a search result.
 test('the heading a crawler reads matches the heading a visitor reads', async ({ request }) => {
   const mismatched = []
 
   for (const path of ALL_ROUTES) {
     const html = await (await request.get(path)).text()
     const served = decode(match(html, /<h1[^>]*>([^<]*)<\/h1>/)?.trim())
-    const accepted = KNOWN_HEADING_DIVERGENCES[path] ?? headingFor(path)
-    if (served !== accepted) {
+    if (served !== headingFor(path)) {
       mismatched.push(`${path}: served "${served}", renders "${headingFor(path)}"`)
     }
   }

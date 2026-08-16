@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { headingFor } from './toolPages'
 
 // A crawler reads the HTTP response and runs no JavaScript, so every check here uses `request`
 // rather than `page`. Nothing the client does after boot can rescue an empty head.
@@ -70,7 +71,9 @@ test('@smoke gives a crawler the front door, with a link to every tool', async (
   const body = html.slice(html.indexOf('<div id="app"'), html.indexOf('<script', html.indexOf('<div id="app"')))
 
   expect(body).toContain('<h1')
-  expect(body).toContain('All Tools')
+  // Read from the same place the page is, so renaming a heading cannot leave this asserting one
+  // the application no longer serves.
+  expect(body).toContain(headingFor('/'))
   for (const path of ['/calculator', '/emi-calculator', '/dictionary', '/audio-editor']) {
     expect(body, `${path} is not linked from the root`).toContain(`href="${path}"`)
   }
@@ -81,7 +84,7 @@ test('gives a crawler a heading on a page that is not a tool', async ({ request 
   const body = html.slice(html.indexOf('<div id="app"'), html.indexOf('<script', html.indexOf('<div id="app"')))
 
   expect(body).toContain('<h1')
-  expect(body).toContain('Data Sources')
+  expect(body).toContain(headingFor('/data-sources'))
 })
 
 test('gives a crawler a heading even where the content is not written yet', async ({ request }) => {

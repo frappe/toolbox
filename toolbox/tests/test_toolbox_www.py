@@ -99,7 +99,11 @@ class TestServerRenderedContent(UnitTestCase):
 
 	def test_every_page_is_given_its_heading(self):
 		"""The heading comes from seo.py, so a page that is not a tool has one too."""
-		for path, name in (("/dictionary", "Dictionary"), ("/data-sources", "Data Sources"), ("", "All Tools")):
+		for path, name in (
+			("/dictionary", "Dictionary"),
+			("/data-sources", "Where the data comes from"),
+			("", "All tools"),
+		):
 			with self.subTest(path=path):
 				with requested(path):
 					self.assertEqual(get_context().seo["name"], name)

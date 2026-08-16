@@ -60,7 +60,10 @@ fails the job when any one of them does not import. The API contract tests read 
 
 ## What each layer checks
 
-**Static.** The production build, then Ruff's linter and formatter. ESLint is not run: the
+**Static.** The production build, then Ruff's linter and formatter. Both fail the run. They used to
+record a count instead, because the repository carried 12 findings and 20 unformatted files that
+predated this suite. That debt is cleared, so they are gates. The ruff version is pinned, because an
+unpinned one moves the numbers on its own the day ruff releases. ESLint is not run: the
 repository `.eslintrc` is the Frappe desk boilerplate, with no Vue parser and `no-unused-vars`
 turned off, so it rejects almost nothing the build accepts. Semgrep covers JavaScript and Vue in
 the security layer instead.

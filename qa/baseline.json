@@ -3,8 +3,8 @@
   "commit": "31a52b6",
   "metrics": {
     "static.buildMs": 4320,
-    "static.ruffFindings": 12,
-    "static.ruffUnformattedFiles": 20,
+    "static.ruffFindings": 0,
+    "static.ruffUnformattedFiles": 0,
     "units.tests": 689,
     "units.files": 88,
     "units.failed": 0,

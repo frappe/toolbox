@@ -22,6 +22,61 @@ const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 // The rule is dropped for that engine alone. Contrast is still checked on every route, in light and
 // in dark, on Chromium and Firefox, so nothing is given up: a real contrast fault fails there. Every
 // other axe rule still runs on WebKit, which is where its layout and markup differences matter.
+
+// Two things have to be true before axe is worth asking, and neither was.
+//
+// The heading is in the document almost at once. Anything that waits on a fetch is not, and a
+// rule cannot report an element that has not been drawn yet.
+//
+// The larger one: **axe evaluates colour contrast only inside the viewport.** An element below
+// the fold is not reported as a violation, and not even as incomplete. It is skipped in silence.
+// On the default 720px viewport that left everything below the first screen of all 37 routes
+// unchecked, which is most of every page. Measured on the Currency Converter, whose rate delta
+// sits at y=742 and rendered at 1.21:1: zero violations and zero incomplete at 720px tall, one
+// violation at 4000px. See #273.
+//
+// So the viewport grows to the page before the scan. `networkidle` comes first because the height
+// is only meaningful once the late content is in, and the measure-then-resize runs twice because
+// the resize itself reflows the page and can lengthen it.
+//
+// The height comes from `#main-content` and not from the document. This shell scrolls that
+// element rather than the window, which is what issue #226 was, so `documentElement.scrollHeight`
+// is just the viewport height and a sweep that trusts it never resizes at all.
+// The tallest route measured 1709px at 1280px wide and 2802px at 375px wide, so this ceiling has
+// room to spare. It exists so a runaway page cannot ask for a viewport no browser will give, and
+// it says so when it binds: a scan that quietly stopped half way down reads as a clean page.
+const MAX_SCAN_HEIGHT = 8000
+
+async function settle(page) {
+  await page.waitForLoadState('networkidle')
+
+  const contentHeight = () =>
+    page.evaluate(() =>
+      Math.max(
+        document.documentElement.scrollHeight,
+        document.querySelector('#main-content')?.scrollHeight ?? 0,
+      ),
+    )
+
+  const { width } = page.viewportSize()
+  for (let pass = 0; pass < 2; pass += 1) {
+    const height = await contentHeight()
+    const target = Math.min(height, MAX_SCAN_HEIGHT)
+    if (target <= page.viewportSize().height) break
+    await page.setViewportSize({ width, height: target })
+  }
+  await page.waitForLoadState('networkidle')
+
+  const finalHeight = await contentHeight()
+  if (finalHeight > MAX_SCAN_HEIGHT) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `accessibility sweep: ${page.url()} is ${finalHeight}px tall, so everything below ` +
+        `${MAX_SCAN_HEIGHT}px went unscanned. Contrast is only reported inside the viewport.`,
+    )
+  }
+}
+
 async function scan(page, browserName) {
   const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze()
   return results.violations
@@ -39,6 +94,7 @@ for (const path of ALL_ROUTES) {
       await prepare(page, path)
       await page.goto(path)
       await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
+      await settle(page)
 
       expect(await scan(page, browserName)).toEqual([])
     },
@@ -57,6 +113,7 @@ for (const path of ALL_ROUTES) {
       await prepare(page, path)
       await page.goto(path)
       await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
+      await settle(page)
 
       expect(await scan(page, browserName)).toEqual([])
     },
@@ -68,6 +125,7 @@ for (const path of ALL_ROUTES) {
 test('Settings has no serious automated accessibility violations', async ({ browserName, page }) => {
   await page.goto('/settings')
   await expect(page.getByRole('dialog')).toBeVisible()
+  await settle(page)
 
   expect(await scan(page, browserName)).toEqual([])
 })

@@ -6,6 +6,10 @@ One command runs every check and writes one report.
 bash qa/run-qa.sh
 ```
 
+`.claude/skills/qa/` holds the same instructions for an agent, so "run the QA suite" works in
+any session on any checkout. It lives in the repository rather than on one machine, for the same
+reason this file does.
+
 The report opens with a table of all 34 tools and a pass or fail for each, so the first question a
 release asks — does every tool still work — is answered on the first screen.
 
@@ -13,8 +17,8 @@ release asks — does every tool still work — is answered on the first screen.
 
 | Command | What it does | About |
 | --- | --- | --- |
-| `bash qa/run-qa.sh` | Every layer | 25 min |
-| `bash qa/run-qa.sh --fast` | Build, units, smoke browser | 3 min |
+| `bash qa/run-qa.sh` | Every layer | about 11 min |
+| `bash qa/run-qa.sh --fast` | Build, units, smoke browser | about 2 min |
 | `bash qa/run-qa.sh --layer=browser` | One layer, named below | varies |
 | `bash qa/run-qa.sh --target=prod` | The read-only layers against `frappe.tools` | 5 min |
 | `bash qa/run-qa.sh --update-visual` | Re-record the reference images | 2 min |
@@ -36,7 +40,7 @@ run's failures all sit at the timeout.
 | Check | What it runs |
 | --- | --- |
 | Frontend build & tests | `yarn test`, then `yarn build` |
-| Server tests | `bench --site test_site run-tests --app toolbox` |
+| Server tests | `bench --site test_site.localhost run-tests --app toolbox` |
 | E2E (Playwright) | The browser matrix, on a bench it builds from scratch |
 
 CI does not call `run-qa.sh`. The runner starts and stops its own bench, and CI already has one, so

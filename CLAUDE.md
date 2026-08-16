@@ -288,7 +288,7 @@ Routes moved to the site root, and each one renders its own metadata for search 
 One command runs every check and writes one report. It starts its own bench and stops it again.
 
 ```bash
-bash qa/run-qa.sh          # everything, about 12 minutes
+bash qa/run-qa.sh          # everything, about 11 minutes
 bash qa/run-qa.sh --fast   # build, units and the smoke browser tests
 ```
 

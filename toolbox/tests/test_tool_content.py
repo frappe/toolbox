@@ -2,6 +2,7 @@
 # License: GNU Affero General Public License v3
 
 import json
+from pathlib import Path
 
 from frappe.tests import UnitTestCase
 
@@ -84,3 +85,39 @@ class TestWrittenContent(UnitTestCase):
 		self.assertTrue(self.content.steps)
 		for step in self.content.steps:
 			self.assertNotIn("<", step)
+
+
+class TestPageWidth(UnitTestCase):
+	"""The server block has to be the width the application draws.
+
+	They disagreed until #274: the heading sat in a 768px column and the page it preceded ran to
+	1152px, so the text moved sideways the moment Vue replaced the block. Nothing failed — a
+	crawler cannot see a layout shift, and no browser test measured one.
+	"""
+
+	def test_a_tool_route_takes_the_one_page_width(self):
+		for route in ("/calculator", "/length-converter", "/time-zone-converter", "/"):
+			with self.subTest(route=route):
+				self.assertEqual(tool_content.page_width(route), tool_content.TOOL_PAGE_WIDTH)
+
+	def test_a_prose_route_keeps_a_reading_measure(self):
+		for route in ("/about", "/data-sources"):
+			with self.subTest(route=route):
+				self.assertEqual(tool_content.page_width(route), tool_content.PROSE_PAGE_WIDTH)
+
+	def test_the_widths_match_the_frontend_source(self):
+		"""`pageLayout.js` is the source. This side is a mirror, so it is read rather than trusted."""
+		source = (
+			Path(tool_content.__file__).parent.parent / "frontend" / "src" / "data" / "pageLayout.js"
+		).read_text()
+
+		for name, value in (
+			("TOOL_PAGE_WIDTH", tool_content.TOOL_PAGE_WIDTH),
+			("PROSE_PAGE_WIDTH", tool_content.PROSE_PAGE_WIDTH),
+		):
+			with self.subTest(constant=name):
+				self.assertIn(f"export const {name} = '{value}'", source)
+
+		for route in tool_content.PROSE_ROUTES:
+			with self.subTest(route=route):
+				self.assertIn(f"'{route}'", source)

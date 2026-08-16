@@ -7,18 +7,24 @@
 // The markup carries the application's own tokens, because the built stylesheet is already in the
 // head when the server block paints, before any JavaScript runs.
 
+import { TOOL_PAGE_WIDTH } from '../../src/data/pageLayout.js'
+
 const PROSE = 'text-base leading-7 text-ink-gray-7'
-const COLUMN = 'mx-auto flex w-full max-w-3xl flex-col'
 const EXAMPLE_SURFACE = 'flex flex-col gap-3 rounded-xl bg-surface-gray-1 p-4 sm:p-5'
 
-// A tool page sets its own width, from three to six columns wide, so the content cannot share a
-// lane with every one of them. It reads as its own band instead: a rule across the page, and a
-// measure narrow enough to read comfortably under it.
-export function renderContent(sections) {
+// The content shares the lane of the tool above it, because every page is now one width
+// (`pageLayout.js`). It used to sit in a narrower band under a rule across the page, which was the
+// best that could be done while the views disagreed about how wide a page was.
+//
+// The rule went with the mismatch. Two blocks in the same lane, separated by space, read as one
+// page; a line across it announced a second document (#275). The disclosures keep their own
+// dividers, so the sections are still told apart.
+export function renderContent(sections, width = TOOL_PAGE_WIDTH) {
   if (!sections.length) return ''
 
   const body = sections.map(renderSection).join('')
-  return `<div class="w-full border-t border-outline-gray-2"><div class="${COLUMN} gap-2 px-4 pt-10 pb-16 sm:px-8">${body}</div></div>`
+  const column = `mx-auto flex w-full ${width} flex-col`
+  return `<div class="w-full"><div class="${column} gap-2 px-4 pt-10 pb-16 sm:px-8">${body}</div></div>`
 }
 
 // A section is closed until somebody opens it. The tool is what a visitor came for, and the words

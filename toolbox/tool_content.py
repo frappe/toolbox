@@ -23,6 +23,21 @@ from pathlib import Path
 
 PAGES_DIRECTORY = (Path(__file__).parent / "content" / "pages").resolve()
 
+# The width of the block the server renders, which has to be the width the application draws once
+# it mounts. They disagreed until #274: the heading sat in a 768px column and the page it preceded
+# ran to 1152px, so the text jumped sideways the moment Vue took over.
+#
+# These mirror `frontend/src/data/pageLayout.js`, which is the source. A test fails when the two
+# disagree, the same way `RETIRED_ROUTES` is held against the router.
+TOOL_PAGE_WIDTH = "max-w-6xl"
+PROSE_PAGE_WIDTH = "max-w-3xl"
+PROSE_ROUTES = frozenset({"/about", "/data-sources"})
+
+
+def page_width(route: str) -> str:
+	"""The container width for a route: a reading measure for prose, one width for every tool."""
+	return PROSE_PAGE_WIDTH if route in PROSE_ROUTES else TOOL_PAGE_WIDTH
+
 
 @dataclass(frozen=True)
 class Faq:

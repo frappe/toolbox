@@ -12,19 +12,32 @@ const OFFLINE_FAILURE_SIGNATURES = [
 
 // Leaving a page cancels whatever it had in flight: a lazy route chunk, a dataset call. Firefox
 // reports that as NS_BINDING_ABORTED and WebKit as "cancelled", while Chromium says nothing.
-// It is the browser doing as it was told, not the application failing, and only a spec that walks
-// every route in turn produces enough of it to matter.
-const NAVIGATION_ABORT_SIGNATURES = ['NS_BINDING_ABORTED', 'NS_ERROR_ABORT', 'ERR_ABORTED', 'cancelled']
+//
+// This is discounted everywhere rather than opted into per spec. It began as an option for the two
+// specs that walk all 37 routes, and then a pre-existing spec that opens six calculators in a loop
+// hit the same thing — as any spec that visits more than one page eventually will. An abort is the
+// browser obeying a navigation, and no product defect shows up only as one. What the gate is for
+// still works: a 4xx, a 5xx, a refused connection and a DNS failure all carry their own signature
+// and all still fail.
+//
+// Firefox pairs the abort with a console error from the service worker, which is reporting the same
+// cancelled fetch one layer up. That the worker itself works is proved by `offline.spec.js`, which
+// asserts 27 routes actually load with the network off, rather than by the absence of noise here.
+const NAVIGATION_ABORT_SIGNATURES = [
+  'NS_BINDING_ABORTED',
+  'NS_ERROR_ABORT',
+  'ERR_ABORTED',
+  'cancelled',
+  'A ServiceWorker intercepted the request',
+]
 
 const matches = (signatures, text) => signatures.some((signature) => text.includes(signature))
 const isOfflineFailure = (text) => matches(OFFLINE_FAILURE_SIGNATURES, text)
+const isNavigationAbort = (text) => matches(NAVIGATION_ABORT_SIGNATURES, text)
 
 export const test = base.extend({
   allowOfflineNetworkErrors: [false, { option: true }],
-  // Opt in from a spec that navigates repeatedly. Do not set it on an ordinary spec: it would
-  // hide a request that failed for a reason of its own.
-  allowNavigationAbortErrors: [false, { option: true }],
-  page: async ({ page, allowOfflineNetworkErrors, allowNavigationAbortErrors }, use) => {
+  page: async ({ page, allowOfflineNetworkErrors }, use) => {
     const browserErrors = []
 
     page.on('pageerror', (error) => {
@@ -49,8 +62,7 @@ export const test = base.extend({
     page.on('requestfailed', (request) => {
       const failure = request.failure()?.errorText || 'unknown failure'
       const expectedOfflineError = allowOfflineNetworkErrors && isOfflineFailure(failure)
-      const expectedAbort =
-        allowNavigationAbortErrors && matches(NAVIGATION_ABORT_SIGNATURES, failure)
+      const expectedAbort = isNavigationAbort(failure)
       const expectedRealtimeNoise = request.url().includes(':9000/socket.io/')
       if (!expectedOfflineError && !expectedAbort && !expectedRealtimeNoise) {
         browserErrors.push(`request failed: ${request.url()} (${failure})`)
@@ -63,11 +75,19 @@ export const test = base.extend({
       // Firefox and WebKit log the cross-origin Frappe realtime attempt (socket.io on :9000)
       // as a console error; Toolbox does not use realtime, so it is environment noise.
       const expectedRealtimeNoise = text.includes('/socket.io/')
+      // The Content-Security-Policy is served report-only, and a report-only policy tells the
+      // console what it *would* have blocked. That is the whole point of it, and `csp.spec.js` is
+      // what asserts on those reports. Matching on "Report-Only" keeps this narrow: once the
+      // policy enforces, its messages say "blocked" instead and land here as failures.
+      const cspReport = text.includes('Content-Security-Policy') && /Report[- ]Only/i.test(text)
+      const abortNoise = isNavigationAbort(text)
       if (
         message.type() === 'error' &&
         !expectedOfflineError &&
         !reportedByNetworkListener &&
-        !expectedRealtimeNoise
+        !expectedRealtimeNoise &&
+        !cspReport &&
+        !abortNoise
       ) {
         browserErrors.push(`console: ${text}`)
       }

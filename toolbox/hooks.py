@@ -134,6 +134,13 @@ use_json_request_body = True
 # before_install = "toolbox.install.before_install"
 # after_install = "toolbox.install.after_install"
 
+# Send a Content-Security-Policy with every HTML response, in report-only mode. Frappe Cloud's
+# proxy adds the other four security headers and no CSP, and Frappe sets one only for web forms.
+# See `toolbox/security_headers.py` for the policy and for what has to be true before it enforces.
+after_request = [
+	"toolbox.security_headers.add_security_headers",
+]
+
 # Pull any bundled dataset whose pinned version differs from what is active on this
 # site (fresh installs self-provision; an app update that bumps a dataset applies it).
 # One-time-per-version fetch of public data; no runtime or scheduled network calls.

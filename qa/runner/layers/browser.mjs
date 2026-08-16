@@ -23,6 +23,7 @@ const GROUPS = {
   'api-contract': 'API contracts',
   'security-http': 'Security (HTTP)',
   vitals: 'Core Web Vitals',
+  csp: 'Content-Security-Policy',
 }
 
 export async function execute({ appRoot, reportDir, fast, updateVisual, baseUrl }) {

@@ -1,6 +1,5 @@
 import { computed, ref } from 'vue'
 
-import { useToolHistory } from '@/composables/useToolHistory'
 import { convert, UnitConversionError } from './converter'
 import { conversionRegistry, getCategory, getUnit } from './registry'
 
@@ -37,7 +36,6 @@ export const DEFAULT_UNIT_PAIRS = Object.freeze({
 // `options.initialCategoryId` is the measurement the route asks for: each is its own tool at
 // its own URL.
 export function useUnitConverter(options = {}) {
-  const history = options.history ?? useToolHistory('unit-converter')
   // The units have to start on the initial measurement's own pair, not on length's. Setting the
   // category alone would open /temperature-converter showing metres.
   const initialCategoryId = getCategory(options.initialCategoryId)?.id ?? DEFAULT_CATEGORY_ID
@@ -54,8 +52,8 @@ export function useUnitConverter(options = {}) {
   const category = computed(() => getCategory(categoryId.value))
   const fromUnit = computed(() => getUnit(fromUnitId.value))
   const toUnit = computed(() => getUnit(toUnitId.value))
-  // The derived side: the one the visitor did not type into. `recordHistory` and the announcement
-  // both declare their own `resultUnit`, so these carry a different name rather than shadow.
+  // The derived side: the one the visitor did not type into. The announcement declares its own
+  // `resultUnit`, so these carry a different name rather than shadow it.
   const derivedValue = computed(() =>
     lastEditedSide.value === 'from' ? toInput.value : fromInput.value,
   )
@@ -137,53 +135,6 @@ export function useUnitConverter(options = {}) {
     seedDefaultValue()
   }
 
-  // Snapshot the current settled conversion into shared history. The source is the side the
-  // user last edited; the result is the derived opposite side. De-duped against the last row.
-  function recordHistory() {
-    if (!hasSettledConversion.value) return
-    const fromSide = lastEditedSide.value === 'from'
-    const sourceRaw = fromSide ? fromInput.value : toInput.value
-    const sourceUnit = fromSide ? fromUnit.value : toUnit.value
-    const resultRaw = fromSide ? toInput.value : fromInput.value
-    const resultUnit = fromSide ? toUnit.value : fromUnit.value
-    if (parseEditableNumber(sourceRaw).kind !== 'valid') return
-
-    history.add({
-      label: `${sourceRaw} ${sourceUnit.symbol} → ${resultUnit.symbol}`,
-      value: `${resultRaw} ${resultUnit.symbol}`,
-      payload: {
-        categoryId: categoryId.value,
-        fromUnitId: fromUnitId.value,
-        toUnitId: toUnitId.value,
-        side: lastEditedSide.value,
-        value: sourceRaw,
-      },
-    })
-  }
-
-  function reuseHistory(entry) {
-    const payload = entry?.payload
-    if (!payload) return
-
-    const payloadCategory = getCategory(payload.categoryId)
-    const payloadFromUnit = getUnit(payload.fromUnitId)
-    const payloadToUnit = getUnit(payload.toUnitId)
-    if (
-      !payloadCategory ||
-      payloadFromUnit?.category !== payloadCategory.id ||
-      payloadToUnit?.category !== payloadCategory.id
-    ) {
-      return
-    }
-
-    categoryId.value = payloadCategory.id
-    fromUnitId.value = payloadFromUnit.id
-    toUnitId.value = payloadToUnit.id
-    const side = payload.side === 'to' ? 'to' : 'from'
-    if (side === 'from') updateFromInput(String(payload.value ?? ''))
-    else updateToInput(String(payload.value ?? ''))
-  }
-
   function setUnit(side, nextUnitId) {
     const nextUnit = getUnit(nextUnitId)
     if (nextUnit?.category !== categoryId.value) {
@@ -256,11 +207,6 @@ export function useUnitConverter(options = {}) {
     derivedValue,
     derivedUnit,
     hasSettledConversion,
-    historyEntries: history.entries,
-    recordHistory,
-    reuseHistory,
-    removeHistory: history.remove,
-    clearHistory: history.clear,
     setCategory,
     setFromUnit,
     setToUnit,

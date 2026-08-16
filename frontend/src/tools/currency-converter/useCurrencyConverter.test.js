@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToolboxPreferencesStore } from '@/composables/useToolboxPreferences'
-import { useToolHistory } from '@/composables/useToolHistory'
 import { useCurrencyConverter } from './useCurrencyConverter'
 
 const data = { schemaVersion: 1, baseCurrency: 'EUR', rateDate: '2026-07-31', providerCheckedAt: '2026-08-01T00:00:00Z', cacheStatus: 'live', rates: { EUR: 1, USD: 1.2, INR: 100, GBP: 0.8, SGD: 1.5 }, source: { name: 'European Central Bank', url: 'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html', attribution: 'Source: ECB statistics.' }, referenceRateNotice: 'Reference rates only.' }
@@ -25,14 +24,20 @@ describe('currency converter workspace', () => {
     expect(converter.errorMessage.value).toContain('saved offline snapshot')
   })
 
-  it('swaps and saves a favourite pair through preferences', async () => {
-    const preferences = new ToolboxPreferencesStore(null)
-    const converter = useCurrencyConverter({ preferences, storage: null, fetcher: vi.fn().mockResolvedValue(data) })
+  it('swaps the two currencies', async () => {
+    const converter = useCurrencyConverter({ preferences: new ToolboxPreferencesStore(null), storage: null, fetcher: vi.fn().mockResolvedValue(data) })
     await converter.loadRates()
     converter.swapCurrencies()
     expect([converter.sourceCurrency.value, converter.destinationCurrency.value]).toEqual(['USD', 'INR'])
-    converter.toggleSavedPair()
-    expect(preferences.savedCurrencyPairs.value).toEqual([{ baseCurrency: 'USD', quoteCurrency: 'INR' }])
+  })
+
+  // `usePair` outlived the saved-pair list it was written for: it is what the ?from=&to= deep
+  // link uses, so it is still reachable from outside the tool.
+  it('takes a pair from the query string', async () => {
+    const converter = useCurrencyConverter({ preferences: new ToolboxPreferencesStore(null), storage: null, fetcher: vi.fn().mockResolvedValue(data) })
+    await converter.loadRates()
+    converter.usePair({ baseCurrency: 'USD', quoteCurrency: 'GBP' })
+    expect([converter.sourceCurrency.value, converter.destinationCurrency.value]).toEqual(['USD', 'GBP'])
   })
 
   it('converts forward when the source amount is edited', async () => {
@@ -43,32 +48,6 @@ describe('currency converter workspace', () => {
     expect(converter.lastEdited.value).toBe('source')
     expect(converter.convertedAmount.value).toBeCloseTo(2.4, 8)
     expect(converter.destinationInput.value).toBe('2.4')
-  })
-
-  it('records a settled conversion and reuses it from history', async () => {
-    const converter = useCurrencyConverter({
-      preferences: new ToolboxPreferencesStore(null),
-      storage: null,
-      fetcher: vi.fn().mockResolvedValue(data),
-      history: useToolHistory('currency-converter', { storage: null }),
-    })
-    await converter.loadRates()
-    converter.updateSourceAmount('200')
-    converter.recordHistory()
-    // Re-committing the same conversion must not create a duplicate row.
-    converter.recordHistory()
-
-    expect(converter.historyEntries.value).toHaveLength(1)
-    const [entry] = converter.historyEntries.value
-    expect(entry.label).toContain('INR →')
-    expect(entry.value).toContain('USD')
-    expect(entry.payload).toMatchObject({ source: 'INR', destination: 'USD', amount: 200 })
-
-    converter.usePair({ baseCurrency: 'USD', quoteCurrency: 'GBP' })
-    converter.reuseHistory(entry)
-    expect(converter.sourceCurrency.value).toBe('INR')
-    expect(converter.destinationCurrency.value).toBe('USD')
-    expect(converter.amount.value).toBe('200')
   })
 
   it('converts in reverse when the destination amount is edited', async () => {

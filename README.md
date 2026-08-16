@@ -41,8 +41,8 @@ Toolbox has 34 tools in seven categories. Each tool has its own URL.
 
 Nothing on the server, and almost nothing in the browser.
 
-Preferences and tool history use `sessionStorage`, so they end with the browser tab. Tool history
-keeps the last 10 entries for each tool.
+Preferences use `sessionStorage`, so they end with the browser tab. No tool keeps a record of what
+was worked out in it.
 
 Two values use `localStorage`, and only two:
 

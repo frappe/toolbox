@@ -22,7 +22,6 @@
           placeholder="0"
           :aria-invalid="invalid || undefined"
           @update:model-value="$emit('update:modelValue', $event)"
-          @change="$emit('commit')"
         />
       </div>
     </div>
@@ -49,7 +48,7 @@ defineProps({
   categoryId: { type: String, required: true },
   invalid: { type: Boolean, default: false },
 })
-defineEmits(['update:modelValue', 'update:unitId', 'commit'])
+defineEmits(['update:modelValue', 'update:unitId'])
 
 const componentId = useId()
 const headingId = `conversion-heading-${componentId}`

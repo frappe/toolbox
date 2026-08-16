@@ -15,7 +15,7 @@
       </div>
     </header>
 
-    <div class="grid gap-10 pt-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
+    <div class="pt-8">
       <section class="min-w-0" aria-label="Calculator workspace">
         <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6">
           <!--
@@ -77,39 +77,18 @@
           </p>
         </section>
       </section>
-
-      <aside class="min-w-0 lg:sticky lg:top-6">
-        <ToolHistory
-          :entries="historyEntries"
-          :copied-entry-id="copiedEntryId"
-          list-label="Calculator history entries"
-          clear-label="Clear calculator history"
-          empty-title="No calculations yet"
-          empty-description="Completed expressions will appear here for reuse."
-          reuse-title="Reuse this expression"
-          mono
-          @reuse="reuseHistoryEntry"
-          @copy="copyHistoryEntry"
-          @remove="history.remove"
-          @clear="clearHistory"
-        />
-      </aside>
     </div>
-
-    <p class="sr-only" role="status" aria-live="polite">{{ copyStatus }}</p>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
-import { Button, Icon, TabButtons, TextInput } from 'frappe-ui'
+import { nextTick, onMounted, ref } from 'vue'
+import { Icon, TabButtons, TextInput } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import ToolHistory from '@/components/history/ToolHistory.vue'
 import CalculatorKeypad from '@/tools/calculator/CalculatorKeypad.vue'
 import { ANGLE_MODES } from '@/tools/calculator'
 import { useCalculator } from '@/tools/calculator/useCalculator'
-import { useCalculatorHistory } from '@/tools/calculator/useCalculatorHistory'
 import { getToolCategoryName } from '@/data/toolRegistry'
 
 const categoryName = getToolCategoryName('calculator')
@@ -118,21 +97,8 @@ const angleTabs = [
   { label: 'RAD', value: ANGLE_MODES.RADIANS },
 ]
 const expressionField = ref(null)
-const copiedEntryId = ref('')
-const copyStatus = ref('')
 const preferences = useToolboxPreferences()
-const history = useCalculatorHistory()
-// The Calculator keeps its own storage shape ({ expression, result }); map it onto the
-// shared history contract ({ label, value }) so the panel matches every other tool.
-const historyEntries = computed(() =>
-  history.entries.value.map((entry) => ({
-    id: entry.id,
-    label: entry.expression,
-    value: entry.result,
-    timestamp: entry.timestamp,
-  })),
-)
-const calculator = useCalculator({ onCalculated: history.add })
+const calculator = useCalculator()
 const { expression, result, errorMessage, angleMode } = calculator
 
 onMounted(() => preferences.recordRecent('calculator'))
@@ -196,32 +162,6 @@ async function runCalculation() {
   await nextTick()
   if (succeeded) expressionElement()?.select()
   else expressionElement()?.focus()
-}
-
-async function reuseHistoryEntry(entry) {
-  calculator.reuseExpression(entry.label)
-  await focusExpression(entry.label.length)
-}
-
-async function copyHistoryEntry(entry) {
-  if (await copyText(entry.value)) copiedEntryId.value = entry.id
-}
-
-async function copyText(value) {
-  try {
-    if (!globalThis.navigator?.clipboard?.writeText) throw new Error('Clipboard unavailable')
-    await globalThis.navigator.clipboard.writeText(value)
-    copyStatus.value = `Copied ${value}.`
-    return true
-  } catch {
-    copyStatus.value = 'Copy is unavailable in this browser.'
-    return false
-  }
-}
-
-function clearHistory() {
-  history.clear()
-  copiedEntryId.value = ''
 }
 
 async function focusExpression(caret = expression.value.length) {

@@ -34,9 +34,11 @@ The application does not use Pinia or Vuex. Shared preferences use the singleton
 
 Preferences use `sessionStorage` under `toolbox:preferences:v1`, so they last as long as the tab. The one exception is `theme`, which uses `localStorage` under `toolbox:theme:v1` so a returning visitor is not flashed a white page. The store falls back to memory when a browser blocks storage.
 
-Tool history uses `sessionStorage` too, and keeps the last 10 entries for each tool. So do the calculator's own history, the dictionary's recent searches, and the timer workspace, which holds the timer, the stopwatch and the countdown. Each of the three used `localStorage` until it was moved, so each clears the key that left behind when it loads.
+The timer workspace uses `sessionStorage` too, holding the timer, the stopwatch and the countdown. It used `localStorage` until it was moved, so it clears the key that left behind when it loads.
 
-Nothing a visitor does is sent to the server. Do not add a history or a draft that outlives the browser session. A preference may outlive it only when it records the shape of the application rather than anything the visitor did, looked at, or typed, and the list below has to name it.
+No tool records what was worked out in it. Tool history, the calculator's own log, the dictionary's recent searches and the saved currency pairs were all removed in #281, and the saved World Clock cities went with the tool in #283. `utils/retiredStorage.js` clears the keys they left in a session that is open across the deploy; delete it once no live session predates that release.
+
+Nothing a visitor does is sent to the server, and nothing a visitor does is written down. Do not add a history, a recents list or a draft. A preference may outlive the moment only when it records the shape of the application rather than anything the visitor did, looked at, or typed, and the list below has to name it.
 
 Three keys live in `localStorage` today, and only three. `toolbox:theme:v1`, for the reason above. The Currency Converter rate snapshot, which is the only thing that lets that tool convert on the first offline visit of a session; it holds public reference rates and names nobody. And `toolbox:sidebar-collapsed:v1`, which records whether the sidebar is a rail, so a returning visitor keeps the shape they left it in.
 
@@ -229,7 +231,7 @@ Follow this path in order.
 
 The application shell, desktop and mobile navigation, All Tools at the root, deterministic search, recent tools, and settings work. There is no Home page and no favorites; both went with the pivot.
 
-Preferences work, for the length of the browser session. Saved currency pairs and World Clock locations work the same way. PWA installation, offline behavior, and update prompts work.
+Preferences work, for the length of the browser session. PWA installation, offline behavior, and update prompts work.
 
 Each route sends its own `<title>`, description, canonical URL, social tags, and JSON-LD, built by `toolbox/seo.py` and rendered into the server response. The application serves its own `robots.txt` and `sitemap.xml`, which override Frappe's. Add a tool, and its metadata entry is required: a test fails when `seo.py` and `routes.py` disagree.
 

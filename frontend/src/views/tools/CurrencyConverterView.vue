@@ -5,28 +5,25 @@
       <div class="min-w-0 flex-1"><p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p><h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Currency Converter</h1><p class="pt-2 text-base leading-7 text-ink-gray-6">Convert locally with dated European Central Bank reference rates.</p></div>
     </header>
 
-    <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div class="pt-8">
       <div class="min-w-0">
         <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6" aria-labelledby="currency-input-heading">
           <div class="flex items-start justify-between gap-4"><div><h2 id="currency-input-heading" class="text-lg font-semibold text-ink-gray-9">Convert an amount</h2><p class="pt-1 text-sm leading-6 text-ink-gray-6">Your amount and selected currencies stay in this browser.</p></div><Button label="Refresh rates" variant="ghost" icon-left="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(converter.loadState.value)" @click="converter.loadRates" /></div>
 
           <div class="grid items-end gap-3 pt-6 sm:grid-cols-[minmax(0,1fr)_13rem]">
-            <FormControl class="[&_input]:tabular-nums" type="number" size="lg" variant="outline" label="Amount" :model-value="converter.sourceInput.value" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Source amount" aria-describedby="currency-feedback" @update:model-value="converter.updateSourceAmount" @change="converter.recordHistory()" />
+            <FormControl class="[&_input]:tabular-nums" type="number" size="lg" variant="outline" label="Amount" :model-value="converter.sourceInput.value" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Source amount" aria-describedby="currency-feedback" @update:model-value="converter.updateSourceAmount" />
             <CurrencyPicker v-model="converter.sourceCurrency.value" label="Source currency" picker-id="source-currency" :currencies="converter.currencies.value" />
           </div>
 
           <div class="flex justify-center py-2"><Button class="size-11" variant="subtle" icon="lucide-arrow-up-down" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" /></div>
 
           <div class="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_13rem]">
-            <FormControl class="[&_input]:tabular-nums" type="number" size="lg" variant="outline" label="Converts to" :model-value="converter.destinationInput.value" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Destination amount" @update:model-value="converter.updateDestinationAmount" @change="converter.recordHistory()" />
+            <FormControl class="[&_input]:tabular-nums" type="number" size="lg" variant="outline" label="Converts to" :model-value="converter.destinationInput.value" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Destination amount" @update:model-value="converter.updateDestinationAmount" />
             <CurrencyPicker v-model="converter.destinationCurrency.value" label="Destination currency" picker-id="destination-currency" :currencies="converter.currencies.value" />
           </div>
 
           <div id="currency-feedback" class="pt-4"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" variant="outline" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
 
-          <div class="flex flex-wrap gap-2 pt-5"><Button :label="converter.isPairSaved.value ? 'Saved pair' : 'Save pair'" icon-left="lucide-star" variant="subtle" :disabled="!converter.rateData.value" @click="converter.toggleSavedPair" /></div>
-
-          <div v-if="converter.savedPairs.value.length" class="pt-6"><h3 class="text-sm font-medium text-ink-gray-8">Saved pairs</h3><div class="flex flex-wrap gap-2 pt-2"><Button v-for="pair in converter.savedPairs.value" :key="`${pair.baseCurrency}:${pair.quoteCurrency}`" variant="subtle" :label="`${pair.baseCurrency} → ${pair.quoteCurrency}`" @click="converter.usePair(pair)" /></div></div>
         </section>
 
         <div v-if="converter.rateData.value" class="mt-6 space-y-2 text-sm leading-6 text-ink-gray-5">
@@ -43,21 +40,6 @@
         </div>
       </div>
 
-      <aside class="min-w-0 lg:sticky lg:top-6">
-        <ToolHistory
-          :entries="converter.historyEntries.value"
-          :copied-entry-id="copiedHistoryId"
-          list-label="Currency conversion history"
-          clear-label="Clear currency history"
-          empty-title="No conversions yet"
-          empty-description="A conversion appears here once you finish typing an amount."
-          reuse-title="Reuse this conversion"
-          @reuse="converter.reuseHistory"
-          @copy="copyHistoryEntry"
-          @remove="converter.removeHistory"
-          @clear="converter.clearHistory"
-        />
-      </aside>
     </div>
 
     <div class="pt-8">
@@ -76,11 +58,10 @@
   </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Alert, Button, ErrorMessage, FormControl, Icon } from 'frappe-ui'
 import { useRoute } from 'vue-router'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
-import ToolHistory from '@/components/history/ToolHistory.vue'
 import CurrencyPicker from '@/tools/currency-converter/CurrencyPicker.vue'
 import RateChart from '@/tools/currency-converter/RateChart.vue'
 import { RATE_CHART_RANGES } from '@/tools/currency-converter/rateHistory'
@@ -91,7 +72,6 @@ import { getToolCategoryName } from '@/data/toolRegistry'
 const categoryName = getToolCategoryName('currency-converter')
 const preferences = useToolboxPreferences(), converter = useCurrencyConverter({ preferences }), route = useRoute()
 const rateChart = useRateChart({ base: converter.sourceCurrency, quote: converter.destinationCurrency })
-const copiedHistoryId = ref('')
 // ECB reference rates are never described as "live" (spec §5.9); a fresh fetch reads "updated".
 const rateStatusLabels = { live: 'updated', cached: 'server cache', stale: 'stale server cache' }
 const rateStatus = computed(() =>
@@ -100,14 +80,6 @@ const rateStatus = computed(() =>
     : (rateStatusLabels[converter.rateData.value?.cacheStatus] ?? ''),
 )
 function formatTimestamp(value) { return value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Not checked' }
-async function copyHistoryEntry(entry) {
-  try {
-    await globalThis.navigator?.clipboard?.writeText(entry.value)
-    copiedHistoryId.value = entry.id
-  } catch {
-    copiedHistoryId.value = ''
-  }
-}
 onMounted(async () => {
   preferences.recordRecent('currency-converter')
   await converter.loadRates()

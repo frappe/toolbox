@@ -25,22 +25,14 @@ const readyResponse = {
   sourceUpdatedAt: '2026-07-01T00:00:00Z',
 }
 
-function memoryStorage() {
-  const values = new Map()
-  return {
-    getItem: (key) => values.get(key) ?? null,
-    setItem: (key, value) => values.set(key, value),
-  }
-}
-
 function createDictionary() {
-  return useDictionary({ storage: memoryStorage() })
+  return useDictionary()
 }
 
 afterEach(() => vi.useRealTimers())
 
 describe('dictionary lookup orchestration', () => {
-  it('submits a word, exposes ready senses, and records the recent word', async () => {
+  it('submits a word and exposes its ready senses', async () => {
     lookup.mockResolvedValue(readyResponse)
     const dict = createDictionary()
     dict.query.value = 'set'
@@ -51,10 +43,9 @@ describe('dictionary lookup orchestration', () => {
     expect(dict.senses.value).toHaveLength(2)
     expect(dict.word.value).toBe('set')
     expect(dict.source.value.attribution).toContain('Princeton University')
-    expect(dict.recentWords.value[0]).toBe('set')
   })
 
-  it('surfaces suggestions when the word is missing and adds nothing to recents', async () => {
+  it('surfaces suggestions when the word is missing', async () => {
     lookup.mockResolvedValue({ schemaVersion: 1, state: 'missing', word: 'teh', suggestions: ['tea', 'the', 'ten'] })
     const dict = createDictionary()
     await dict.selectWord('teh')
@@ -62,7 +53,6 @@ describe('dictionary lookup orchestration', () => {
     expect(dict.state.value).toBe('missing')
     expect(dict.missSuggestions.value).toEqual(['tea', 'the', 'ten'])
     expect(dict.senses.value).toEqual([])
-    expect(dict.recentWords.value).toEqual([])
   })
 
   it('reports an unavailable dataset without fabricating a result', async () => {

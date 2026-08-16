@@ -12,7 +12,6 @@ subtraction.
 1. Type the expression, or press the keys.
 2. Press Enter, or the equals key, to work it out.
 3. Read the result under the expression.
-4. Select a line in the history to put an earlier expression back.
 
 `sqrt`, `log`, `ln`, `sin`, `cos`, `tan`, `asin`, `acos` and `atan` are all available, and `pi` and
 `e` name their constants. `log` is the base-10 logarithm and `ln` is the natural one. The
@@ -68,10 +67,10 @@ scientific notation instead.
 The rounding also hides an old surprise. A computer holds a decimal fraction in binary, and `0.1 +
 0.2` is 0.30000000000000004 in that form. Rounding at 12 digits shows the 0.3 you expected.
 
-### Is my history saved?
+### Is what I type saved anywhere?
 
-The last 10 results stay while the browser tab is open, and go when it closes. They are held in
-the tab itself and never sent to a server.
+No. The calculator keeps no record of what you work out. The expression and its result live only
+on the page in front of you, and nothing is written to the browser or sent to a server.
 
 ## Good to know
 

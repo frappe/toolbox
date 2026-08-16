@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures'
 
-test('@smoke calculates a typed scientific expression and stores history', async ({ page }) => {
+test('@smoke calculates a typed scientific expression', async ({ page }) => {
   await page.goto('/calculator')
 
   const expression = page.getByRole('textbox', { name: 'Expression' })
@@ -8,12 +8,6 @@ test('@smoke calculates a typed scientific expression and stores history', async
   await expression.press('Enter')
 
   await expect(page.getByRole('status', { name: 'Calculation result' })).toHaveText('9.5')
-  await expect(page.getByRole('list', { name: 'Calculator history entries' })).toContainText(
-    'sqrt(81) + sin(30)',
-  )
-
-  await page.reload()
-  await expect(page.getByRole('list', { name: 'Calculator history entries' })).toContainText('9.5')
 })
 
 test('shows a safe domain error without breaking the calculator', async ({ page }) => {

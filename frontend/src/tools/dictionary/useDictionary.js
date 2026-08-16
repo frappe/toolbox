@@ -1,7 +1,6 @@
 import { ref, watch } from 'vue'
 
 import { getDatasetStatus, lookup, suggest } from './api'
-import { addRecentSearch, loadRecentSearches, saveRecentSearches } from './recentSearches'
 
 export const SUGGEST_MIN_LENGTH = 1
 export const SUGGEST_DEBOUNCE_MS = 200
@@ -13,7 +12,6 @@ export function useDictionary({
   lookupApi = lookup,
   suggestApi = suggest,
   statusApi = getDatasetStatus,
-  storage,
 } = {}) {
   const query = ref('')
   const state = ref('idle')
@@ -24,7 +22,6 @@ export function useDictionary({
   const suggestions = ref([])
   const missSuggestions = ref([])
   const errorMessage = ref('')
-  const recentWords = ref(loadRecentSearches(storage))
   const datasetStatus = ref(null)
 
   let suggestTimer = null
@@ -98,7 +95,6 @@ export function useDictionary({
       sourceUpdatedAt.value = response.sourceUpdatedAt ?? ''
       missSuggestions.value = []
       state.value = 'ready'
-      recentWords.value = addRecentSearch(word.value, storage)
       return
     }
     if (response?.state === 'missing') {
@@ -123,10 +119,6 @@ export function useDictionary({
     missSuggestions.value = []
   }
 
-  function clearRecent() {
-    recentWords.value = saveRecentSearches([], storage)
-  }
-
   async function loadStatus() {
     try {
       const response = await statusApi()
@@ -148,13 +140,11 @@ export function useDictionary({
     sourceUpdatedAt,
     suggestions,
     missSuggestions,
-    recentWords,
     errorMessage,
     datasetStatus,
     submit,
     selectWord,
     lookupWord,
-    clearRecent,
     loadStatus,
   }
 }

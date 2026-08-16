@@ -71,15 +71,3 @@ test('@smoke sends the retired calculators route to EMI', async ({ request }) =>
   }
 })
 
-test('keeps a separate result history for each calculator', async ({ page }) => {
-  // Each is its own tool now, so an EMI result does not belong on the SIP page.
-  await page.goto('/emi-calculator')
-  await page.getByRole('spinbutton', { name: 'Principal' }).fill('250000')
-  await page.getByRole('spinbutton', { name: 'Principal' }).blur()
-  await expect(page.getByRole('list', { name: 'Financial calculation history' })).toContainText(
-    'EMI',
-  )
-
-  await page.goto('/sip-calculator')
-  await expect(page.getByRole('list', { name: 'Financial calculation history' })).toHaveCount(0)
-})

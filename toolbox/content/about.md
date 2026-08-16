@@ -33,8 +33,8 @@ anything at all.
 ### Do you track me?
 
 No. There is no analytics script, no advertising tag and no cookie banner, because there is nothing
-to consent to. Your settings, your history and your saved places stay in the browser tab you are
-using and go when it closes.
+to consent to. Nothing you type is recorded anywhere, and your settings stay in the browser tab
+you are using and go when it closes.
 
 Two things are kept for longer, and neither says anything about you. The light or dark theme, so a
 returning visitor is not shown a white flash. And the last table of currency reference rates,

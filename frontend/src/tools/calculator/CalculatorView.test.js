@@ -1,26 +1,14 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import CalculatorView from '@/views/tools/CalculatorView.vue'
 
-let writeText
-
-beforeEach(() => {
-  writeText = vi.fn().mockResolvedValue(undefined)
-  Object.defineProperty(globalThis.navigator, 'clipboard', {
-    configurable: true,
-    value: { writeText },
-  })
-})
-
 describe('CalculatorView calculations', () => {
-  it('calculates typed expressions and adds them to local history', async () => {
+  it('calculates typed expressions', async () => {
     const wrapper = mount(CalculatorView)
     await calculateExpression(wrapper, '2 + 3 * 4')
 
     expect(resultOutput(wrapper).text()).toBe('14')
-    expect(wrapper.get('[aria-label="Calculator history entries"]').text()).toContain('2 + 3 * 4')
-    expect(wrapper.get('[aria-label="Calculator history entries"]').text()).toContain('14')
   })
 
   it('supports the standard and scientific keypad', async () => {
@@ -125,44 +113,6 @@ describe('CalculatorView editing and keyboard behavior', () => {
   })
 })
 
-describe('CalculatorView history', () => {
-  it('persists expressions and results across remounts', async () => {
-    const firstWrapper = mount(CalculatorView)
-    await calculateExpression(firstWrapper, 'square(12)')
-    firstWrapper.unmount()
-
-    const secondWrapper = mount(CalculatorView)
-    const history = secondWrapper.get('[aria-label="Calculator history entries"]')
-
-    expect(history.text()).toContain('square(12)')
-    expect(history.text()).toContain('144')
-  })
-
-  it('reuses, copies, deletes, and clears history entries', async () => {
-    const wrapper = mount(CalculatorView)
-    await calculateExpression(wrapper, '2 + 3')
-    await calculateExpression(wrapper, '4 * 5')
-
-    await buttonByLabel(wrapper, 'Reuse 2 + 3').trigger('click')
-    expect(expressionInput(wrapper).element.value).toBe('2 + 3')
-
-    await wrapper.get('[aria-label="Copy result 5"]').trigger('click')
-    await flushPromises()
-    expect(writeText).toHaveBeenCalledWith('5')
-    expect(wrapper.get('[aria-label="Copied result 5"]').exists()).toBe(true)
-
-    await buttonByLabel(wrapper, 'Delete 2 + 3 from history').trigger('click')
-    expect(findButtonByLabel(wrapper, 'Reuse 2 + 3')).toBeUndefined()
-
-    await wrapper.get('[aria-label="Clear calculator history"]').trigger('click')
-    expect(wrapper.text()).toContain('No calculations yet')
-    expect(globalThis.sessionStorage.getItem('toolbox:calculator-history:v1')).toBe('[]')
-  })
-
-
-
-})
-
 async function calculateExpression(wrapper, expression) {
   await expressionInput(wrapper).setValue(expression)
   await expressionInput(wrapper).trigger('keydown', { key: 'Enter' })
@@ -180,16 +130,6 @@ function expressionInput(wrapper) {
 
 function resultOutput(wrapper) {
   return wrapper.get('[aria-label="Calculation result"]')
-}
-
-function buttonByLabel(wrapper, label) {
-  const button = findButtonByLabel(wrapper, label)
-  if (!button) throw new Error(`Could not find button labelled "${label}".`)
-  return button
-}
-
-function findButtonByLabel(wrapper, label) {
-  return wrapper.findAll('button').find((button) => button.attributes('aria-label') === label)
 }
 
 function angleTab(wrapper, label) {

@@ -68,7 +68,11 @@
             />
           </div>
 
-          <p id="calculator-keyboard-hint" class="pt-4 text-sm leading-6 text-ink-gray-4">
+          <!-- Not `ink-gray-4`, which is #999999 and 2.68:1 on this card, and not `ink-gray-5`
+               either, which measures 3.93:1 and also misses 4.5:1. This line tells a visitor which
+               keys work, so it has to be readable. It sat below the fold, which is why the sweep
+               never saw it until the scan started covering the whole page. -->
+          <p id="calculator-keyboard-hint" class="pt-4 text-sm leading-6 text-ink-gray-6">
             Enter calculates, Backspace deletes, and Escape clears while the expression field is focused.
           </p>
         </section>

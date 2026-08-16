@@ -42,6 +42,7 @@ for (const path of ALL_ROUTES) {
 
           await page.goto(path)
           await expect(page.getByRole('heading', { name: headingFor(path), level: 1 })).toBeVisible()
+          await settle(page, path)
 
           await expect(page).toHaveScreenshot(`${slug(path)}-${theme}-${viewport.name}.png`, {
             animations: 'disabled',
@@ -57,7 +58,21 @@ for (const path of ALL_ROUTES) {
   }
 }
 
+// The heading is server-rendered, so it is visible before anything the page fetches. On
+// `/data-sources` the release ledger arrives after it, and a screenshot taken in between catches
+// "Reading the release ledger…" where the next run catches the list — which moves every row below
+// it and fails on 3% of the image. The heading is not proof the page has finished.
+async function settle(page, path) {
+  if (path !== '/data-sources') return
+  await expect(page.getByText('Reading the release ledger…')).toHaveCount(0)
+}
+
 function masksFor(page, path) {
+  // The figures on the dataset page are read from the database, and the Imported date moves
+  // whenever a release is imported again. That is a second reason this page can differ between
+  // runs, and unlike the load race it cannot be waited out.
+  if (path === '/data-sources') return [page.locator('#main-content dd.tabular-nums')]
+
   if (!CLOCK_ROUTES.has(path)) return []
   // Every running figure on these pages is monospaced, which is the one thing they have in common.
   return [page.locator('#main-content .font-mono')]

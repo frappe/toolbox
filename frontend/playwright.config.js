@@ -51,7 +51,7 @@ export default defineConfig({
       // sitemap, the redirects, unique metadata, which storage keys survive — is the same on
       // every engine, so they run on Chromium alone. Repeating a 37-page walk on three engines
       // tripled the peak memory and bought nothing.
-      testIgnore: /responsive\.spec\.js|visual\.spec\.js|navigation\.spec\.js|storage\.spec\.js/,
+      testIgnore: /responsive\.spec\.js|visual\.spec\.js|navigation\.spec\.js|storage\.spec\.js|csp\.spec\.js/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
@@ -60,7 +60,7 @@ export default defineConfig({
       // so offline behaviour is covered on Chromium and Firefox. Blocking the service worker
       // here also stops WebKit routing app fetches through the SW, which otherwise escapes
       // page.route and defeats the currency-rate mock. WebKit exercises no SW-dependent path.
-      testIgnore: /responsive\.spec\.js|visual\.spec\.js|offline\.spec\.js|navigation\.spec\.js|storage\.spec\.js/,
+      testIgnore: /responsive\.spec\.js|visual\.spec\.js|offline\.spec\.js|navigation\.spec\.js|storage\.spec\.js|csp\.spec\.js/,
       use: {
         ...devices['Desktop Safari'],
         serviceWorkers: 'block',

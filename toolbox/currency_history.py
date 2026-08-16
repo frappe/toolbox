@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import csv
 import io
-from datetime import date, datetime, timedelta, timezone
+from collections.abc import Callable
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
-from typing import Callable
 
 import frappe
 import requests
@@ -135,7 +135,7 @@ class CurrencyHistoryService:
 	) -> None:
 		self.provider = provider or EcbHistoricalRateProvider()
 		self.cache = cache or frappe.cache
-		self.clock = clock or (lambda: datetime.now(timezone.utc))
+		self.clock = clock or (lambda: datetime.now(UTC))
 
 	def get(self, base: str, quote: str, range_key: str) -> dict[str, object]:
 		base = _validate_currency(base)

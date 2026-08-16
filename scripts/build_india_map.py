@@ -67,7 +67,9 @@ def _rdp(points: list, epsilon: float) -> list:
 			keep[furthest] = True
 			stack.append((start, furthest))
 			stack.append((furthest, end))
-	return [point for point, kept in zip(points, keep) if kept]
+	# `keep` is built as one flag per point, so `strict` states that rather than assuming it. A
+	# silent `zip` would drop the tail of the longer list and quietly return a shorter coastline.
+	return [point for point, kept in zip(points, keep, strict=True) if kept]
 
 
 def _perpendicular_distance(point: list, start: list, end: list) -> float:

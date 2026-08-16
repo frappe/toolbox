@@ -2,7 +2,7 @@
 # License: GNU Affero General Public License v3
 
 from contextlib import nullcontext
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock, patch
 
 import frappe
@@ -12,9 +12,13 @@ from frappe.tests import UnitTestCase
 from redis.exceptions import LockError
 
 from toolbox.currency import CurrencyRateService, get_reference_rates
-from toolbox.currency_provider import CurrencyProviderError, EcbReferenceRateProvider, parse_ecb_reference_rates
+from toolbox.currency_provider import (
+	CurrencyProviderError,
+	EcbReferenceRateProvider,
+	parse_ecb_reference_rates,
+)
 
-NOW = datetime(2026, 8, 1, 0, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 8, 1, 0, 0, tzinfo=UTC)
 RATES = {
 	"schemaVersion": 1,
 	"baseCurrency": "EUR",

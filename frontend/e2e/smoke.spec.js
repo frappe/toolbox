@@ -97,3 +97,30 @@ test('@smoke installs the service worker at the site root', async ({ browserName
     )
     .toBe('activated')
 })
+
+// The whole suite assumes it is talking to a secure origin, and never says so. A browser hands out
+// the service worker, `navigator.clipboard` and `navigator.mediaDevices` only in a secure context,
+// and `localhost` and anything under it are the one insecure origin that qualifies — which is why
+// the bench serves `toolbox-test.localhost` and CI creates `test_site.localhost`.
+//
+// Get that wrong and the failures do not point at it. The service worker disappears and 68 offline
+// tests fail on `navigator.serviceWorker is undefined`; the Audio Recorder correctly reports that
+// it needs a microphone; and `useScriptConversion` finds no `navigator.clipboard`, takes its
+// fallback branch and copies nothing, with no error anywhere. This states the assumption once, so
+// a base URL that loses it fails here first and says why.
+test('@smoke the suite is talking to a secure origin', async ({ page }) => {
+  await page.goto('/')
+
+  const available = await page.evaluate(() => ({
+    secure: globalThis.isSecureContext,
+    origin: globalThis.location.origin,
+    serviceWorker: 'serviceWorker' in navigator,
+    clipboard: Boolean(navigator.clipboard),
+    mediaDevices: Boolean(navigator.mediaDevices),
+  }))
+
+  expect(available.secure, `${available.origin} is not a secure context`).toBe(true)
+  expect(available.serviceWorker, 'the service worker is unavailable').toBe(true)
+  expect(available.clipboard, 'navigator.clipboard is unavailable').toBe(true)
+  expect(available.mediaDevices, 'navigator.mediaDevices is unavailable').toBe(true)
+})

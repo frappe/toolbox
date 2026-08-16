@@ -31,8 +31,12 @@ done
 # diagnosis more than once, so the run refuses to start rather than produce a report that lies.
 guard_against_concurrent_runs() {
   local busy=""
-  pgrep -f "playwright test" >/dev/null 2>&1 && busy+="  a Playwright run is active\n"
-  pgrep -f "vitest" >/dev/null 2>&1 && busy+="  a vitest run is active\n"
+  # The bracket around the first letter stops the pattern matching a shell whose own command line
+  # happens to contain it — including the one that invoked this script. Without it, wrapping the
+  # run in a command that names "playwright test" makes the guard refuse on the strength of its
+  # own arguments.
+  pgrep -f "[p]laywright test" >/dev/null 2>&1 && busy+="  a Playwright run is active\n"
+  pgrep -f "[v]itest" >/dev/null 2>&1 && busy+="  a vitest run is active\n"
 
   if [[ -e "$lock_file" ]]; then
     local owner

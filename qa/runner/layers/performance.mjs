@@ -91,20 +91,36 @@ async function measureBundle(assetsRoot, budget) {
 // A refused connection settles fastest of all, so every timing is taken only from a request that
 // actually answered. Discarding that distinction once produced a report claiming a 42ms time to
 // first byte from a server that was not running.
+// Three samples, and the median of them. One sample of a server that started seconds ago measures
+// its first request rather than its speed: the figure moved 62ms to 90ms between two runs with no
+// change behind it, and the baseline read that as a regression. The first sample is dropped, since
+// it carries whatever the process had left to warm.
 async function measureServer(baseUrl) {
   const routes = ['/', '/calculator', '/emi-calculator', '/dictionary', '/pin-code-search']
   const timings = []
   const unanswered = []
 
   for (const route of routes) {
-    const startedAt = performance.now()
-    const ok = await answered(`${baseUrl}${route}`)
-    if (ok) timings.push({ route, ms: Math.round(performance.now() - startedAt) })
+    const samples = []
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const startedAt = performance.now()
+      const ok = await answered(`${baseUrl}${route}`)
+      if (!ok) break
+      if (attempt > 0) samples.push(performance.now() - startedAt)
+    }
+
+    if (samples.length) timings.push({ route, ms: Math.round(median(samples)) })
     else unanswered.push(route)
   }
 
   timings.sort((left, right) => right.ms - left.ms)
   return { timings, unanswered, slowest: timings[0] || { route: 'none', ms: 0 } }
+}
+
+function median(values) {
+  const sorted = [...values].sort((left, right) => left - right)
+  const middle = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
 }
 
 async function measureApi(baseUrl, budget) {

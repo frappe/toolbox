@@ -92,7 +92,7 @@
         <!-- Stopped: written straight to disk, so there is nothing held here -->
         <div v-else-if="recorder.isStreamingToDisk.value" class="flex flex-col gap-3">
           <p class="flex items-center gap-2 text-sm font-medium text-ink-gray-8">
-            <Icon name="lucide-check" class="size-5 shrink-0 text-ink-green-3" />
+            <Icon name="lucide-check" class="size-5 shrink-0 text-ink-green-8" />
             Saved to your file — {{ formatDuration(recorder.elapsed.value) }}, {{ formatSize(recorder.bytes.value) }}.
           </p>
           <p class="text-xs leading-5 text-ink-gray-5">Toolbox kept no copy. Open the file from wherever you saved it.</p>

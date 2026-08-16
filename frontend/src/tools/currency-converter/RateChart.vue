@@ -14,9 +14,12 @@
         <p class="text-xl font-semibold tabular-nums text-ink-gray-9">
           {{ formatRate(latest.value) }}
         </p>
+        <!-- Step 8, not 3. These scales run pale to dark as the number rises in the light theme
+             and the other way in the dark one, so step 3 is a fill and step 8 is ink. Measured on
+             this card: green-3 is 1.21:1, green-8 is 4.68:1 light and 8.15:1 dark. -->
         <p
           class="text-sm tabular-nums"
-          :class="change.direction === 'down' ? 'text-ink-red-3' : 'text-ink-green-3'"
+          :class="change.direction === 'down' ? 'text-ink-red-8' : 'text-ink-green-8'"
         >
           {{ change.direction === 'down' ? '▼' : '▲' }} {{ formatRate(Math.abs(change.absolute)) }}
           ({{ change.percent }})

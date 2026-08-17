@@ -1,15 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
-        <Icon name="lucide-mic" class="size-6 text-ink-gray-7" />
-      </span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Recorder</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">Record a voice note in your browser and save it to your device. Nothing is uploaded.</p>
-      </div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-mic"
+      :category="categoryName"
+      title="Audio Recorder"
+      description="Record a voice note in your browser and save it to your device. Nothing is uploaded."
+    />
 
     <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" aria-label="Recorder">
       <p v-if="!recorder.isSupported.value" class="flex items-center gap-2 text-sm text-ink-gray-6">
@@ -132,6 +128,7 @@ import { Alert, Button, Checkbox, FormControl, Icon } from 'frappe-ui'
 import { useRouter } from 'vue-router'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import { formatDuration, formatSize } from '@/tools/audio-recorder/audioFormat'
 import { chooseFileSink, isFileSinkSupported, suggestedFileName } from '@/tools/audio-recorder/fileSink'
 import { offerRecording } from '@/tools/audio-recorder/recordingHandoff'

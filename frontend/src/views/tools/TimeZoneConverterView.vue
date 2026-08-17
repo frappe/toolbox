@@ -1,15 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
-        <Icon name="lucide-clock-arrow-up" class="size-6 text-ink-gray-7" />
-      </span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Time Zone Converter</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">Take one date and time and read it in every city at once.</p>
-      </div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-clock-arrow-up"
+      :category="categoryName"
+      title="Time Zone Converter"
+      description="Take one date and time and read it in every city at once."
+    />
 
     <div class="mt-8 grid gap-4 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:grid-cols-2">
       <FormControl type="datetime" size="md" label="Date and time" :model-value="converter.convertDateTime.value" @update:model-value="setConvertDateTime" />
@@ -76,8 +72,9 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Badge, Button, FormControl, Icon } from 'frappe-ui'
+import { Badge, Button, FormControl } from 'frappe-ui'
 
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import { useTimeZoneConverter } from '@/tools/time-zone-converter/useTimeZoneConverter'

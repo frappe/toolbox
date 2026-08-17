@@ -1,13 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon name="lucide-book-open" class="size-6 text-ink-gray-7" /></span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Dictionary</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">Look up English definitions from the openly licensed WordNet dataset.</p>
-      </div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-book-open"
+      :category="categoryName"
+      title="Dictionary"
+      description="Look up English definitions from the openly licensed WordNet dataset."
+    />
 
     <form class="pt-8" role="search" @submit.prevent="dict.submit">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -125,6 +123,7 @@
 import { computed, onMounted } from 'vue'
 import { Button, Icon, LoadingIndicator } from 'frappe-ui'
 
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import SearchSelect from '@/components/search/SearchSelect.vue'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
 import RelatedWordsSection from '@/tools/dictionary/RelatedWordsSection.vue'

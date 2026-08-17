@@ -1,15 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
-        <Icon name="lucide-audio-lines" class="size-6 text-ink-gray-7" />
-      </span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Audio Editor</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">Trim, fade and adjust a clip in your browser, then export a clean WAV. Nothing leaves your device until you save.</p>
-      </div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-audio-lines"
+      :category="categoryName"
+      title="Audio Editor"
+      description="Trim, fade and adjust a clip in your browser, then export a clean WAV. Nothing leaves your device until you save."
+    />
 
     <!-- Empty: choose a file -->
     <section v-if="editor.state.value === 'empty' || editor.state.value === 'error'" class="mt-8 rounded-2xl border border-dashed border-outline-gray-3 bg-surface-gray-1 p-8 text-center" aria-label="Import audio">
@@ -128,6 +124,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Alert, Button, FormControl, Icon, Slider, TabButtons } from 'frappe-ui'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import { formatSize } from '@/tools/audio-recorder/audioFormat'
 import { takeRecording } from '@/tools/audio-recorder/recordingHandoff'
 import { useAudioEditor } from '@/tools/audio-editor/useAudioEditor'

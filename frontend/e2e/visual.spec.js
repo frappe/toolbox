@@ -58,13 +58,17 @@ for (const path of ALL_ROUTES) {
   }
 }
 
-// The heading is server-rendered, so it is visible before anything the page fetches. On
-// `/data-sources` the release ledger arrives after it, and a screenshot taken in between catches
-// "Reading the release ledger…" where the next run catches the list — which moves every row below
-// it and fails on 3% of the image. The heading is not proof the page has finished.
+// The `<h1>` is rendered by the server as well as by the application, so waiting for it does not
+// prove the application is up. `#main-content` belongs to `AppShell` and appears in no
+// server-rendered block, so this waits for the real thing.
+//
+// It is a guard rather than a fix for anything measured: probing a throttled browser shows the
+// shell already mounted by the time the heading is visible. The `/data-sources` wait below is the
+// one that fixed a real failure — its release ledger arrives after the heading, so one run caught
+// "Reading the release ledger…" and the next caught the list.
 async function settle(page, path) {
-  if (path !== '/data-sources') return
-  await expect(page.getByText('Reading the release ledger…')).toHaveCount(0)
+  await expect(page.locator('#main-content')).toBeVisible()
+  if (path === '/data-sources') await expect(page.getByText('Reading the release ledger…')).toHaveCount(0)
 }
 
 function masksFor(page, path) {

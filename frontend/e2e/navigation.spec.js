@@ -138,3 +138,51 @@ function decode(text) {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
 }
+
+// The brand menu is frappe-ui's `Dropdown` since #278, and the reason for the change was
+// keyboard behaviour: the hand-rolled `role="menu"` promised arrow keys and had none. A unit
+// test cannot see any of this — the frappe-ui double stands in for reka, which is what actually
+// implements it — so it is checked here, against a real browser.
+test.describe('the brand menu', () => {
+  const trigger = (page) => page.getByRole('button', { name: 'Toolbox menu' })
+
+  test('@smoke moves through its items with the arrow keys, skipping the summary', async ({ page }) => {
+    await page.goto('/calculator')
+    await trigger(page).click()
+
+    const menu = page.getByRole('menu')
+    await expect(menu).toBeVisible()
+
+    // The first row is the "Free tools, no account" summary. It is registered disabled, so the
+    // roving focus steps over it rather than landing on a row nobody can choose.
+    await page.keyboard.press('ArrowDown')
+    await expect(page.getByRole('menuitem', { name: 'About Toolbox' })).toBeFocused()
+
+    await page.keyboard.press('ArrowDown')
+    await expect(page.getByRole('menuitem', { name: 'Data sources' })).toBeFocused()
+  })
+
+  test('closes on Escape and gives the trigger its focus back', async ({ page }) => {
+    await page.goto('/calculator')
+    await trigger(page).click()
+    await expect(page.getByRole('menu')).toBeVisible()
+
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Escape')
+
+    await expect(page.getByRole('menu')).toBeHidden()
+    // Focus has to come back, or a keyboard visitor is dropped at the top of the document.
+    await expect(trigger(page)).toBeFocused()
+  })
+
+  test('takes a route from the keyboard', async ({ page }) => {
+    await page.goto('/calculator')
+    await trigger(page).click()
+
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL(/\/data-sources$/)
+  })
+})

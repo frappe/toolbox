@@ -14,7 +14,7 @@
           :model-value="query"
           @update:model-value="query = $event"
         />
-        <kbd class="rounded border border-outline-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-5">Esc</kbd>
+        <KeyboardShortcut combo="Escape" bg />
       </div>
 
       <div class="max-h-[min(520px,65vh)] overflow-y-auto p-2">
@@ -53,7 +53,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Dialog, Icon, TextInput } from 'frappe-ui'
+import { Dialog, Icon, KeyboardShortcut, TextInput } from 'frappe-ui'
 
 import { isToolAvailable, tools } from '@/data/toolRegistry'
 import { searchTools } from '@/utils/toolSearch'

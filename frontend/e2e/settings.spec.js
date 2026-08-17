@@ -99,9 +99,10 @@ test('opens settings as a dialog over the page, and leaves the route when it clo
   // the link, the bookmark and that header.
   await page.goto('/calculator')
   await page.getByRole('button', { name: 'Toolbox menu' }).click()
-  // The brand menu is a Dropdown, so its entries carry `role="menuitem"` rather than `link`,
-  // even though each one is an anchor.
-  await page.getByRole('menuitem', { name: 'Settings' }).click()
+  // The brand menu is frappe-ui's Dropdown since #278, so its entries are `role="menuitem"`
+  // buttons rather than links — `Menu` pushes the route itself. Exact, because the summary row
+  // above them says "Your settings stay in this browser" and a substring match takes that too.
+  await page.getByRole('menuitem', { name: 'Settings', exact: true }).click()
 
   await expect(page).toHaveURL(/\/settings$/)
   await expect(page.getByRole('dialog')).toBeVisible()

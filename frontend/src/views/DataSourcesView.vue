@@ -1,16 +1,10 @@
 <template>
   <div class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-8 sm:py-12">
-    <header>
-      <p class="text-sm font-medium text-ink-gray-5">About</p>
-      <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
-        Where the data comes from
-      </h1>
-      <p class="pt-2 text-base leading-7 text-ink-gray-6">
-        A tool is only as good as what it is built on. Every dataset and every service behind these
-        tools is named here, with the licence it carries and the day the release in use was
-        published.
-      </p>
-    </header>
+    <ToolPageHeader
+      category="About"
+      title="Where the data comes from"
+      description="A tool is only as good as what it is built on. Every dataset and every service behind these tools is named here, with the licence it carries and the day the release in use was published."
+    />
 
     <section class="pt-10" aria-labelledby="data-sources-datasets">
       <h2 id="data-sources-datasets" class="text-lg font-semibold text-ink-gray-9">
@@ -121,6 +115,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import { DATASET_NOTES, LIVE_SOURCES, LOCAL_TOOLS } from '@/tools/data-sources/catalog'
 import { useDataSources } from '@/tools/data-sources/useDataSources'
 

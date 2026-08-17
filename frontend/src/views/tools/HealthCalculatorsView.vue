@@ -1,13 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon :name="tool.icon" class="size-6 text-ink-gray-7" /></span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">{{ tool.name }}</h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">{{ tool.description }} Nothing you type is saved or sent anywhere.</p>
-      </div>
-    </header>
+    <ToolPageHeader
+      :icon="tool.icon"
+      :category="categoryName"
+      :title="tool.name"
+      :description="`${tool.description} Nothing you type is saved or sent anywhere.`"
+    />
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" :aria-labelledby="`${calculator.activeId.value}-health-heading`">
@@ -28,9 +26,10 @@
 </template>
 <script setup>
 import { computed, watch } from 'vue'
-import { Button, ErrorMessage, Icon } from 'frappe-ui'
+import { Button, ErrorMessage } from 'frappe-ui'
 import { useToolFamily } from '@/composables/useToolFamily'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import HealthInput from '@/tools/health-calculators/HealthInput.vue'
 import HealthResults from '@/tools/health-calculators/HealthResults.vue'
 import { useHealthCalculators } from '@/tools/health-calculators/useHealthCalculators'

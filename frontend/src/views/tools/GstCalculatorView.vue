@@ -1,19 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2">
-        <Icon name="lucide-percent" class="size-6 text-ink-gray-7" />
-      </span>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p>
-        <h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">
-          GST Calculator
-        </h1>
-        <p class="pt-2 text-base leading-7 text-ink-gray-6">
-          Add or remove GST and see the intra-state or inter-state tax split.
-        </p>
-      </div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-percent"
+      :category="categoryName"
+      title="GST Calculator"
+      description="Add or remove GST and see the intra-state or inter-state tax split."
+    />
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section
@@ -113,9 +105,10 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { Alert, Button, ErrorMessage, FormControl, Icon, TabButtons } from 'frappe-ui'
+import { Alert, Button, ErrorMessage, FormControl, TabButtons } from 'frappe-ui'
 
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import GstRatePicker from '@/tools/gst-calculator/GstRatePicker.vue'
 import GstResults from '@/tools/gst-calculator/GstResults.vue'
 import { GST_MODES, GST_SUPPLY_TYPES } from '@/tools/gst-calculator'

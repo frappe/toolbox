@@ -1,9 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-    <header class="flex items-start gap-4">
-      <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface-gray-2"><Icon name="lucide-badge-dollar-sign" class="size-6 text-ink-gray-7" /></span>
-      <div class="min-w-0 flex-1"><p class="text-sm font-medium text-ink-gray-5">{{ categoryName }}</p><h1 class="pt-1 text-2xl font-semibold tracking-tight text-ink-gray-9 sm:text-3xl">Currency Converter</h1><p class="pt-2 text-base leading-7 text-ink-gray-6">Convert locally with dated European Central Bank reference rates.</p></div>
-    </header>
+    <ToolPageHeader
+      icon="lucide-badge-dollar-sign"
+      :category="categoryName"
+      title="Currency Converter"
+      description="Convert locally with dated European Central Bank reference rates."
+    />
 
     <!--
       Input on the left, chart on the right, and both in one screen. The chart used to sit under
@@ -67,9 +69,10 @@
 </template>
 <script setup>
 import { computed, onMounted } from 'vue'
-import { Alert, Button, ErrorMessage, FormControl, Icon } from 'frappe-ui'
+import { Alert, Button, ErrorMessage, FormControl } from 'frappe-ui'
 import { useRoute } from 'vue-router'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'
+import ToolPageHeader from '@/components/layout/ToolPageHeader.vue'
 import CurrencyPicker from '@/tools/currency-converter/CurrencyPicker.vue'
 import RateChart from '@/tools/currency-converter/RateChart.vue'
 import { RATE_CHART_RANGES } from '@/tools/currency-converter/rateHistory'

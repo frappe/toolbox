@@ -432,47 +432,86 @@ vi.mock('frappe-ui', async () => {
 
   // Mirrors the observable surface of frappe-ui Dropdown: a trigger (the `#trigger`
   // slot, else the default slot), and — once opened — a `role="menu"` of
-  // `role="menuitem"` rows that run each option's `onClick`. The menu really is
-  // absent until the trigger is clicked, so keep it behind `open` rather than
-  // rendering it always: the real component does not show it either.
+  // `role="menuitem"` rows. The menu really is absent until the trigger is clicked,
+  // so keep it behind `open` rather than rendering it always: the real component does
+  // not show it either.
+  //
+  // Three things the real component does that this has to do as well, or a caller can
+  // pass an option shape the stub silently drops:
+  //
+  //   * `route` is pushed through the router by `Menu.handleItemSelect`. It is NOT an
+  //     anchor there, so this is a button that pushes — rendering an `<a href>` would
+  //     be an output the real component omits.
+  //   * `component` replaces the row. reka still wraps it in its Item primitive, so a
+  //     `disabled` one carries the attribute and is skipped by the roving focus.
+  //   * `#trigger` receives `{ open }`, which is what a caller binds `aria-expanded` to.
   const Dropdown = defineComponent({
     name: 'Dropdown',
     inheritAttrs: false,
     props: {
       options: { type: Array, default: () => [] },
     },
-    setup(props, { attrs, slots }) {
+    emits: ['update:open'],
+    setup(props, { attrs, slots, emit }) {
       const open = ref(false)
+      // Resolved from the app rather than imported, for the same reason `SidebarItem` does it:
+      // a spec is free to mock `vue-router`, and an import here would pick up that mock.
+      const globals = getCurrentInstance()?.appContext.config.globalProperties
 
       // `condition` decides whether an option exists at all, as in Menu/utils.ts.
       const visible = () => props.options.filter((option) => !option.condition || option.condition())
 
+      const setOpen = (next) => {
+        open.value = next
+        emit('update:open', next)
+      }
+
+      const renderOption = (option) =>
+        h(
+          'button',
+          {
+            key: String(option.label ?? 'component'),
+            type: 'button',
+            role: 'menuitem',
+            disabled: option.disabled || undefined,
+            'data-disabled': option.disabled ? '' : undefined,
+            onClick: () => {
+              if (option.disabled) return
+              if (option.route) globals?.$router?.push(option.route)
+              option.onClick?.()
+              setOpen(false)
+            },
+          },
+          option.component ? [h(option.component)] : option.label,
+        )
+
       return () =>
         h('div', { ...attrs, 'data-component': 'Dropdown' }, [
-          h('div', { onClick: () => (open.value = !open.value) }, slots.trigger?.() ?? slots.default?.()),
-          open.value
-            ? h(
-                'div',
-                { role: 'menu' },
-                visible().map((option) =>
-                  h(
-                    'button',
-                    {
-                      key: String(option.label),
-                      type: 'button',
-                      role: 'menuitem',
-                      disabled: option.disabled || undefined,
-                      onClick: () => {
-                        option.onClick?.()
-                        open.value = false
-                      },
-                    },
-                    option.label,
-                  ),
-                ),
-              )
-            : null,
+          h('div', { onClick: () => setOpen(!open.value) }, slots.trigger?.({ open: open.value }) ?? slots.default?.({ open: open.value })),
+          open.value ? h('div', { role: 'menu' }, visible().map(renderOption)) : null,
         ])
+    },
+  })
+
+  // Mirrors the observable surface of frappe-ui KeyboardShortcut: a `role="note"` with an
+  // aria-label naming the keys, and one `<kbd>` per part under `bg`. The real component resolves
+  // `Mod` per platform and draws glyphs for the modifiers; the shape is what a caller can assert.
+  const KeyboardShortcut = defineComponent({
+    name: 'KeyboardShortcut',
+    inheritAttrs: false,
+    props: {
+      combo: { type: String, default: '' },
+      shortcut: { type: String, default: '' },
+      bg: { type: Boolean, default: false },
+    },
+    setup(props, { attrs }) {
+      const parts = () => (props.combo || props.shortcut).split('+').filter(Boolean)
+      return () =>
+        h(
+          'span',
+          { ...attrs, role: 'note', 'aria-label': parts().join(' ') },
+          parts().map((part) => h('kbd', { key: part }, part)),
+        )
     },
   })
 
@@ -920,6 +959,7 @@ vi.mock('frappe-ui', async () => {
     ErrorMessage,
     FormControl,
     Icon,
+    KeyboardShortcut,
     LoadingIndicator,
     LoadingText,
     SettingsBody,

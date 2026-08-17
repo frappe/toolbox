@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { Alert, Button, Dropdown, Icon, Slider, TabButtons } from 'frappe-ui'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -90,6 +91,54 @@ describe('Dropdown stub opens and runs its options', () => {
 
     expect(onClick).toHaveBeenCalledTimes(1)
     expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+  })
+
+  // Three option shapes the real Menu understands. A stub that silently ignored any of them
+  // would let a caller ship an option that renders nothing, and the suite would stay green.
+  it('pushes a route option through the router', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', component: { template: '<div />' } },
+        { path: '/settings', component: { template: '<div />' } },
+      ],
+    })
+    const wrapper = mount(Dropdown, {
+      props: { options: [{ label: 'Settings', route: '/settings' }] },
+      slots: { default: '<button>Menu</button>' },
+      global: { plugins: [router] },
+    })
+
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+    await wrapper.find('[role="menuitem"]').trigger('click')
+    await router.isReady()
+
+    expect(router.currentRoute.value.path).toBe('/settings')
+  })
+
+  it('renders a component option, and a disabled one is inert', async () => {
+    const onClick = vi.fn()
+    const Summary = { template: '<p>Free tools, no account</p>' }
+    const wrapper = mountDropdown([{ component: Summary, disabled: true, onClick }])
+
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+    const row = wrapper.find('[role="menuitem"]')
+
+    expect(row.text()).toContain('Free tools, no account')
+    expect(row.attributes('disabled')).toBeDefined()
+    await row.trigger('click')
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('hands the trigger slot its open state', async () => {
+    const wrapper = mount(Dropdown, {
+      props: { options: [{ label: 'Markdown', onClick: vi.fn() }] },
+      slots: { trigger: '<button :aria-expanded="String(params.open)">Menu</button>' },
+    })
+
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('false')
+    await wrapper.find('[data-component="Dropdown"] > div').trigger('click')
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
   })
 
   it('drops options whose condition is false', async () => {

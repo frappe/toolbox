@@ -5,9 +5,9 @@
 
       <SidebarItem label="Search tools" icon="lucide-search" @click="$emit('search')">
         <template #suffix>
-          <kbd class="mr-2 rounded border border-outline-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-5">
-            ⌘K
-          </kbd>
+          <!-- `Mod` resolves to ⌘ on a Mac and Ctrl elsewhere, and the component names the keys
+               for a screen reader rather than leaving it to read two characters. -->
+          <KeyboardShortcut class="mr-2" combo="Mod+K" bg />
         </template>
       </SidebarItem>
 
@@ -79,7 +79,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Icon, Sidebar, SidebarCollapseToggle, SidebarItem } from 'frappe-ui'
+import { Icon, KeyboardShortcut, Sidebar, SidebarCollapseToggle, SidebarItem } from 'frappe-ui'
 
 import { usePwaStatus } from '@/composables/usePwaStatus'
 import { useToolboxPreferences } from '@/composables/useToolboxPreferences'

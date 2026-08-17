@@ -110,10 +110,8 @@ describe('GstCalculatorView', () => {
     // A single Clear empties the amount but keeps the mode and rate selections.
     expect(tab(wrapper, 'Remove GST').attributes('aria-checked')).toBe('true')
     expect(tab(wrapper, '5%').attributes('aria-checked')).toBe('true')
-    // Mode, place of supply and rate are TabButtons, so their height comes from
-    // the design system's pill size rather than a local h-11 (same trade-off as
-    // the tab strips migrated in #103). The action buttons keep theirs.
+    // Mode, place of supply and rate are TabButtons, so their height comes from the design
+    // system's pill size (same trade-off as the tab strips migrated in #103).
     expect(wrapper.findAll('[role="radio"]').length).toBe(12)
-    expect(wrapper.findAll('button.h-11').length).toBeGreaterThan(0)
   })
 })

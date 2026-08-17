@@ -20,7 +20,7 @@
 
     <!-- Ready: edit -->
     <template v-else>
-      <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" aria-label="Editor">
+      <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5" aria-label="Editor">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <p class="min-w-0 truncate text-sm font-medium text-ink-gray-8">{{ editor.source.value.name }}</p>
           <div class="flex items-center gap-1.5">
@@ -91,7 +91,7 @@
       </section>
 
       <!-- Preview + export -->
-      <section class="mt-4 rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-6" aria-label="Preview and export">
+      <section class="mt-4 rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-5" aria-label="Preview and export">
         <div class="flex flex-wrap items-center gap-3">
           <Button variant="outline" icon-left="lucide-play" label="Preview edit" @click="buildPreview" />
           <p class="text-sm text-ink-gray-6">Output: <span class="font-medium text-ink-gray-8 tabular-nums">{{ formatTime(editor.outputDuration.value) }}</span> · <span class="tabular-nums">≈{{ formatSize(estimatedSize) }}</span> {{ formatLabel }}</p>

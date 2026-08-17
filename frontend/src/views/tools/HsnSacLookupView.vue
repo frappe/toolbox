@@ -15,8 +15,8 @@
 
     <div v-else class="pt-8">
       <form class="flex flex-col gap-3 sm:flex-row" role="search" @submit.prevent="hsn.submit">
-        <FormControl class="min-w-0 flex-1 [&_input]:h-12" type="search" size="lg" variant="outline" label="Code or description" minlength="2" maxlength="80" required placeholder="8517 or telephone" :model-value="hsn.query.value" @update:model-value="hsn.query.value = $event" />
-        <Button class="h-12 self-end sm:w-28" variant="solid" label="Search" :loading="hsn.loading.value" type="submit" />
+        <FormControl class="min-w-0 flex-1" type="search" size="lg" variant="outline" label="Code or description" minlength="2" maxlength="80" required placeholder="8517 or telephone" :model-value="hsn.query.value" @update:model-value="hsn.query.value = $event" />
+        <Button size="lg" class="self-end sm:w-28" variant="solid" label="Search" :loading="hsn.loading.value" type="submit" />
       </form>
 
       <Alert v-if="hsn.errorMessage.value" class="mt-4" theme="red" :dismissible="false" :title="hsn.errorMessage.value" />

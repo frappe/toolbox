@@ -16,7 +16,7 @@
       <template #trigger="{ open, setOpen }">
         <button
           type="button"
-          class="mt-1 flex h-11 w-full items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-left text-sm text-ink-gray-8 outline-none hover:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+          class="mt-1 flex h-10 w-full items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-left text-sm text-ink-gray-8 outline-none hover:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3"
           aria-haspopup="listbox"
           :aria-labelledby="`${labelId} ${valueId}`"
           :aria-expanded="open"

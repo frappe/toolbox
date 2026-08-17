@@ -39,7 +39,7 @@
     <section class="pt-8" aria-labelledby="locations-title">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <h2 id="locations-title" class="text-lg font-semibold text-ink-gray-9">Locations</h2>
-        <Button class="h-11" variant="subtle" icon-left="lucide-copy" label="Copy times" @click="copyMeetingTimes" />
+        <Button size="md" variant="subtle" icon-left="lucide-copy" label="Copy times" @click="copyMeetingTimes" />
       </div>
 
       <ol class="grid gap-4 pt-5 md:grid-cols-2">

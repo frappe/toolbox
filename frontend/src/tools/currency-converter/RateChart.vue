@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6"
+    class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5"
     aria-labelledby="rate-chart-heading"
   >
     <div class="flex flex-wrap items-start justify-between gap-3">

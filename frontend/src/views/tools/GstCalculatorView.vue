@@ -9,7 +9,7 @@
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section
-        class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6"
+        class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5"
         aria-labelledby="gst-inputs-heading"
       >
         <h2 id="gst-inputs-heading" class="sr-only">GST calculation inputs</h2>
@@ -33,7 +33,7 @@
             type="text"
             size="lg"
             variant="outline"
-            class="[&_input]:h-12 [&_input]:font-medium [&_input]:tabular-nums"
+            class="[&_input]:font-medium [&_input]:tabular-nums"
             :label="calculator.amountLabel.value"
             :model-value="calculator.amountInput.value"
             inputmode="decimal"
@@ -48,7 +48,7 @@
           </FormControl>
         </div>
 
-        <fieldset class="min-w-0 pt-5">
+        <fieldset class="min-w-0 pt-4">
           <legend class="text-sm font-medium text-ink-gray-7">Place of supply</legend>
           <div class="overflow-x-auto pt-2">
             <TabButtons
@@ -77,15 +77,15 @@
           />
         </div>
 
-        <div id="gst-feedback" class="pt-4">
+        <div id="gst-feedback" class="pt-3">
           <ErrorMessage v-if="calculator.errorMessage.value" :message="calculator.errorMessage.value" />
           <p v-else-if="calculator.inputHint.value" class="text-sm leading-6 text-ink-gray-5">
             {{ calculator.inputHint.value }}
           </p>
         </div>
 
-        <div class="flex flex-wrap gap-2 pt-5">
-          <Button class="h-11" label="Clear" variant="subtle" @click="calculator.clear" />
+        <div class="flex flex-wrap gap-2 pt-4">
+          <Button size="md" label="Clear" variant="subtle" @click="calculator.clear" />
         </div>
       </section>
 

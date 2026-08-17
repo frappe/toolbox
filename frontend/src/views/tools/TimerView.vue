@@ -9,28 +9,28 @@
 
     <div class="pt-8">
       <section v-if="variant === 'timer'" aria-labelledby="timer-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
+        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5">
           <h2 id="timer-heading" class="text-lg font-semibold text-ink-gray-9">Timer</h2>
           <div class="grid gap-4 pt-5 sm:grid-cols-2">
             <FormControl type="number" size="md" label="Minutes" min="1" max="1440" :model-value="timerMinutes" @update:model-value="timerMinutes = $event" />
             <FormControl type="text" size="md" label="Label (optional)" maxlength="80" placeholder="Tea break" :model-value="timerLabel" @update:model-value="timerLabel = $event" />
           </div>
-          <div class="flex flex-wrap gap-2 pt-6"><Button label="Set timer" icon-left="lucide-timer" variant="subtle" class="h-12" @click="setTimer" /><Button :label="timerAction" :icon-left="timerActionIcon" variant="solid" class="h-12" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetActiveTimer" /></div>
+          <div class="flex flex-wrap gap-2 pt-5"><Button label="Set timer" icon-left="lucide-timer" variant="subtle" size="lg" @click="setTimer" /><Button :label="timerAction" :icon-left="timerActionIcon" variant="solid" size="lg" :disabled="!workspace.state.timer.durationMs" @click="workspace.toggleTimer" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" size="lg" @click="workspace.resetActiveTimer" /></div>
         </div>
         <TimeDisplay :label="workspace.state.timer.label || 'Timer remaining'" :milliseconds="workspace.state.timer.remainingMs" :status="workspace.state.timer.status" />
       </section>
 
       <section v-else-if="variant === 'stopwatch'" aria-labelledby="stopwatch-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
+        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5">
           <h2 id="stopwatch-heading" class="text-lg font-semibold text-ink-gray-9">Stopwatch</h2>
-          <div class="flex flex-wrap gap-2 pt-6"><Button :label="stopwatchAction" :icon-left="stopwatchActionIcon" variant="solid" class="h-12" @click="workspace.toggleStopwatch" /><Button label="Lap" icon-left="lucide-flag" variant="outline" class="h-12" :disabled="workspace.state.stopwatch.status !== 'running'" @click="workspace.lap" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" class="h-12" @click="workspace.resetStopwatch" /></div>
-          <ol v-if="workspace.state.stopwatch.laps.length" class="grid gap-2 pt-6" aria-label="Lap times"><li v-for="(lap, index) in [...workspace.state.stopwatch.laps].reverse()" :key="lap.elapsedMs" class="flex items-center justify-between rounded-lg bg-surface-gray-2 px-3 py-2 text-sm"><span>Lap {{ workspace.state.stopwatch.laps.length - index }}</span><span class="font-mono text-ink-gray-8">{{ formatDuration(lap.splitMs, true) }} · {{ formatDuration(lap.elapsedMs, true) }}</span></li></ol>
+          <div class="flex flex-wrap gap-2 pt-5"><Button :label="stopwatchAction" :icon-left="stopwatchActionIcon" variant="solid" size="lg" @click="workspace.toggleStopwatch" /><Button label="Lap" icon-left="lucide-flag" variant="outline" size="lg" :disabled="workspace.state.stopwatch.status !== 'running'" @click="workspace.lap" /><Button label="Reset" icon-left="lucide-rotate-ccw" variant="outline" size="lg" @click="workspace.resetStopwatch" /></div>
+          <ol v-if="workspace.state.stopwatch.laps.length" class="grid gap-2 pt-5" aria-label="Lap times"><li v-for="(lap, index) in [...workspace.state.stopwatch.laps].reverse()" :key="lap.elapsedMs" class="flex items-center justify-between rounded-lg bg-surface-gray-2 px-3 py-2 text-sm"><span>Lap {{ workspace.state.stopwatch.laps.length - index }}</span><span class="font-mono text-ink-gray-8">{{ formatDuration(lap.splitMs, true) }} · {{ formatDuration(lap.elapsedMs, true) }}</span></li></ol>
         </div>
         <TimeDisplay label="Elapsed time" :milliseconds="stopwatchElapsed" :status="workspace.state.stopwatch.status" precise />
       </section>
 
       <section v-else aria-labelledby="countdown-heading" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6">
+        <div class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5">
           <h2 id="countdown-heading" class="text-lg font-semibold text-ink-gray-9">Countdown</h2>
           <div class="grid gap-5 pt-5">
             <div class="grid gap-2"><p id="countdown-mode-label" class="text-sm font-medium text-ink-gray-7">Countdown mode</p><TabButtons v-model="countdownMode" :options="countdownModes" size="md" aria-labelledby="countdown-mode-label" /></div>
@@ -38,7 +38,7 @@
             <FormControl v-else type="datetime" size="md" label="Target date and time" :model-value="countdownDate" @update:model-value="countdownDate = $event" />
           </div>
           <ErrorMessage class="pt-3" :message="countdownError" />
-          <div class="flex flex-wrap gap-2 pt-6"><Button label="Start countdown" icon-left="lucide-play" variant="solid" class="h-12" @click="startCountdown" /><Button label="Clear" icon-left="lucide-x" variant="outline" class="h-12" @click="workspace.clearCountdown" /></div>
+          <div class="flex flex-wrap gap-2 pt-5"><Button label="Start countdown" icon-left="lucide-play" variant="solid" size="lg" @click="startCountdown" /><Button label="Clear" icon-left="lucide-x" variant="outline" size="lg" @click="workspace.clearCountdown" /></div>
           <p v-if="workspace.state.countdown.targetAt" class="pt-5 text-sm text-ink-gray-6">Target: <time>{{ targetText }}</time></p>
         </div>
         <TimeDisplay label="Countdown remaining" :milliseconds="workspace.state.countdown.remainingMs" :status="workspace.state.countdown.status" />

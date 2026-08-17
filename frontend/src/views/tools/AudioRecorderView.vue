@@ -7,7 +7,7 @@
       description="Record a voice note in your browser and save it to your device. Nothing is uploaded."
     />
 
-    <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" aria-label="Recorder">
+    <section class="mt-8 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5" aria-label="Recorder">
       <p v-if="!recorder.isSupported.value" class="flex items-center gap-2 text-sm text-ink-gray-6">
         <Icon name="lucide-mic-off" class="size-5 shrink-0 text-ink-gray-5" />
         Recording needs a browser with microphone support.

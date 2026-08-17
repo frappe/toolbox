@@ -1,5 +1,5 @@
 <template>
-  <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-base p-5 sm:p-6" aria-labelledby="health-results-heading">
+  <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-5" aria-labelledby="health-results-heading">
     <h2 id="health-results-heading" class="text-base font-semibold text-ink-gray-9">Result</h2>
     <div v-if="presentation" class="pt-5">
       <p class="text-sm text-ink-gray-5">{{ presentation.primary.label }}</p>

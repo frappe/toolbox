@@ -9,7 +9,7 @@
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
       <section
-        class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6"
+        class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5"
         :aria-labelledby="`${calculator.activeId.value}-inputs-heading`"
       >
         <div>
@@ -24,7 +24,7 @@
           </p>
         </div>
 
-        <div class="grid gap-5 pt-6 sm:grid-cols-2">
+        <div class="grid gap-4 pt-5 sm:grid-cols-2">
           <FinancialInput
             v-for="input in calculator.activeCalculator.value.inputs"
             :key="input.id"
@@ -37,7 +37,7 @@
           />
         </div>
 
-        <div :id="`${calculator.activeId.value}-feedback`" class="pt-4">
+        <div :id="`${calculator.activeId.value}-feedback`" class="pt-3">
           <ErrorMessage
             v-if="calculator.errorMessage.value"
             :message="calculator.errorMessage.value"
@@ -47,8 +47,8 @@
           </p>
         </div>
 
-        <div class="flex flex-wrap gap-2 pt-5">
-          <Button class="h-11" label="Clear" variant="subtle" @click="calculator.clear" />
+        <div class="flex flex-wrap gap-2 pt-4">
+          <Button size="md" label="Clear" variant="subtle" @click="calculator.clear" />
         </div>
       </section>
 

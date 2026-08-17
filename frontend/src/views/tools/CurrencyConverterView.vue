@@ -13,8 +13,8 @@
     -->
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
       <div class="min-w-0">
-        <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-5 sm:p-6" aria-labelledby="currency-input-heading">
-          <div class="flex items-start justify-between gap-4"><div><h2 id="currency-input-heading" class="text-lg font-semibold text-ink-gray-9">Convert an amount</h2><p class="pt-1 text-sm leading-6 text-ink-gray-6">Your amount and selected currencies stay in this browser.</p></div><Button label="Refresh rates" variant="ghost" icon-left="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(converter.loadState.value)" @click="converter.loadRates" /></div>
+        <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5" aria-labelledby="currency-input-heading">
+          <div class="flex items-start justify-between gap-4"><div><h2 id="currency-input-heading" class="text-lg font-semibold text-ink-gray-9">Convert an amount</h2><p class="pt-1 text-sm leading-6 text-ink-gray-6">Your amount and selected currencies stay in this browser.</p></div><Button size="md" label="Refresh rates" variant="ghost" icon-left="lucide-refresh-cw" :loading="['loading', 'refreshing'].includes(converter.loadState.value)" @click="converter.loadRates" /></div>
 
           <!--
             From and to read across (#282). Each side stacks its amount over its currency, so the
@@ -26,7 +26,7 @@
               <CurrencyPicker v-model="converter.sourceCurrency.value" label="Source currency" picker-id="source-currency" :currencies="converter.currencies.value" />
             </div>
 
-            <Button class="mx-auto size-11" variant="subtle" icon="lucide-arrow-left-right" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" />
+            <Button class="mx-auto size-10" variant="subtle" icon="lucide-arrow-left-right" aria-label="Swap source and destination currencies" @click="converter.swapCurrencies" />
 
             <div class="flex min-w-0 flex-col gap-3">
               <FormControl class="[&_input]:tabular-nums" type="number" size="lg" variant="outline" label="Converts to" :model-value="converter.destinationInput.value" min="0" max="1000000000000000" step="any" inputmode="decimal" aria-label="Destination amount" @update:model-value="converter.updateDestinationAmount" />
@@ -34,7 +34,7 @@
             </div>
           </div>
 
-          <div id="currency-feedback" class="pt-4"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" variant="outline" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
+          <div id="currency-feedback" class="pt-3"><ErrorMessage v-if="converter.amountError.value" :message="converter.amountError.value" /><Alert v-else-if="converter.errorMessage.value" theme="yellow" variant="outline" :dismissible="false" :title="converter.errorMessage.value" /><p v-else class="text-sm text-ink-gray-5">Type in either box — the other updates using the dated reference rate.</p></div>
         </section>
 
         <div v-if="converter.rateData.value" class="mt-6 space-y-2 text-sm leading-6 text-ink-gray-5">

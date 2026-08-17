@@ -1,6 +1,6 @@
 <template>
   <section
-    class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-base p-5 sm:p-6"
+    class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-base p-4 sm:p-5"
     aria-labelledby="gst-results-heading"
   >
     <h2 id="gst-results-heading" class="text-base font-semibold text-ink-gray-9">Result</h2>

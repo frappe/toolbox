@@ -10,7 +10,7 @@
     <div class="pt-8">
       <section class="min-w-0" aria-labelledby="converter-heading">
         <h2 id="converter-heading" class="sr-only">Convert units</h2>
-        <div class="rounded-2xl bg-surface-gray-1 p-3 sm:p-4">
+        <div class="rounded-2xl bg-surface-gray-1 p-4 sm:p-5">
           <p
             class="sr-only"
             role="status"
@@ -66,7 +66,7 @@
             :title="converter.errorMessage.value"
           >
             <template #footer>
-              <Button label="Clear values" variant="ghost" @click="converter.clearValues" />
+              <Button size="md" label="Clear values" variant="ghost" @click="converter.clearValues" />
             </template>
           </Alert>
           <p v-else-if="converter.inputHint.value" class="px-3 pb-1 pt-3 text-sm text-ink-gray-5" aria-live="polite">
@@ -74,7 +74,7 @@
           </p>
 
           <div class="flex flex-wrap gap-2 px-2 pb-1 pt-4">
-            <Button label="Clear" variant="subtle" @click="converter.clearValues" />
+            <Button size="md" label="Clear" variant="subtle" @click="converter.clearValues" />
           </div>
         </div>
       </section>

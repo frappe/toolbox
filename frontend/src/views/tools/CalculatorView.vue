@@ -9,7 +9,7 @@
 
     <div class="pt-8">
       <section class="min-w-0" aria-label="Calculator workspace">
-        <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6">
+        <section class="rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5">
           <!--
             TextInput rather than FormControl: the view drives the caret directly
             (select, setSelectionRange, selectionStart) and needs the component's
@@ -49,7 +49,7 @@
 
           <CalculatorKeypad @insert="insertKey" @action="handleKeypadAction" />
 
-          <div class="flex items-center gap-2 pt-5">
+          <div class="flex items-center gap-2 pt-4">
             <span class="text-sm font-medium text-ink-gray-7">Angle</span>
             <TabButtons
               :model-value="angleMode"

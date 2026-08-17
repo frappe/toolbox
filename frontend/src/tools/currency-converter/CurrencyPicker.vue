@@ -14,7 +14,7 @@
       @update:open="clearQueryOnClose"
     >
       <template #trigger="{ open }">
-        <button type="button" class="mt-2 flex h-12 w-full items-center gap-3 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-left outline-none hover:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" aria-haspopup="listbox" :aria-labelledby="`${labelId} ${valueId}`" :aria-expanded="open" :data-testid="pickerId">
+        <button type="button" class="mt-2 flex h-10 w-full items-center gap-3 rounded-lg border border-outline-gray-2 bg-surface-base px-3 text-left outline-none hover:border-outline-gray-3 focus-visible:ring-2 focus-visible:ring-outline-gray-3" aria-haspopup="listbox" :aria-labelledby="`${labelId} ${valueId}`" :aria-expanded="open" :data-testid="pickerId">
           <span :id="valueId" class="w-12 shrink-0 font-semibold text-ink-gray-9">{{ modelValue }}</span>
           <span class="min-w-0 flex-1 truncate text-sm text-ink-gray-6">{{ selectedName }}</span>
           <Icon name="lucide-chevrons-up-down" class="size-4 shrink-0 text-ink-gray-5" />

@@ -7,8 +7,8 @@
 
   <div v-else>
     <form class="flex flex-col gap-3 sm:flex-row" role="search" @submit.prevent="submit">
-      <FormControl class="min-w-0 flex-1 [&_input]:h-12" type="search" size="lg" variant="outline" :label="searchLabel" minlength="2" maxlength="80" required :placeholder="placeholder" :model-value="query" @update:model-value="query = $event" />
-      <Button class="h-12 self-end sm:w-28" variant="solid" label="Search" :loading="loading" type="submit" />
+      <FormControl class="min-w-0 flex-1" type="search" size="lg" variant="outline" :label="searchLabel" minlength="2" maxlength="80" required :placeholder="placeholder" :model-value="query" @update:model-value="query = $event" />
+      <Button size="lg" class="self-end sm:w-28" variant="solid" label="Search" :loading="loading" type="submit" />
     </form>
 
     <Alert v-if="errorMessage" class="mt-4" theme="red" :dismissible="false" :title="errorMessage" />

@@ -12,7 +12,8 @@
         <Button
           v-for="key in scientificKeys"
           :key="key.id"
-          class="h-11 w-full font-medium"
+          class="w-full font-medium"
+          size="lg"
           variant="subtle"
           :aria-label="key.ariaLabel"
           :data-calculator-key="key.id"
@@ -31,7 +32,8 @@
         <Button
           v-for="key in standardKeys"
           :key="key.id"
-          class="h-11 w-full text-base font-medium"
+          class="w-full text-base font-medium"
+          size="lg"
           :variant="key.variant"
           :theme="key.theme || 'gray'"
           :aria-label="key.ariaLabel"

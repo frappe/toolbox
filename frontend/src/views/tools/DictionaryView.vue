@@ -10,7 +10,7 @@
     <form class="pt-8" role="search" @submit.prevent="dict.submit">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
         <SearchSelect
-          class="min-w-0 flex-1 [&_input]:h-12"
+          class="min-w-0 flex-1"
           size="lg"
           variant="outline"
           spellcheck="false"
@@ -24,7 +24,7 @@
         >
           <template #option="{ result }">{{ result }}</template>
         </SearchSelect>
-        <Button class="h-12 sm:w-28" variant="solid" label="Look up" type="submit" :loading="dict.state.value === 'loading'" />
+        <Button size="lg" class="sm:w-28" variant="solid" label="Look up" type="submit" :loading="dict.state.value === 'loading'" />
       </div>
     </form>
 

@@ -8,17 +8,17 @@
     />
 
     <div class="grid gap-8 pt-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
-      <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-6" :aria-labelledby="`${calculator.activeId.value}-health-heading`">
+      <section class="min-w-0 rounded-2xl border border-outline-gray-2 bg-surface-gray-1 p-4 sm:p-5" :aria-labelledby="`${calculator.activeId.value}-health-heading`">
         <h2 :id="`${calculator.activeId.value}-health-heading`" class="text-lg font-semibold text-ink-gray-9">{{ calculator.activeCalculator.value.name }}</h2>
         <p class="pt-1 text-sm leading-6 text-ink-gray-6">{{ calculator.activeCalculator.value.description }}</p>
-        <div class="grid gap-5 pt-6 sm:grid-cols-2">
+        <div class="grid gap-4 pt-5 sm:grid-cols-2">
           <HealthInput v-for="input in calculator.activeInputs.value" :key="input.id" :input="input" :input-id="`${calculator.activeId.value}-${input.id}`" :model-value="calculator.activeValues.value[input.id]" :described-by="`${calculator.activeId.value}-health-feedback`" @update:model-value="calculator.updateInput(input.id, $event)" />
         </div>
-        <div :id="`${calculator.activeId.value}-health-feedback`" class="pt-4">
+        <div :id="`${calculator.activeId.value}-health-feedback`" class="pt-3">
           <ErrorMessage v-if="calculator.errorMessage.value" :message="calculator.errorMessage.value" />
           <p v-else class="text-sm leading-6 text-ink-gray-5">Inputs stay in this browser tab and are not saved.</p>
         </div>
-        <div class="flex gap-2 pt-5"><Button label="Calculate" variant="solid" class="h-11" @click="calculator.calculate" /><Button label="Reset" variant="ghost" class="h-11" @click="calculator.reset" /></div>
+        <div class="flex gap-2 pt-4"><Button size="md" label="Calculate" variant="solid" @click="calculator.calculate" /><Button size="md" label="Reset" variant="ghost" @click="calculator.reset" /></div>
       </section>
       <HealthResults class="lg:sticky lg:top-6" :presentation="calculator.presentation.value" />
     </div>

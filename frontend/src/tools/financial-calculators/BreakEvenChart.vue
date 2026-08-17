@@ -1,59 +1,58 @@
 <template>
-  <figure class="pt-2">
-    <svg
-      :viewBox="`0 0 ${WIDTH} ${HEIGHT}`"
-      class="w-full"
-      role="img"
-      :aria-label="ariaLabel"
-    >
-      <!-- Loss region (left of break-even) and profit region (right), shaded subtly. -->
-      <polygon :points="lossRegion" class="text-ink-red-3" fill="currentColor" opacity="0.08" />
-      <polygon :points="profitRegion" class="text-ink-green-3" fill="currentColor" opacity="0.1" />
+  <ToolChart
+    :width="WIDTH"
+    :height="HEIGHT"
+    :aria-label="ariaLabel"
+    figure-class="pt-2"
+    caption-class="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-xs text-ink-gray-5"
+  >
+    <!-- Loss region (left of break-even) and profit region (right), shaded subtly. -->
+    <polygon :points="lossRegion" class="text-ink-red-3" fill="currentColor" opacity="0.08" />
+    <polygon :points="profitRegion" class="text-ink-green-3" fill="currentColor" opacity="0.1" />
 
-      <!-- Axis baselines. -->
-      <line
-        :x1="x(0)"
-        :y1="y(0)"
-        :x2="x(qMax)"
-        :y2="y(0)"
-        class="stroke-outline-gray-2"
-        stroke-width="1"
-      />
+    <!-- Axis baselines. -->
+    <line
+      :x1="x(0)"
+      :y1="y(0)"
+      :x2="x(qMax)"
+      :y2="y(0)"
+      class="stroke-outline-gray-2"
+      stroke-width="1"
+    />
 
-      <polyline
-        :points="costLine"
-        fill="none"
-        class="text-ink-gray-7"
-        stroke="currentColor"
-        stroke-width="2"
-        vector-effect="non-scaling-stroke"
-      />
-      <!-- Step 8, as on the cost line above it. A line that carries meaning is a non-text
-           element and owes 3:1; step 3 measures 1.21:1 and is the region tint below. -->
-      <polyline
-        :points="revenueLine"
-        fill="none"
-        class="text-ink-green-8"
-        stroke="currentColor"
-        stroke-width="2"
-        vector-effect="non-scaling-stroke"
-      />
+    <polyline
+      :points="costLine"
+      fill="none"
+      class="text-ink-gray-7"
+      stroke="currentColor"
+      stroke-width="2"
+      vector-effect="non-scaling-stroke"
+    />
+    <!-- Step 8, as on the cost line above it. A line that carries meaning is a non-text
+         element and owes 3:1; step 3 measures 1.21:1 and is the region tint below. -->
+    <polyline
+      :points="revenueLine"
+      fill="none"
+      class="text-ink-green-8"
+      stroke="currentColor"
+      stroke-width="2"
+      vector-effect="non-scaling-stroke"
+    />
 
-      <line
-        :x1="crossover.x"
-        :y1="crossover.y"
-        :x2="crossover.x"
-        :y2="y(0)"
-        class="stroke-outline-gray-3"
-        stroke-width="1"
-        stroke-dasharray="3 3"
-      />
-      <circle :cx="crossover.x" :cy="crossover.y" r="3.5" class="text-ink-gray-9" fill="currentColor" />
-    </svg>
+    <line
+      :x1="crossover.x"
+      :y1="crossover.y"
+      :x2="crossover.x"
+      :y2="y(0)"
+      class="stroke-outline-gray-3"
+      stroke-width="1"
+      stroke-dasharray="3 3"
+    />
+    <circle :cx="crossover.x" :cy="crossover.y" r="3.5" class="text-ink-gray-9" fill="currentColor" />
 
-    <figcaption class="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-xs text-ink-gray-5">
+    <template #caption>
       <span class="flex items-center gap-1.5">
-        <span class="h-0.5 w-3 rounded bg-ink-green-3" aria-hidden="true" />
+        <span class="h-0.5 w-3 rounded bg-ink-green-8" aria-hidden="true" />
         Revenue
       </span>
       <span class="flex items-center gap-1.5">
@@ -63,12 +62,14 @@
       <span class="ml-auto font-medium text-ink-gray-7">
         Break-even {{ breakEvenQuantity.toLocaleString() }} units
       </span>
-    </figcaption>
-  </figure>
+    </template>
+  </ToolChart>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+
+import ToolChart from '@/components/charts/ToolChart.vue'
 
 const WIDTH = 320
 const HEIGHT = 150

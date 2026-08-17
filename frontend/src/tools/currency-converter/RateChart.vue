@@ -76,16 +76,16 @@
         </p>
       </div>
 
-      <figure v-else-if="state === 'ready'" class="m-0">
-        <svg
-          ref="svg"
-          :viewBox="`0 0 ${VIEW_W} ${VIEW_H}`"
-          class="w-full touch-none"
-          role="img"
-          :aria-label="`${base} to ${quote} exchange rate over ${range}`"
-          @pointermove="onPointerMove"
-          @pointerleave="hoverIndex = null"
-        >
+      <ToolChart
+        v-else-if="state === 'ready'"
+        :width="VIEW_W"
+        :height="VIEW_H"
+        :aria-label="`${base} to ${quote} exchange rate over ${range}`"
+        figure-class="m-0"
+        svg-class="touch-none"
+        @pointermove="onPointerMove"
+        @pointerleave="hoverIndex = null"
+      >
           <line
             v-for="tick in yTicks"
             :key="tick.value"
@@ -151,8 +151,7 @@
           >
             {{ formatDate(series.points.at(-1).date) }}
           </text>
-        </svg>
-      </figure>
+      </ToolChart>
     </div>
 
     <!--
@@ -168,6 +167,8 @@
 import { computed, ref } from 'vue'
 import { Button, LoadingText, TabButtons } from 'frappe-ui'
 
+import ToolChart from '@/components/charts/ToolChart.vue'
+import { areaPolygon, polylinePoints, scalePoints, seriesBounds } from '@/components/charts/seriesPath'
 import { buildRateCsv } from './rateHistory'
 
 const VIEW_W = 640
@@ -189,7 +190,6 @@ const props = defineProps({
 
 const emit = defineEmits(['set-range', 'retry'])
 
-const svg = ref(null)
 const hoverIndex = ref(null)
 
 const numberFormat = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 6 })
@@ -201,36 +201,25 @@ const rangeTabs = computed(() =>
 
 const points = computed(() => props.series?.points ?? [])
 
-const bounds = computed(() => {
-  const values = points.value.map((point) => point.value)
-  if (!values.length) return { min: 0, max: 1 }
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const span = max - min || Math.abs(max) * 0.01 || 1
-  // Rates hover around a value, so pad the extremes instead of anchoring at zero.
-  return { min: min - span * 0.08, max: max + span * 0.08 }
-})
+// A rate hovers around a value rather than climbing from zero, so its extremes get room instead
+// of a zero baseline. That one option is the whole difference from the growth chart.
+const bounds = computed(() => seriesBounds(points.value.map((point) => point.value), { padFraction: 0.08 }))
 
 const scaled = computed(() => {
-  const { min, max } = bounds.value
-  const range = max - min || 1
-  const count = points.value.length
-  return points.value.map((point, index) => ({
-    ...point,
-    x: PAD.left + (count > 1 ? (index / (count - 1)) * PLOT_W : PLOT_W / 2),
-    y: PAD.top + (1 - (point.value - min) / range) * PLOT_H,
-  }))
+  const placed = scalePoints(points.value.map((point) => point.value), {
+    width: VIEW_W,
+    height: VIEW_H,
+    padding: PAD,
+    bounds: bounds.value,
+  })
+  // The date and the value ride along, because the tooltip reads them.
+  return points.value.map((point, index) => ({ ...point, ...placed[index] }))
 })
 
-const linePoints = computed(() =>
-  scaled.value.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' '),
+const linePoints = computed(() => polylinePoints(scaled.value))
+const areaPoints = computed(() =>
+  areaPolygon(scaled.value, { width: VIEW_W, height: VIEW_H, padding: PAD }),
 )
-
-const areaPoints = computed(() => {
-  if (!scaled.value.length) return ''
-  const base = VIEW_H - PAD.bottom
-  return `${PAD.left},${base} ${linePoints.value} ${VIEW_W - PAD.right},${base}`
-})
 
 const yTicks = computed(() => {
   const { min, max } = bounds.value
@@ -258,8 +247,11 @@ const tooltipX = computed(() => {
   return Math.min(Math.max(hovered.value.x - TOOLTIP_W / 2, PAD.left), VIEW_W - PAD.right - TOOLTIP_W)
 })
 
+// `ToolChart` binds its attrs to the `<svg>`, so the listener is on the element that is drawn
+// and `currentTarget` is it. This used to read a template ref, which the move to the shared
+// component would have left pointing at nothing — a dead tooltip that no test could see.
 function onPointerMove(event) {
-  const element = svg.value
+  const element = event.currentTarget
   const count = points.value.length
   if (!element || count < 2) return
   const rect = element.getBoundingClientRect()

@@ -52,3 +52,21 @@ test('never describes reference rates as live', async ({ page }) => {
   await expect(page.getByText('updated', { exact: true })).toBeVisible()
   await expect(page.getByText('Live', { exact: true })).toHaveCount(0)
 })
+
+// The rate chart reads the pointer against its own bounding box to pick the nearest point. That
+// used a template ref until #280 moved the SVG into `ToolChart`, which left the ref pointing at
+// nothing and the tooltip dead — with every test still green, because none of them hovered it.
+test('the rate chart answers a hover with the value under the pointer', async ({ page }) => {
+  await mockCurrencyRates(page)
+  await page.goto('/currency-converter')
+
+  const chart = page.getByRole('img', { name: /exchange rate over/ })
+  await expect(chart).toBeVisible()
+
+  const box = await chart.boundingBox()
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2)
+
+  // The tooltip is drawn inside the SVG, so it is text rather than a title attribute.
+  await expect(chart.locator('text').filter({ hasText: /\d/ }).first()).toBeVisible()
+  await expect(chart.locator('circle')).toBeVisible()
+})
